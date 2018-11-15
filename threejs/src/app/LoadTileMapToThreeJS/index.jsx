@@ -27,7 +27,7 @@ export default class LoadModel extends PureComponent {
 		camera.position.z = 300;
 		camera.lookAt(scene.position);
 		renderer = new THREE.WebGLRenderer({
-			antialias: true//抗锯齿
+			antialias: false  //抗锯齿
 		});
 		renderer.setSize(width, height);
 		renderer.setClearColor(0x000000);
@@ -149,6 +149,7 @@ export default class LoadModel extends PureComponent {
 			// var url = serverURL + level + "/" + xno + "/" + yno + ".png";
 			var url = `${serverURL}?lang=zh_cn&size=1&scale=1&style=8&x=${xno}&y=${yno}&z=${level}`
 			var loader = new THREE.TextureLoader();
+            console.log("1111111111");
 			//跨域加载图片
 			loader.crossOrigin = true;
 			loader.load(url, function(texture) {
@@ -223,32 +224,53 @@ export default class LoadModel extends PureComponent {
 			mesh.position.y = y;
 			scene.add(mesh);
 		}
+
 		function main() {
-			navigator.geolocation.getCurrentPosition(function(position) {
-				var lng = position.coords.longitude;
-				var lat = position.coords.latitude;
-				console.log("current position in world", lat, lng);
-				centerLat = lat;
-				centerLng = lng;
-				var webMercator = LonLat2WebMercator(lng, lat);
-				var tilePos = WebMercator2Tileimage(webMercator.x,webMercator.y);
+			// 116.23, 39.54
+			// navigator.geolocation.getCurrentPosition(function(position) {
+			// 	var lng = position.coords.longitude;
+			// 	var lat = position.coords.latitude;
+			// 	console.log("current position in world", lat, lng);
+			// 	centerLat = lat;
+			// 	centerLng = lng;
+			// 	var webMercator = LonLat2WebMercator(lng, lat);
+			// 	var tilePos = WebMercator2Tileimage(webMercator.x,webMercator.y);
+            //     console.log("1111wqq");
+			// 	//以centerLng所在点tile中心点为中心，加载tile
+			// 	loadMap(tilePos.tileinfo.x, tilePos.tileinfo.y);
+			//
+			// 	//标记当前位置
+			// 	var currentWebGLPos = LonLat2WebGL(lng,lat);
+			// 	markCurrentPosition(currentWebGLPos.x,currentWebGLPos.y);
+			// });
 
-				//以centerLng所在点tile中心点为中心，加载tile
-				loadMap(tilePos.tileinfo.x, tilePos.tileinfo.y);
+            var lng = 116.23;
+            var lat = 39.54;
+            console.log("current position in world", lat, lng);
+            centerLat = lat;
+            centerLng = lng;
+            var webMercator = LonLat2WebMercator(lng, lat);
+            var tilePos = WebMercator2Tileimage(webMercator.x,webMercator.y);
+            console.log("1111wqq");
+            //以centerLng所在点tile中心点为中心，加载tile
+            loadMap(tilePos.tileinfo.x, tilePos.tileinfo.y);
 
-				//标记当前位置
-				var currentWebGLPos = LonLat2WebGL(lng,lat);
-				markCurrentPosition(currentWebGLPos.x,currentWebGLPos.y);
-			});
+            //标记当前位置
+            var currentWebGLPos = LonLat2WebGL(lng,lat);
+            markCurrentPosition(currentWebGLPos.x,currentWebGLPos.y);
 		}
+
 		main();
 
 	}
 
     render() {
 		return (
-			<div id="space" style={{width: '100%', height: 600, textAlign: 'center'}}>
-				<h2>渲染3D场景</h2>
+			<div>
+                <h2>加载地图</h2>
+				<div id="space" style={{width: '100%', height: 600, textAlign: 'center'}}>
+
+				</div>
 			</div>
 		);
     }

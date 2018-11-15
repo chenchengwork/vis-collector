@@ -1,10 +1,10 @@
-import { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 
 // 组件
 import LoadModel from './LoadModel';
-// import Earth from './Earth';
-// import EarthFlightLine from './EarthFlightLine';
-// import LoadTileMapToThreeJS from './LoadTileMapToThreeJS';
+import Earth from './Earth';
+import EarthFlightLine from './EarthFlightLine';
+import LoadTileMapToThreeJS from './LoadTileMapToThreeJS';
 
 const EnumType = [
 	{
@@ -12,21 +12,24 @@ const EnumType = [
 		value: 1,
 		component: () => <LoadModel />
 	},
-	// {
-	// 	label: "加载地球",
-	// 	value: 2,
-	// 	component: () => <Earth />
-	// },
-	// {
-	// 	label: "加载Tile地图到ThreeJS",
-	// 	value: 3,
-	// 	component: () => <LoadTileMapToThreeJS />
-	// },
-	// {
-	// 	label: "加载地球飞线",
-	// 	value: 4,
-	// 	component: () => <EarthFlightLine />
-	// },
+
+	{
+		label: "加载地球",
+		value: 2,
+		component: () => <Earth />
+	},
+
+	{
+		label: "加载Tile地图到ThreeJS",
+		value: 3,
+		component: () => <LoadTileMapToThreeJS />
+	},
+
+	{
+		label: "加载地球飞线",
+		value: 4,
+		component: () => <EarthFlightLine />
+	},
 ];
 
 const EnumTypeToItemMap = (() => {
@@ -37,7 +40,7 @@ const EnumTypeToItemMap = (() => {
 	return typeToItemMap;
 })();
 
-export default class ModelLoader extends PureComponent {
+export default class App extends PureComponent {
 	state = {
 		type: EnumType[0].value,
 	}
@@ -48,16 +51,20 @@ export default class ModelLoader extends PureComponent {
 
     render() {
 		return (
-			<div>
-				<select onChange={(e) => this.setState({type: e.target.value})}>
-					{
-						EnumType.map(item => <option key={item.value} value={item.value}>{item.label}</option>)
-					}
-				</select>
+			<Fragment>
+				<div>
+					<select onChange={(e) => this.setState({type: e.target.value})}>
+						{
+							EnumType.map(item => <option key={item.value} value={item.value}>{item.label}</option>)
+						}
+					</select>
+				</div>
 
-				{EnumTypeToItemMap[this.state.type].component()}
+				<div style={{position: "relative"}}>
+					{EnumTypeToItemMap[this.state.type].component()}
+				</div>
 
-			</div>
+			</Fragment>
         );
     }
 }

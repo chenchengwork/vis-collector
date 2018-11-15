@@ -114,12 +114,13 @@ export default class LoadModel extends PureComponent {
 
     render() {
 		return (
-			<div
-				id="space"
-				style={{position: 'fixed', width: '100%', height: "100%", textAlign: 'center'}}
-			>
-
-			</div>
+		    <div>
+                <h2>3D模型加载</h2>
+                <div
+                    id="space"
+                    style={{position: 'fixed', width: '100%', height: "100%", textAlign: 'center'}}
+                ></div>
+            </div>
 		);
     }
 }

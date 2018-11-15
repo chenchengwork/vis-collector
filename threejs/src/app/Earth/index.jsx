@@ -107,8 +107,9 @@ export default class Earth extends PureComponent {
 
     render() {
 		return (
-			<div id="earth" style={{height: 600, textAlign: 'center'}}>
-				<h2>渲染3D场景</h2>
+			<div>
+                <h2>3D地球</h2>
+				<div id="earth" style={{height: 600, textAlign: 'center'}}></div>
 			</div>
         );
     }

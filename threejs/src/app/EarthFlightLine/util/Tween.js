@@ -754,6 +754,9 @@ TWEEN.Interpolation = {
 
 };
 
-if(typeof module !== 'undefined' && module.exports) {
-	module.exports = TWEEN;
-}
+export default TWEEN
+
+// module.exports = TWEEN;
+// if(typeof module !== 'undefined' && module.exports) {
+// 	module.exports = TWEEN;
+// }

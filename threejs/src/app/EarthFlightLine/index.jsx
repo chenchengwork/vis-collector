@@ -9,7 +9,7 @@ import Link from './util/link';
 import LngLat2Coordinate from './util/LngLat2Coordinate';
 import THREEGeoJSONGlobeMap from './util/threeGeoJSON';
 import TWEEN from './util/Tween';
-import d3 from './util/d3';
+// import d3 from './util/d3';
 
 
 import img_worldMap from './images/worldMap.png';
@@ -102,9 +102,9 @@ export default class EarthFlightLine extends PureComponent {
 				scene = new THREE.Scene();
 
 				//创建星空
-				//var skySphere = new THREE.SphereGeometry(distance, 40, 30);
-				//var sky = createMesh(skySphere, "starrySky.jpg");
-				//scene.add(sky);
+				// var skySphere = new THREE.SphereGeometry(distance, 40, 30);
+				// var sky = createMesh(skySphere, "starrySky.jpg");
+				// scene.add(sky);
 
 				//var axis = new THREE.AxisHelper(500);
 				//scene.add(axis);
@@ -831,8 +831,9 @@ export default class EarthFlightLine extends PureComponent {
 
     render() {
 		return (
-			<div id="globe" style={{height: 600}}>
-				<h2>渲染3D场景</h2>
+			<div>
+                <h2>3D飞线</h2>
+				<div id="globe" style={{height: 600}}></div>
 			</div>
         );
     }
