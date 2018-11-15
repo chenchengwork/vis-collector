@@ -1,4 +1,5 @@
 import * as THREE from "three";
+
 import OBJLoader from "./loader/OBJLoader";
 import MTLLoader from "./loader/MTLLoader";
 import VTKLoader from "./loader/VTKLoader";
@@ -6,8 +7,6 @@ import {MeshLine, MeshLineMaterial} from "./MeshLine";
 
 // import font_json from '../font/Microsoft_YaHei_Regular.json';
 import font_json from '../font/FZZhengHeiS-R-GB_Regular.json';
-import loadFont from "load-bmfont";
-import createGeometry from "three-bmfont-text";
 
 export default class ThreeUtil{
 	static loaderType = {
@@ -292,6 +291,9 @@ export default class ThreeUtil{
 	 *
      */
     static mkBMFontText = async (text, geometryOpts = {}, materialOpts = {}, textScale) => new Promise((resolve, reject) => {
+        const loadFont = require("load-bmfont");
+        const createGeometry = require("three-bmfont-text");
+
         loadFont('asserts/fnt/55.fnt', (err, font) => {
             if (err) {
             	reject(err);

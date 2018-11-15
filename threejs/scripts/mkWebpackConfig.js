@@ -27,6 +27,16 @@ const resolve = (config) => depend.merge({
     }
 }, config);
 
+const threejsProvidePlugin = (config) => {
+    return depend.merge({
+        plugins: [
+            // 自动加载赋值模块
+            new depend.webpack.ProvidePlugin({
+                THREE: 'three'
+            }),
+        ],
+    }, config || {})
+};
 
 
 /**
@@ -47,6 +57,7 @@ module.exports = (pipeNodes = []) => {
         pipe.provideReactPlugin,
         pipe.autoDllReactPlugin,
         pipe.webpackbarPlugin,
+        threejsProvidePlugin,
 
         resolve,
         output,

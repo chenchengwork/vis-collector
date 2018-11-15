@@ -42,6 +42,10 @@ export default class ModelLoader extends PureComponent {
 		type: EnumType[0].value,
 	}
 
+	componentDidCatch(e){
+		console.error(e);
+	}
+
     render() {
 		return (
 			<div>
