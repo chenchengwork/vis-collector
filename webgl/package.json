@@ -1,0 +1,20 @@
+{
+  "name": "try-webgl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node ./scripts/dev.js",
+    "build": "node ./scripts/build.js /data/web_bundle/vis_collector /"
+  },
+  "dependencies": {
+    "@types/react": "^16.7.6",
+    "@types/react-dom": "^16.0.9"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "typescript": "^3.1.6"
+  },
+  "author": "chencheng",
+  "license": "MIT"
+}
