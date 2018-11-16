@@ -1,0 +1,17 @@
+.mapbox-gl-map {
+	:global(#mapbox-gl-id) {
+		position: fixed;
+		width: 100%;
+		height: 100%;
+	}
+
+	:global {
+		.vtkMap{
+			position: fixed;
+		}
+	}
+
+	.condition{
+
+	}
+}
