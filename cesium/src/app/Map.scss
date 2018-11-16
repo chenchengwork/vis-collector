@@ -1,0 +1,28 @@
+.cesium-map{
+  p{
+	margin-bottom: 5px;
+  }
+	.tooltip{
+	  position: absolute;
+	  width: 200px;
+	  //color: red;
+	  background-color: #fff;
+	  padding-left: 10px;
+
+	  .title{
+		border-bottom: 1px solid #ccc;
+		display: flex;
+	  }
+
+	  .basicContent{
+		& li{
+		  list-style: none;
+		}
+	  }
+	  .realTimeContent{
+		& li{
+		  list-style: none;
+		}
+	  }
+	}
+}
