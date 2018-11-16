@@ -3,10 +3,6 @@ import CesiumUtil from './util/CesiumUtil';
 import { Component } from 'react';
 import {getTileServiceProvider} from "./util/constants/cesium";
 
-import earth from './earth.jpg';
-import tipTitle from './tipTitle.png';
-
-
 export default class Map extends Component {
     constructor(props){
         super(props)
@@ -29,7 +25,7 @@ export default class Map extends Component {
                 maximumLevel : 5
             }), //图像图层提供者
             // imageryProvider: new CesiumUtil.Cesium.SingleTileImageryProvider({
-            //     url : earth,
+            //     url : require('./img/earth.jpg'),
             //     //rectangle : Cesium.Rectangle.fromDegrees(-75.0, 28.0, -67.0, 29.75)
             // })
         });
@@ -68,7 +64,6 @@ export default class Map extends Component {
                 }
             } );
         }, 1000 );
-
 
 
         viewer.scene.globe.baseColor = new Cesium.Color(8 / 255.0, 24 / 255.0, 52 / 255.0, 1.0);
