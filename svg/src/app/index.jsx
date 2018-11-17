@@ -1,5 +1,10 @@
 import React, { PureComponent } from 'react';
 
+/*
+  SVG SMIL animation动画详解
+  https://www.zhangxinxu.com/wordpress/2014/08/so-powerful-svg-smil-animation/
+ */
+
 export default class Index extends PureComponent {
 
 
