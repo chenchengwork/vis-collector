@@ -8,34 +8,22 @@ import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 import { AttributeTypes } from 'vtk.js/Sources/Common/DataModel/DataSetAttributes/Constants';
 import { FieldDataTypes } from 'vtk.js/Sources/Common/DataModel/DataSet/Constants';
 
-import vtkFPSMonitor from 'vtk.js/Sources/Interaction/UI/FPSMonitor';
-
-// import controlPanel from './controller.html';
-
 export default () => {
 
-// ----------------------------------------------------------------------------
-// Standard rendering code setup
-// ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
+    // Standard rendering code setup
+    // ----------------------------------------------------------------------------
 
     const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
         background: [0, 0, 0],
     });
+
+    console.log(fullScreenRenderer);
+    console.log(fullScreenRenderer.getOpenGLRenderWindow());
+
     const renderer = fullScreenRenderer.getRenderer();
     const renderWindow = fullScreenRenderer.getRenderWindow();
 
-    const fpsMonitor = vtkFPSMonitor.newInstance();
-    const fpsElm = fpsMonitor.getFpsMonitorContainer();
-    fpsElm.style.position = 'absolute';
-    fpsElm.style.left = '10px';
-    fpsElm.style.bottom = '10px';
-    fpsElm.style.background = 'rgba(255,255,255,0.5)';
-    fpsElm.style.borderRadius = '5px';
-
-    fpsMonitor.setContainer(document.querySelector('body'));
-    fpsMonitor.setRenderWindow(renderWindow);
-
-    fullScreenRenderer.setResizeCallback(fpsMonitor.update);
 
     // ----------------------------------------------------------------------------
     // Example code
@@ -79,27 +67,4 @@ export default () => {
     renderer.addActor(actor);
     renderer.resetCamera();
     renderWindow.render();
-    fpsMonitor.update();
-
-    // -----------------------------------------------------------
-    // UI control handling
-    // -----------------------------------------------------------
-
-    // fullScreenRenderer.addController(controlPanel);
-    // const representationSelector = document.querySelector('.representations');
-    // const resolutionChange = document.querySelector('.resolution');
-    //
-    // representationSelector.addEventListener('change', (e) => {
-    //     const newRepValue = Number(e.target.value);
-    //     actor.getProperty().setRepresentation(newRepValue);
-    //     renderWindow.render();
-    //     fpsMonitor.update();
-    // });
-    //
-    // resolutionChange.addEventListener('input', (e) => {
-    //     const resolution = Number(e.target.value);
-    //     coneSource.setResolution(resolution);
-    //     renderWindow.render();
-    //     fpsMonitor.update();
-    // });
 }
