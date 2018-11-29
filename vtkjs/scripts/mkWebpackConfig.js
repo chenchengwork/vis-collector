@@ -56,7 +56,6 @@ module.exports = (pipeNodes = []) => {
 
         pipe.miniCssExtractPlugin,
         pipe.provideReactPlugin,
-        pipe.autoDllReactPlugin,
         pipe.webpackbarPlugin,
 
         resolve,

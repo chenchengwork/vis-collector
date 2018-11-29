@@ -8,14 +8,15 @@ import testVtk from './testVtk';
 export default class Index extends PureComponent {
 
     componentDidMount(){
-        testVtk()
+        console.log()
+        testVtk(this.canvas)
     }
 
     render() {
 
         return (
             <div>
-                vtk.js
+                <canvas ref={(ref) => this.canvas = ref } width={400} height={400}>当前浏览器不支持canvas</canvas>
             </div>
         );
     }
