@@ -8,6 +8,9 @@
     "build": "node ./scripts/build.js /data/web_bundle/vis_collector /"
   },
   "dependencies": {
+    "@turf/turf": "^5.1.6",
+    "three": "^0.94.0",
+    "turf": "^3.0.14",
     "vtk.js": "^8.0.2"
   },
   "devDependencies": {
