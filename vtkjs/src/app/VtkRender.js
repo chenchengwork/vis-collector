@@ -1,5 +1,6 @@
 import macro from 'vtk.js/Sources/macro';
-import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
+// import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
+import vtkOpenGLRenderWindow from './VtkOpenGLRender';
 import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
@@ -24,15 +25,15 @@ function applyStyle(el, style) {
 
 function vtkFullScreenRenderWindow(publicAPI, model) {
     // Full screen DOM handler
-    if (!model.rootContainer) {
-        model.rootContainer = document.querySelector('body');
-    }
-
-    if (!model.container) {
-        model.container = document.createElement('div');
-        applyStyle(model.container, model.containerStyle || STYLE_CONTAINER);
-        model.rootContainer.appendChild(model.container);
-    }
+    // if (!model.rootContainer) {
+    //     model.rootContainer = document.querySelector('body');
+    // }
+    //
+    // if (!model.container) {
+    //     model.container = document.createElement('div');
+    //     applyStyle(model.container, model.containerStyle || STYLE_CONTAINER);
+    //     model.rootContainer.appendChild(model.container);
+    // }
 
     // VTK renderWindow/renderer
     model.renderWindow = vtkRenderWindow.newInstance();
@@ -41,7 +42,7 @@ function vtkFullScreenRenderWindow(publicAPI, model) {
 
     // OpenGlRenderWindow
     model.openGLRenderWindow = vtkOpenGLRenderWindow.newInstance();
-    model.openGLRenderWindow.setContainer(model.container);
+    // model.openGLRenderWindow.setContainer(model.container);
     model.renderWindow.addView(model.openGLRenderWindow);
 
     // Interactor

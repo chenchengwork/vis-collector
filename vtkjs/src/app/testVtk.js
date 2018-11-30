@@ -11,10 +11,10 @@ import vtkFullScreenRenderWindow from './VtkRender';
 
 import macro from 'vtk.js/Sources/macro';
 
-export default (canvas) => {
+export default (container, canvas) => {
     // testMacro();
 
-    const gl = canvas.getContext("webgl");
+    // const gl = canvas.getContext("webgl");
 
     // ----------------------------------------------------------------------------
     // Standard rendering code setup
@@ -23,16 +23,15 @@ export default (canvas) => {
 
     const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
         background: [0, 0, 0],
+        container: container
     });
-
-    console.log(fullScreenRenderer);
-    console.log(fullScreenRenderer.getOpenGLRenderWindow());
 
     const renderer = fullScreenRenderer.getRenderer();
     const renderWindow = fullScreenRenderer.getRenderWindow();
 
-    // const openGLRenderWindow = fullScreenRenderer.getOpenGLRenderWindow();
-    // openGLRenderWindow.setContainer(canvas);
+    const openGLRenderWindow = fullScreenRenderer.getOpenGLRenderWindow();
+    openGLRenderWindow.setContainer(container);
+    // openGLRenderWindow.setCanvas(canvas);
     // openGLRenderWindow.setContext(gl);
 
     // ----------------------------------------------------------------------------
