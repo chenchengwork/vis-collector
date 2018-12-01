@@ -2,12 +2,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from 'mapbox-gl';
 import * as THREE from 'three';
 import "./threeLoader/GLTFLoader";
+
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiY2hlbmNoZW5nMTIiLCJhIjoiY2poN2JjcmJuMDY1cjJ3cDl0OG0xeWxzdyJ9.Jyy5bvJDCvtjPXSPZMazTg';
 
 
 // 参照: https://bl.ocks.org/andrewharvey/7b61e9bdb4165e8832b7495c2a4f17f7
 export default () => {
-    var map = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9',
         center: [148.98190, -35.39847],
@@ -16,19 +18,19 @@ export default () => {
     });
 
 // converts from WGS84 Longitude, Latitude into a unit vector anchor at the top left as needed for GL JS custom layers
-    var fromLL = function (lon, lat) {
+    const fromLL = function (lon, lat) {
         // derived from https://gist.github.com/springmeyer/871897
-        var extent = 20037508.34;
+        const extent = 20037508.34;
 
-        var x = lon * extent / 180;
-        var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+        const x = lon * extent / 180;
+        let y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
         y = y * extent / 180;
 
         return [(x + extent) / (2 * extent), 1 - ((y + extent) / (2 * extent))];
     }
-    var translate = fromLL(148.98190, -35.39847);
+    const translate = fromLL(148.98190, -35.39847);
 
-    var transform = {
+    const transform = {
         translateX: translate[0],
         translateY: translate[1],
         translateZ: 0,
@@ -36,7 +38,7 @@ export default () => {
         rotateY: 0,
         rotateZ: 0,
         scale: 5.41843220338983e-8
-    }
+    };
 
 
     class CustomLayer {
@@ -56,8 +58,8 @@ export default () => {
             directionalLight2.position.set(0, 70, 100).normalize();
             this.scene.add(directionalLight2);
 
-            var loader = new THREE.GLTFLoader();
-            loader.load('/34M_17.gltf', (function (gltf) {
+            const loader = new THREE.GLTFLoader();
+            loader.load('/gltf/radar/34M_17.gltf', (function (gltf) {
                 this.scene.add(gltf.scene);
             }).bind(this));
         }
