@@ -26,6 +26,9 @@ export default () => {
 
 
     map.on('load', function() {
+        var helsinki = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 25.004, lat: 60.239 });
+        console.log('helsinki', helsinki)
+
         // 添加底层地图
         addOsmTileLayer(map, EnumOSMTile.GaoDe.Normal.Map);
 

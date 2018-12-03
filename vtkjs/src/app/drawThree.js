@@ -17,35 +17,22 @@ export default () => {
         pitch: 60
     });
 
-// converts from WGS84 Longitude, Latitude into a unit vector anchor at the top left as needed for GL JS custom layers
-    const fromLL = function (lon, lat) {
-        // derived from https://gist.github.com/springmeyer/871897
-        const extent = 20037508.34;
-
-        const x = lon * extent / 180;
-        let y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
-        y = y * extent / 180;
-
-        return [(x + extent) / (2 * extent), 1 - ((y + extent) / (2 * extent))];
-    }
-    const translate = fromLL(148.98190, -35.39847);
+    const translate = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 148.98190, lat: -35.39847 });
 
     const transform = {
-        translateX: translate[0],
-        translateY: translate[1],
-        translateZ: 0,
+        translateX: translate.x,
+        translateY: translate.y,
+        translateZ: translate.z,
         rotateX: Math.PI / 2,
         rotateY: 0,
         rotateZ: 0,
         scale: 5.41843220338983e-8
     };
 
-
     class CustomLayer {
         constructor() {
             this.id = 'custom_layer';
             this.type = 'custom';
-
 
             this.camera = new THREE.Camera();
             this.scene = new THREE.Scene();
