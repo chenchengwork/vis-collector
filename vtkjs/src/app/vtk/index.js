@@ -22,7 +22,6 @@ export const getActor = (gl) => {
     const filter = vtkCalculator.newInstance();
 
     filter.setInputConnection(coneSource.getOutputPort());
-    // filter.setFormulaSimple(FieldDataTypes.CELL, [], 'random', () => Math.random());
     filter.setFormula({
         getArrays: (inputDataSets) => ({
             input: [],
@@ -61,7 +60,6 @@ export const render = (gl, actor) => {
 
     const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
         background: [0, 0, 0],
-        // container: container,
         myGL: gl
     });
 

@@ -1,10 +1,13 @@
 import macro from 'vtk.js/Sources/macro';
-// import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
-import vtkOpenGLRenderWindow from './VtkOpenGLRender';
 import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 import vtkInteractorStyleTrackballCamera from 'vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera';
+
+
+// import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
+import vtkOpenGLRenderWindow from './Rendering/OpenGL/RenderWindow';
+
 
 function vtkFullScreenRenderWindow(publicAPI, model) {
     // VTK renderWindow/renderer
@@ -16,6 +19,7 @@ function vtkFullScreenRenderWindow(publicAPI, model) {
     model.openGLRenderWindow = vtkOpenGLRenderWindow.newInstance({
         myGL: model.myGL
     });
+    window.x = model.openGLRenderWindow;
     model.renderWindow.addView(model.openGLRenderWindow);
 
     // 交互设置
