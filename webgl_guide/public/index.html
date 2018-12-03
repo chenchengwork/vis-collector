@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+      <meta charset="UTF-8">
+      <title>webgl</title>
+
+      <meta name="keywords" content="@yield('keywords')">
+      <meta name="description" content="@yield('description')">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+
+      <link rel="shortcut icon" href="/favicon.ico" title="Favicon">
+      <link rel="stylesheet" type="text/css" href="/public/app.css">
+      <style>
+          .border{
+              border: 1px solid salmon;
+          }
+          .text-center{
+              text-align: center;
+              padding: 0px;
+              margin: 0px;
+          }
+      </style>
+  </head>
+
+  <body style="display: flex; justify-content: space-between">
+    <div class="border">
+        <h4 class="text-center">webgl</h4>
+        <canvas id="webgl" width="505" height="400">
+            Please use a browser that supports "canvas"
+        </canvas>
+    </div>
+    <div class="border">
+        <h4 class="text-center">lightgl</h4>
+        <canvas id="lightgl" width="505" height="400">
+            Please use a browser that supports "canvas"
+        </canvas>
+    </div>
+    <div class="border">
+        <h4 class="text-center">twgl</h4>
+        <canvas id="twgl" width="505" height="400">
+            Please use a browser that supports "canvas"
+        </canvas>
+    </div>
+
+    <!--<script type="text/javascript" src="/public/vendor.dll.js"></script>-->
+    <script type="text/javascript" src="/public/app.js"></script>
+  </body>
+
+</html>
