@@ -1,15 +1,15 @@
 import macro from 'vtk.js/Sources/macro';
-import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
-import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
-import vtkInteractorStyleTrackballCamera from 'vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera';
+
+// import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
+// import vtkInteractorStyleTrackballCamera from 'vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera';
 
 
-// import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
+import vtkRenderer from './Rendering/Core/Renderer';
 import vtkOpenGLRenderWindow from './Rendering/OpenGL/RenderWindow';
 
 
-function vtkFullScreenRenderWindow(publicAPI, model) {
+function customVtkRenderWindow(publicAPI, model) {
     // VTK renderWindow/renderer
     model.renderWindow = vtkRenderWindow.newInstance();
     model.renderer = vtkRenderer.newInstance();
@@ -92,7 +92,7 @@ export function extend(publicAPI, model, initialValues = {}) {
     ]);
 
     // Object specific methods
-    vtkFullScreenRenderWindow(publicAPI, model);
+    customVtkRenderWindow(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------

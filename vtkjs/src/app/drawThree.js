@@ -64,11 +64,15 @@ export default () => {
 
         // render3D(gl, matrix) {
         render(gl, matrix) {
+
             const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), transform.rotateX);
             const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), transform.rotateY);
             const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), transform.rotateZ);
 
+            // 转换为three.js格式的投影矩阵
             const m = new THREE.Matrix4().fromArray(matrix);
+
+            // 转换为three.js格式的模型矩阵
             const l = new THREE.Matrix4().makeTranslation(transform.translateX, transform.translateY, transform.translateZ)
                 .scale(new THREE.Vector3(transform.scale, -transform.scale, transform.scale))
                 .multiply(rotationX)

@@ -15,6 +15,9 @@ export default () => {
         // center: [7.5, 58],
         // style: 'mapbox://styles/mapbox/light-v9'
 
+        bearing: 0,    // 设置地图绕Z轴的旋转角度
+        pitch: 30,    // 设置地图绕X轴的旋转角度
+
         style: {
             "version": 8,
             // "sprite": "http://localhost:4000/asserts/mapbox/sprite/sprite",    // 加载图标来源
@@ -26,8 +29,8 @@ export default () => {
 
 
     map.on('load', function() {
-        var helsinki = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 25.004, lat: 60.239 });
-        console.log('helsinki', helsinki)
+        // var helsinki = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 100.923828, lat: 39.272688 });
+        // console.log('helsinki', helsinki)
 
         // 添加底层地图
         addOsmTileLayer(map, EnumOSMTile.GaoDe.Normal.Map);
@@ -47,66 +50,13 @@ const getGlLayer = () => {
         type: 'custom',
 
         onAdd: function (map, gl) {
-            this.actor = getActor();
+            this.map = map;
+            this.actor = getActor(map);
         },
 
         render: function (gl, matrix) {
-            render(gl, this.actor);
+            render(gl, matrix, this.map, this.actor);
         },
-
-
-        // onAdd: function (map, gl) {
-        //     const vertexSource = "" +
-        //         "uniform mat4 u_matrix;" +
-        //         "attribute vec2 a_pos;" +
-        //         "void main() {" +
-        //         "    gl_Position = u_matrix * vec4(a_pos, 0.0, 1.0);" +
-        //         "}";
-        //
-        //     const fragmentSource = "" +
-        //         "void main() {" +
-        //         "    gl_FragColor = vec4(1.0, 0.0, 0.0, 0.5);" +
-        //         "}";
-        //
-        //     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        //     gl.shaderSource(vertexShader, vertexSource);
-        //     gl.compileShader(vertexShader);
-        //     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        //     gl.shaderSource(fragmentShader, fragmentSource);
-        //     gl.compileShader(fragmentShader);
-        //
-        //     this.program = gl.createProgram();
-        //     gl.attachShader(this.program, vertexShader);
-        //     gl.attachShader(this.program, fragmentShader);
-        //     gl.linkProgram(this.program);
-        //
-        //     this.aPos = gl.getAttribLocation(this.program, "a_pos");
-        //
-        //     const helsinki = mapboxgl.MercatorCoordinate.fromLngLat({lng: 25.004, lat: 60.239});
-        //     const berlin = mapboxgl.MercatorCoordinate.fromLngLat({lng: 13.403, lat: 52.562});
-        //     const kyiv = mapboxgl.MercatorCoordinate.fromLngLat({lng: 30.498, lat: 50.541});
-        //
-        //     console.log(helsinki);
-        //
-        //     this.buffer = gl.createBuffer();
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        //     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-        //         helsinki.x, helsinki.y,
-        //         berlin.x, berlin.y,
-        //         kyiv.x, kyiv.y,
-        //     ]), gl.STATIC_DRAW);
-        // },
-        //
-        // render: function (gl, matrix) {
-        //     gl.useProgram(this.program);
-        //     gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "u_matrix"), false, matrix);
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        //     gl.enableVertexAttribArray(this.aPos);
-        //     gl.vertexAttribPointer(this.aPos, 2, gl.FLOAT, false, 0, 0);
-        //     gl.enable(gl.BLEND);
-        //     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        //     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 3);
-        // }
     };
 
     return highlightLayer;

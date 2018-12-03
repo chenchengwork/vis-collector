@@ -1,23 +1,14 @@
-import 'vtk.js/Sources/favicon';
-
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor';
 import vtkCalculator from 'vtk.js/Sources/Filters/General/Calculator';
 import vtkConeSource from 'vtk.js/Sources/Filters/Sources/ConeSource';
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 import { AttributeTypes } from 'vtk.js/Sources/Common/DataModel/DataSetAttributes/Constants';
 import { FieldDataTypes } from 'vtk.js/Sources/Common/DataModel/DataSet/Constants';
-import vtkFullScreenRenderWindow from './VtkRender';
+
+import customVtkRenderWindow from './CustomVtkRenderWindow';
 
 
-export const getActor = (gl) => {
-    // ----------------------------------------------------------------------------
-    // Example code
-    // ----------------------------------------------------------------------------
-    // create a filter on the fly, sort of cool, this is a random scalars
-    // filter we create inline, for a simple cone you would not need
-    // this
-    // ----------------------------------------------------------------------------
-
+export const getActor = (map) => {
     const coneSource = vtkConeSource.newInstance({height: 1.0});
     const filter = vtkCalculator.newInstance();
 
@@ -51,24 +42,15 @@ export const getActor = (gl) => {
     return actor;
 };
 
-export const render = (gl, actor) => {
+export const render = (gl, matrix, map,  actor) => {
 
-    // ----------------------------------------------------------------------------
-    // Standard rendering code setup
-    // ----------------------------------------------------------------------------
+    const customVtkRender = customVtkRenderWindow.newInstance({ myGL: gl });
 
-
-    const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
-        background: [0, 0, 0],
-        myGL: gl
-    });
-
-    const renderer = fullScreenRenderer.getRenderer();
-    const renderWindow = fullScreenRenderer.getRenderWindow();
-
+    const renderer = customVtkRender.getRenderer();
+    const renderWindow = customVtkRender.getRenderWindow();
 
     renderer.addActor(actor);
-    // renderer.resetCamera();
+    renderer.resetCamera(map);
     renderWindow.render();
 }
 
