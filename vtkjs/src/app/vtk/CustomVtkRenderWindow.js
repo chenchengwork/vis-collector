@@ -5,7 +5,7 @@ import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 // import vtkInteractorStyleTrackballCamera from 'vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera';
 
 
-import vtkRenderer from './Rendering/Core/Renderer';
+import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkOpenGLRenderWindow from './Rendering/OpenGL/RenderWindow';
 
 
@@ -35,7 +35,6 @@ function customVtkRenderWindow(publicAPI, model) {
     // Handle window resize
     // 重新设置视口大小
     publicAPI.resize = () => {
-        console.log(model.container.getBoundingClientRect())
         const dims = model.container.getBoundingClientRect();
         const devicePixelRatio = window.devicePixelRatio || 1;
         model.openGLRenderWindow.setSize(

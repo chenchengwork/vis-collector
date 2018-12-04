@@ -9,13 +9,14 @@ function vtkRenderer(publicAPI, model){
         renderer: publicAPI,
     };
 
-    publicAPI.resetCamera = (bounds = null, map) => {
+    publicAPI.resetCamera = (bounds = null, map, matrix) => {
         // {x: 0.7803439666666667, y: 0.3812026096585083, z: 0}
         let viewAngle = 30.0;     // 视角角度
         if(map) {
             console.log('map.transform->', map.transform);
             console.log('地图绕X轴的旋转角度->', map.transform._pitch);
             console.log('地图绕Z轴的旋转角度->', map.transform.angle);
+            console.log('地图缩放->', map.transform.scale);
             viewAngle = map.transform._fov * 180
         }
 
@@ -40,6 +41,7 @@ function vtkRenderer(publicAPI, model){
         // Reset the perspective zoom factors, otherwise subsequent zooms will cause
         // the view angle to become very small and cause bad depth sorting.
         model.activeCamera.setViewAngle(viewAngle);
+        // model.activeCamera.setProjectionMatrix(map.transform.projMatrix);
 
         center[0] = (boundsToUse[0] + boundsToUse[1]) / 2.0;
         center[1] = (boundsToUse[2] + boundsToUse[3]) / 2.0;
@@ -85,11 +87,11 @@ function vtkRenderer(publicAPI, model){
 
         // update the camera
         model.activeCamera.setFocalPoint(center[0], center[1], center[2]);
-        model.activeCamera.setPosition(
-            center[0] + distance * vn[0],
-            center[1] + distance * vn[1],
-            center[2] + distance * vn[2]
-        );
+        // model.activeCamera.setPosition(
+        //     center[0] + distance * vn[0],
+        //     center[1] + distance * vn[1],
+        //     center[2] + distance * vn[2]
+        // );
 
         publicAPI.resetCameraClippingRange(boundsToUse);
 
