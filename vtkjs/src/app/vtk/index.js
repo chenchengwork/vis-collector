@@ -44,13 +44,16 @@ export const getActor = (map) => {
 
 export const render = (gl, matrix, map,  actor) => {
 
-    const customVtkRender = customVtkRenderWindow.newInstance({ myGL: gl });
+    const customVtkRender = customVtkRenderWindow.newInstance({
+        container: map.getCanvas(),
+        myGL: gl
+    });
 
     const renderer = customVtkRender.getRenderer();
     const renderWindow = customVtkRender.getRenderWindow();
 
     renderer.addActor(actor);
-    renderer.resetCamera(map);
+    renderer.resetCamera(null, map);
     renderWindow.render();
 }
 

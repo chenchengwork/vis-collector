@@ -31,14 +31,11 @@ function customVtkRenderWindow(publicAPI, model) {
     // model.interactor.initialize();
     // model.interactor.bindEvents(model.container);
 
-    // Expose background
-    publicAPI.setBackground = model.renderer.setBackground;
-
-    // Update BG color
-    publicAPI.setBackground(...model.background);
 
     // Handle window resize
+    // 重新设置视口大小
     publicAPI.resize = () => {
+        console.log(model.container.getBoundingClientRect())
         const dims = model.container.getBoundingClientRect();
         const devicePixelRatio = window.devicePixelRatio || 1;
         model.openGLRenderWindow.setSize(
@@ -60,7 +57,7 @@ function customVtkRenderWindow(publicAPI, model) {
         window.addEventListener('resize', publicAPI.resize);
     }
 
-    // publicAPI.resize();
+    publicAPI.resize();
 }
 
 // ----------------------------------------------------------------------------

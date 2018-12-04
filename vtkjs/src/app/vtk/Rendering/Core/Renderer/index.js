@@ -1,6 +1,7 @@
 import macro from 'vtk.js/Sources/macro';
 import Renderer from "vtk.js/Sources/Rendering/Core/Renderer";
 import vtkMath from "vtk.js/Sources/Common/Core/Math";
+const { vtkDebugMacro, vtkErrorMacro, vtkWarningMacro } = macro;
 
 function vtkRenderer(publicAPI, model){
     const RESET_CAMERA_EVENT = {
@@ -8,13 +9,15 @@ function vtkRenderer(publicAPI, model){
         renderer: publicAPI,
     };
 
-    publicAPI.resetCamera = (map, bounds = null) => {
-        console.log('map.transform->', map.transform);
-        console.log('地图绕X轴的旋转角度->', map.transform._pitch);
-        console.log('地图绕Z轴的旋转角度->', map.transform.angle);
+    publicAPI.resetCamera = (bounds = null, map) => {
         // {x: 0.7803439666666667, y: 0.3812026096585083, z: 0}
-
-        const viewAngle = map.transform._fov * 180 || 30.0;     // 视角角度
+        let viewAngle = 30.0;     // 视角角度
+        if(map) {
+            console.log('map.transform->', map.transform);
+            console.log('地图绕X轴的旋转角度->', map.transform._pitch);
+            console.log('地图绕Z轴的旋转角度->', map.transform.angle);
+            viewAngle = map.transform._fov * 180
+        }
 
 
         const boundsToUse = bounds || publicAPI.computeVisiblePropBounds();
@@ -24,7 +27,6 @@ function vtkRenderer(publicAPI, model){
             vtkDebugMacro('Cannot reset camera!');
             return false;
         }
-        console.log(boundsToUse);
 
         let vn = null;
 
