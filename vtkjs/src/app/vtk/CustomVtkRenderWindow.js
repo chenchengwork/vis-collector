@@ -1,13 +1,9 @@
 import macro from 'vtk.js/Sources/macro';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 
-// import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
-// import vtkInteractorStyleTrackballCamera from 'vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera';
-
-
 import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkOpenGLRenderWindow from './Rendering/OpenGL/RenderWindow';
-
+// import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow';
 
 function customVtkRenderWindow(publicAPI, model) {
     // VTK renderWindow/renderer
@@ -19,17 +15,7 @@ function customVtkRenderWindow(publicAPI, model) {
     model.openGLRenderWindow = vtkOpenGLRenderWindow.newInstance({
         myGL: model.myGL
     });
-    window.x = model.openGLRenderWindow;
     model.renderWindow.addView(model.openGLRenderWindow);
-
-    // 交互设置
-    // model.interactor = vtkRenderWindowInteractor.newInstance();
-    // model.interactor.setInteractorStyle(
-    //     vtkInteractorStyleTrackballCamera.newInstance()
-    // );
-    // model.interactor.setView(model.openGLRenderWindow);
-    // model.interactor.initialize();
-    // model.interactor.bindEvents(model.container);
 
 
     // Handle window resize

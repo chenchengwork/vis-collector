@@ -76,11 +76,11 @@ export default () => {
             const l = new THREE.Matrix4().makeTranslation(transform.translateX, transform.translateY, transform.translateZ)
                 .scale(new THREE.Vector3(transform.scale, -transform.scale, transform.scale))
                 .multiply(rotationX)
-                .multiply(rotationY)
-                .multiply(rotationZ);
+                // .multiply(rotationY)
+                // .multiply(rotationZ);
 
-            this.camera.projectionMatrix.elements = matrix;
             this.camera.projectionMatrix = m.multiply(l);
+            // this.camera.projectionMatrix = m;
             this.renderer.state.reset();
             this.renderer.render(this.scene, this.camera);
             this.map.triggerRepaint();

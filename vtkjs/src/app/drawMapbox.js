@@ -16,7 +16,7 @@ export default () => {
         // style: 'mapbox://styles/mapbox/light-v9'
 
         bearing: 0,    // 设置地图绕Z轴的旋转角度
-        pitch: 30,    // 设置地图绕X轴的旋转角度
+        pitch: 0,    // 设置地图绕X轴的旋转角度
 
         style: {
             "version": 8,

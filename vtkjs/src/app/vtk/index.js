@@ -4,11 +4,8 @@ import vtkConeSource from 'vtk.js/Sources/Filters/Sources/ConeSource';
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 import { AttributeTypes } from 'vtk.js/Sources/Common/DataModel/DataSetAttributes/Constants';
 import { FieldDataTypes } from 'vtk.js/Sources/Common/DataModel/DataSet/Constants';
-
-import vtkCamera from 'vtk.js/Sources/Rendering/Core/Camera';
-
 import customVtkRenderWindow from './CustomVtkRenderWindow';
-
+import { vec3, mat4 } from 'gl-matrix';
 
 export const getActor = (map) => {
     const coneSource = vtkConeSource.newInstance({height: 1.0});
@@ -56,31 +53,26 @@ export const render = (gl, matrix, map,  actor) => {
 
     renderer.addActor(actor);
 
-    // 设置自己的相机
-    console.log(map.transform)
-    const myCamera = vtkCamera.newInstance();
-    myCamera.setDistance(map.transform.cameraToCenterDistance);
-    myCamera.setClippingRange(1, getFarZ(map));     // 设置相机的前后裁剪平面
-    // myCamera.setPosition(512/2, 512/2, 1)
+    //------------ 设置自己的相机 start ------------------
+    const myCamera = renderer.makeCamera();
 
+    const scale = 0.01;
+    const projectionMatrix = new Float32Array(matrix);
+    const translateMatrix =mat4.fromTranslation(mat4.create(), vec3.fromValues(0.7803439666666667, 0.3812026096585083, 0));
+    const scaleMatrix = mat4.fromScaling(mat4.create(), vec3.fromValues(scale, -scale, scale));
 
-    // {x: 0.7803439666666667, y: 0.3812026096585083, z: 0}
-    // mapboxgl.MercatorCoordinate.fromLngLat({ lng: 100.923828, lat: 39.272688 });
-    myCamera.setFocalPoint(0.7803439666666667, 0.3812026096585083, 0);  // 设置焦点
-    myCamera.setViewAngle(map.transform._fov * 180);    // 定义视角
+    // 模型矩阵(平移和缩放)
+    const modelMatrix = mat4.multiply(mat4.create(), translateMatrix, scaleMatrix);
+    // 投影矩阵 * 模型矩阵
+    const finalMatrix = mat4.multiply(mat4.create(), projectionMatrix, modelMatrix);
 
-    // 设置投影矩阵
-    myCamera.setProjectionMatrix(
-        myCamera.getProjectionMatrix(map.transform.width / map.transform.height, 1, getFarZ(map))
-    );
-
-    myCamera.computeViewPlaneNormal(); // 根据设置的相机位置、焦点等信息，重新计算视平面(View Plane)的法向量
-
+    myCamera.setViewMatrix(mat4.create());
+    myCamera.setProjectionMatrix(finalMatrix);
+    myCamera.computeViewPlaneNormal();          // 根据设置的相机位置、焦点等信息，重新计算视平面(View Plane)的法向量
     renderer.setActiveCamera(myCamera);
-
+    //------------ 设置自己的相机 end ------------------
 
     renderWindow.render();
-
     map.triggerRepaint();
 };
 
