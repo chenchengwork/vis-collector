@@ -5,7 +5,7 @@ import MTLLoader from "./loader/MTLLoader";
 import VTKLoader from "./loader/VTKLoader";
 import FBXLoader from "./loader/FBXLoader";
 import {MeshLine, MeshLineMaterial} from "./MeshLine";
-
+console.log(THREE)
 // import font_json from '../font/Microsoft_YaHei_Regular.json';
 import font_json from '../font/FZZhengHeiS-R-GB_Regular.json';
 
@@ -57,7 +57,9 @@ export default class ThreeUtil{
 	static loadFbx(url){
         const loader = new FBXLoader();
         return new Promise((resolve, reject) => {
-            loader.load(url, ( object ) => {
+            loader.load(
+            	url,
+				( object ) => {
 
                 // object.mixer = new THREE.AnimationMixer( object );
                 // mixers.push( object.mixer );
@@ -75,7 +77,13 @@ export default class ThreeUtil{
                 // scene.add( object );
 				console.log(111, object)
 				resolve(object);
-            });
+            },
+	() => {
+
+			},
+		(error) => {
+				reject(error)
+			});
 		})
 	}
 

@@ -11,8 +11,7 @@
     "jquery": "^3.3.1",
     "load-bmfont": "^1.4.0",
     "three": "^0.98.0",
-    "three-bmfont-text": "^2.3.0",
-    "zlib": "^1.0.5"
+    "three-bmfont-text": "^2.3.0"
   },
   "devDependencies": {},
   "author": "chencheng",

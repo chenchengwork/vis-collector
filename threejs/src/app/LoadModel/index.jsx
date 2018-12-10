@@ -81,6 +81,10 @@ export default class LoadModel extends PureComponent {
 				const render = () => {
 					if (G_controls) G_controls.update();
 
+					if(scene.customAnimate){
+                        scene.customAnimate();
+                    }
+
 					// 设置旋转
 					// if(G_Object3DGroup) G_Object3DGroup.rotation.y = object3DGroup_step += 0.005;
 					// if(G_mark2_arr && G_mark2_arr.length > 0) {
@@ -89,30 +93,28 @@ export default class LoadModel extends PureComponent {
                     // }
 
 					// ----------交互--------------
-					G_raycaster.setFromCamera( G_mouse, camera );
-
-					const intersects = G_raycaster.intersectObjects( scene.children, true );
-					if ( intersects.length > 0 ) {
-						if ( G_interSected != intersects[0].object ) {
-							G_interSected = intersects[0].object;
-							// console.log(G_interSected)
-						}else {
-							// console.log(G_interSected)
-						}
-
-					} else {
-						// console.log(G_interSected)
-						// if ( G_interSected ) G_interSected.material.emissive.setHex( G_interSected.currentHex );
-
-						G_interSected = null;
-
-					}
+					// G_raycaster.setFromCamera( G_mouse, camera );
+                    //
+					// const intersects = G_raycaster.intersectObjects( scene.children, true );
+					// if ( intersects.length > 0 ) {
+					// 	if ( G_interSected != intersects[0].object ) {
+					// 		G_interSected = intersects[0].object;
+					// 		// console.log(G_interSected)
+					// 	}else {
+					// 		// console.log(G_interSected)
+					// 	}
+                    //
+					// } else {
+					// 	// console.log(G_interSected)
+					// 	// if ( G_interSected ) G_interSected.material.emissive.setHex( G_interSected.currentHex );
+                    //
+					// 	G_interSected = null;
+                    //
+					// }
 					// ----------交互--------------
-
-
 					camera.lookAt( scene.position );
 					renderer.render(scene, camera);
-				}
+				};
 
 				animate();
 			})
@@ -279,8 +281,7 @@ async function customShape(){
  * 加载模型
  * @return {Promise<void>}
  */
-async function loadModel() {
-    const scene = this.scene;
+async function loadModel(scene) {
 
     const EnumInitMapModel = [
         {
@@ -556,11 +557,30 @@ async function loadModel() {
     scene.add(G_Object3DGroup);
 }
 
+const loadObjModel = (scene) => {
 
+}
+
+
+/**
+ * 加载fbx模型
+ * @param scene
+ */
 const loadFbxModel = (scene) => {
-    ThreeUtil.loadFbx("http://localhost:4000/asserts/fbx/school.fbx").then((object) => {
-        console.log(object);
-    })
+    // ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/cottage_fbx.fbx").then((object) => {
+    // ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/school.fbx").then((object) => {
+    ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/Samba_Dancing.fbx").then((object) => {
+    //     console.log(object);
+        // object.scale(THREE.Vector3(0.5, 0.5, 0.5))
+        object.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+
+        } );
+        scene.add(object)
+    }).catch(e => console.error(e))
 };
 
 
