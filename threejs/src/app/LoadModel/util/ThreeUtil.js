@@ -3,6 +3,7 @@ import * as THREE from "three";
 import OBJLoader from "./loader/OBJLoader";
 import MTLLoader from "./loader/MTLLoader";
 import VTKLoader from "./loader/VTKLoader";
+import FBXLoader from "./loader/FBXLoader";
 import {MeshLine, MeshLineMaterial} from "./MeshLine";
 
 // import font_json from '../font/Microsoft_YaHei_Regular.json';
@@ -48,6 +49,36 @@ export default class ThreeUtil{
 		return this;
 	}
 
+    /**
+	 * 加载fbx模型
+     * @param url
+     * @return {Promise}
+     */
+	static loadFbx(url){
+        const loader = new FBXLoader();
+        return new Promise((resolve, reject) => {
+            loader.load(url, ( object ) => {
+
+                // object.mixer = new THREE.AnimationMixer( object );
+                // mixers.push( object.mixer );
+                //
+                // var action = object.mixer.clipAction( object.animations[ 0 ] );
+                // action.play();
+                //
+                // object.traverse( function ( child ) {
+                //     if ( child.isMesh ) {
+                //         child.castShadow = true;
+                //         child.receiveShadow = true;
+                //     }
+                // });
+
+                // scene.add( object );
+				console.log(111, object)
+				resolve(object);
+            });
+		})
+	}
+
 	/**
 	 * 导入mtl和obj模型
 	 * @param {Object} options
@@ -60,7 +91,7 @@ export default class ThreeUtil{
 	 * @param {Function} options.errorCallback 模型导入完成回调
 	 * @param {Function} options.progress 模型导入过程回调
 	 */
-	loadMtlObj(options){
+    static loadMtlObj(options){
 		var mtlLoader = new MTLLoader();
 		mtlLoader.setPath( options.mtlPath ); 		// 设置mtl文件所在路径
 
@@ -97,7 +128,7 @@ export default class ThreeUtil{
 	 * @param {Function} options.completeCallback 模型导入完成回调
 	 * @param {Function} options.errorCallback 模型导入完成回调
 	 */
-	loadVTK(options){
+    static loadVTK(options){
 		const loader = new VTKLoader();
 		loader.load(options.path, function ( geometry ) {
 			geometry.center();
@@ -145,7 +176,7 @@ export default class ThreeUtil{
      * @param {Object} mark2Object 模型
      * @return {Object3D}
      */
-	mkMark2(mark2Object){
+	static mkMark2(mark2Object){
 		const Object3dGroup = new THREE.Object3D();
 		const topPosition = [0, 0, 0];
 		const bottomPosition = [0, -45, 0];
@@ -186,7 +217,7 @@ export default class ThreeUtil{
 	 * 获取矩形盒子
 	 * @param opts
 	 */
-	mkRectangularBox(opts){
+	static mkRectangularBox(opts){
 		const [x, y, z] = opts.shape.coordinate;
 		const [x_length, y_length, z_length] = opts.shape.length;
 		const materialOpts = opts.material;

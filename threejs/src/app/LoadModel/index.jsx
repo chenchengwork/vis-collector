@@ -1,6 +1,6 @@
 import { PureComponent } from 'react';
 import * as THREE from 'three';
-import OrbitControls from "./util/loader/OrbitControls";
+import OrbitControls from "./util/controls/OrbitControls";
 import ThreeUtil from './util/ThreeUtil';
 
 export default class LoadModel extends PureComponent {
@@ -55,6 +55,12 @@ export default class LoadModel extends PureComponent {
 
 			// 加载模型
 			// .use(loadModel)
+
+            // 加载fbx模型
+            .use(function(){
+                loadFbxModel(this.scene);
+            })
+
 
 			// 将渲染器添加到dom中
 			.use(function () {
@@ -339,7 +345,7 @@ async function loadModel() {
     const loadModelPromises = EnumInitMapModel.map((item) => new Promise((resolve, reject) => {
         switch (item.loaderType) {
             case ThreeUtil.loaderType.obj:
-                this.loadMtlObj({
+                ThreeUtil.loadMtlObj({
                     ...item.model,
                     progress:function(persent){
                         // console.log(persent)
@@ -355,7 +361,7 @@ async function loadModel() {
                 break;
 
             case ThreeUtil.loaderType.vtk:
-                this.loadVTK({
+                ThreeUtil.loadVTK({
                     path: item.model.path,
                     completeCallback:function(object){
                         resolve({object, type: item.type, loaderType: item.loaderType});
@@ -507,7 +513,7 @@ async function loadModel() {
         });
 
         // 添加盒子
-        group.add(this.mkRectangularBox({
+        group.add(ThreeUtil.mkRectangularBox({
             shape:{
                 coordinate: [460, 100, 380],
                 length: [200, 50, 180]
@@ -534,7 +540,7 @@ async function loadModel() {
         [
             [-163, 250, 123]
         ].forEach(item => {
-            const mark2 = this.mkMark2(mark2Object);
+            const mark2 = ThreeUtil.mkMark2(mark2Object);
             mark2.scale.set(0.2, 0.2, 0.2);
             mark2.position.set(...item);
             // G_mark2_arr.push(mark2);
@@ -549,5 +555,15 @@ async function loadModel() {
 
     scene.add(G_Object3DGroup);
 }
+
+
+const loadFbxModel = (scene) => {
+    ThreeUtil.loadFbx("http://localhost:4000/asserts/fbx/school.fbx").then((object) => {
+        console.log(object);
+    })
+};
+
+
+
 
 

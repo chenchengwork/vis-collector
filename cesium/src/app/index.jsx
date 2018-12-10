@@ -12,8 +12,9 @@ export default class Map extends Component {
         }
     }
     componentDidMount() {
-        this.drawAirLine();
+        // this.drawAirLine();
         // this.draw3DTileFeature();
+        this.draw3DTileForBim();
     }
 
     // 绘制航线
@@ -139,6 +140,33 @@ export default class Map extends Component {
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     }
 
+    // 绘制3d tile
+    draw3DTileForBim = () => {
+        const Cesium = CesiumUtil.Cesium;
+        const cesiumUtil = new CesiumUtil('cesiumContainer', {
+            imageryProvider: new CesiumUtil.Cesium.UrlTemplateImageryProvider({
+                url : getTileServiceProvider("Google.Satellite.Map"),
+                maximumLevel : 5
+            }),
+        });
+        const viewer = cesiumUtil.viewer;
+        var scene = viewer.scene;
+        var tileset = scene.primitives.add(
+            new Cesium.Cesium3DTileset({
+                // url: Cesium.IonResource.fromAssetId(8564),
+                url: "http://localhost:4000/asserts/school_3d_tile/tileset.json",
+            })
+        );
+
+        tileset.readyPromise.then(function(tileset) {
+            viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 4.0));
+        }).otherwise(function(error) {
+            console.log(error);
+        });
+
+        tileset.colorBlendMode = Cesium.Cesium3DTileColorBlendMode.REPLACE;
+    }
+
     // 绘制3D tile feature
     draw3DTileFeature = () => {
         const Cesium = CesiumUtil.Cesium;
@@ -261,8 +289,6 @@ export default class Map extends Component {
         // }]);
 
         colorByHeight();
-
-
     }
 
 
