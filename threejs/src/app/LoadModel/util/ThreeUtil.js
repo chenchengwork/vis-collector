@@ -5,7 +5,7 @@ import MTLLoader from "./loader/MTLLoader";
 import VTKLoader from "./loader/VTKLoader";
 import FBXLoader from "./loader/FBXLoader";
 import {MeshLine, MeshLineMaterial} from "./MeshLine";
-console.log(THREE)
+
 // import font_json from '../font/Microsoft_YaHei_Regular.json';
 import font_json from '../font/FZZhengHeiS-R-GB_Regular.json';
 
@@ -51,39 +51,18 @@ export default class ThreeUtil{
 
     /**
 	 * 加载fbx模型
-     * @param url
+     * @param path
      * @return {Promise}
      */
-	static loadFbx(url){
+	static loadFbx(path){
         const loader = new FBXLoader();
         return new Promise((resolve, reject) => {
             loader.load(
-            	url,
-				( object ) => {
-
-                // object.mixer = new THREE.AnimationMixer( object );
-                // mixers.push( object.mixer );
-                //
-                // var action = object.mixer.clipAction( object.animations[ 0 ] );
-                // action.play();
-                //
-                // object.traverse( function ( child ) {
-                //     if ( child.isMesh ) {
-                //         child.castShadow = true;
-                //         child.receiveShadow = true;
-                //     }
-                // });
-
-                // scene.add( object );
-				console.log(111, object)
-				resolve(object);
-            },
-	() => {
-
-			},
-		(error) => {
-				reject(error)
-			});
+                path,
+				( object ) => resolve(object),
+				() => {},
+				(error) => reject(error)
+			)
 		})
 	}
 
@@ -95,38 +74,36 @@ export default class ThreeUtil{
 	 * @param {String} options.objPath obj文件路径
 	 * @param {String} options.objFileName obj文件名称
 	 *
-	 * @param {Function} options.completeCallback 模型导入完成回调
-	 * @param {Function} options.errorCallback 模型导入完成回调
 	 * @param {Function} options.progress 模型导入过程回调
 	 */
     static loadMtlObj(options){
-		var mtlLoader = new MTLLoader();
-		mtlLoader.setPath( options.mtlPath ); 		// 设置mtl文件所在路径
+        var mtlLoader = new MTLLoader();
+        mtlLoader.setPath( options.mtlPath ); 		// 设置mtl文件所在路径
 
-		mtlLoader.load( options.mtlFileName, function( materials ) {
-			materials.preload();
+		return new Promise((resolve, reject) => {
+            mtlLoader.load( options.mtlFileName, function( materials ) {
+                materials.preload();
 
-			const objLoader = new OBJLoader();
-			objLoader.setMaterials( materials ); 	// 设置obj使用的材质贴图
-			objLoader.setPath( options.objPath ); 	// 设置obj文件所在路径
-			objLoader.load( options.objFileName, function ( object ) {
-				if(typeof options.completeCallback == "function"){
-					options.completeCallback(object);
-				}
-			}, function ( xhr ) {
-				if ( xhr.lengthComputable ) {
-					var percentComplete = xhr.loaded / xhr.total * 100;
-					if(typeof options.progress == "function"){
-						options.progress( Math.round(percentComplete, 2));
-					}
-				}
-			}, function(error){
-				if(typeof options.errorCallback === 'function' &&  error) options.errorCallback(error);
-				// console.error(error);
-			});
+                const objLoader = new OBJLoader();
+                objLoader.setMaterials( materials ); 	// 设置obj使用的材质贴图
+                objLoader.setPath( options.objPath ); 	// 设置obj文件所在路径
+                objLoader.load( options.objFileName, function ( object ) {
+                    resolve(object);
 
-		});
-	}
+                }, function ( xhr ) {
+                    if ( xhr.lengthComputable ) {
+                        var percentComplete = xhr.loaded / xhr.total * 100;
+                        if(typeof options.progress == "function"){
+                            options.progress( Math.round(percentComplete, 2));
+                        }
+                    }
+                }, function(error){
+                    reject(error);
+                });
+
+            });
+		})
+    }
 
 	/**
 	 * 导入vtk模型
@@ -136,17 +113,20 @@ export default class ThreeUtil{
 	 * @param {Function} options.completeCallback 模型导入完成回调
 	 * @param {Function} options.errorCallback 模型导入完成回调
 	 */
-    static loadVTK(options){
+    static loadVTK(path){
 		const loader = new VTKLoader();
-		loader.load(options.path, function ( geometry ) {
-			geometry.center();
-			geometry.computeVertexNormals();
-			options.completeCallback(geometry);
-
-			// const material = new THREE.MeshLambertMaterial( { color: 0x00FFFF, side: THREE.DoubleSide } );
-			// const mesh = new THREE.Mesh( geometry, material );
-
-		} );
+        return new Promise((resolve, reject) => {
+			loader.load(
+				path,
+				(geometry) => {
+					geometry.center();
+					geometry.computeVertexNormals();
+					resolve(geometry);
+				},
+				() => {},
+				(error) => reject(error)
+			);
+        })
 	}
 
     /**
@@ -177,49 +157,6 @@ export default class ThreeUtil{
 
         return textMesh;
 	}
-
-
-    /**
-	 * 制作标注2
-     * @param {Object} mark2Object 模型
-     * @return {Object3D}
-     */
-	static mkMark2(mark2Object){
-		const Object3dGroup = new THREE.Object3D();
-		const topPosition = [0, 0, 0];
-		const bottomPosition = [0, -45, 0];
-
-		//
-        mark2Object.traverse(function (child) {
-            if (child instanceof THREE.Mesh) {
-                child.name = 'mark_2_0';
-                child.material.side = THREE.DoubleSide; // 设置贴图模式为双面贴图
-                const formatMaterial = (childMaterial) => Array.isArray(childMaterial) ? childMaterial : [childMaterial];
-                formatMaterial(child.material).map((material) => {
-                    material.fog = false;
-                    material.color.set(0xFF6600);
-                    material.transparent = true;	// 材质允许透明
-                });
-            }
-
-        });
-
-        mark2Object.rotateY(90 / 180 * Math.PI);
-        mark2Object.position.set(...topPosition);
-
-        // 绘制外圆环
-        const geometry = new THREE.TorusGeometry(140, 1.5, 16, 100);
-        const material = new THREE.MeshPhongMaterial( { color: 0x2E8B57, shading: THREE.FlatShading } );
-        const torus = new THREE.Mesh(geometry, material);
-        torus.rotateX(90/180 * Math.PI);
-        torus.position.set(...bottomPosition);
-
-        Object3dGroup.add(mark2Object);
-        Object3dGroup.add(torus);
-
-		return Object3dGroup;
-	}
-
 
 	/**
 	 * 获取矩形盒子

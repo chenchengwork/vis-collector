@@ -3546,7 +3546,6 @@ BinaryParser.prototype = {
                 }
 
                 var inflate = new Zlib.Inflate( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) ); // eslint-disable-line no-undef
-                console.log(inflate)
                 var reader2 = new BinaryReader( inflate.decompress().buffer );
 
                 switch ( type ) {

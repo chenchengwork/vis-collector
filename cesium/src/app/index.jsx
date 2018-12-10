@@ -150,8 +150,8 @@ export default class Map extends Component {
             }),
         });
         const viewer = cesiumUtil.viewer;
-        var scene = viewer.scene;
-        var tileset = scene.primitives.add(
+        const scene = viewer.scene;
+        const tileset = scene.primitives.add(
             new Cesium.Cesium3DTileset({
                 // url: Cesium.IonResource.fromAssetId(8564),
                 url: "http://localhost:4000/asserts/school_3d_tile/tileset.json",

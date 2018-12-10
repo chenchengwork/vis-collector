@@ -9,14 +9,7 @@ export default class LoadModel extends PureComponent {
 	}
 
 	render3D(){
-		let G_Object3DGroup = null;		// 所有的3d模型组
-		let G_mark2_arr = []; 		// 标注2模型
 		let G_controls = null;
-
-		// ------------------
-		let G_raycaster = null;
-		let G_mouse = new THREE.Vector2();
-		let G_interSected = null;
 
 		new ThreeUtil(document.getElementById("space"))
 			// 设置光源
@@ -33,20 +26,6 @@ export default class LoadModel extends PureComponent {
 				// 添加雾化效果
 				// scene.fog = new THREE.Fog(0xffffff, 1500, 5000);
 			})
-
-			// 点击事件
-			.use(function() {
-				const container = this.container;
-
-				G_raycaster = new THREE.Raycaster();
-				container.addEventListener( 'click', onDocumentMouseClick, false );
-				function onDocumentMouseClick( event ) {
-					event.preventDefault();
-					G_mouse.x = ( event.clientX / container.clientWidth ) * 2 - 1;
-					G_mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
-				}
-			})
-
 			// 添加模型放大缩小控制
 			.use(addOrbitControls)
 
@@ -56,11 +35,20 @@ export default class LoadModel extends PureComponent {
 			// 加载模型
 			// .use(loadModel)
 
-            // 加载fbx模型
+            // 加载3D模型
             .use(function(){
+                // 添加盒子
+                // addBox(this.scene);
+
+                // 加载obj模型
+                loadObjModel(this.scene);
+
+                // 加载vtk模型
+                // loadVtkModel(this.scene);
+
+                // 加载fbx模型
                 loadFbxModel(this.scene);
             })
-
 
 			// 将渲染器添加到dom中
 			.use(function () {
@@ -76,42 +64,12 @@ export default class LoadModel extends PureComponent {
 					render();
 				};
 
-				let object3DGroup_step = 0;
-				let mark2_step = 0;
 				const render = () => {
-					if (G_controls) G_controls.update();
-
+				    // 用户自定义动画
 					if(scene.customAnimate){
                         scene.customAnimate();
                     }
 
-					// 设置旋转
-					// if(G_Object3DGroup) G_Object3DGroup.rotation.y = object3DGroup_step += 0.005;
-					// if(G_mark2_arr && G_mark2_arr.length > 0) {
-                     //    mark2_step += 0.05;
-                     //    G_mark2_arr.forEach((mark2) => mark2.rotation.y = mark2_step);
-                    // }
-
-					// ----------交互--------------
-					// G_raycaster.setFromCamera( G_mouse, camera );
-                    //
-					// const intersects = G_raycaster.intersectObjects( scene.children, true );
-					// if ( intersects.length > 0 ) {
-					// 	if ( G_interSected != intersects[0].object ) {
-					// 		G_interSected = intersects[0].object;
-					// 		// console.log(G_interSected)
-					// 	}else {
-					// 		// console.log(G_interSected)
-					// 	}
-                    //
-					// } else {
-					// 	// console.log(G_interSected)
-					// 	// if ( G_interSected ) G_interSected.material.emissive.setHex( G_interSected.currentHex );
-                    //
-					// 	G_interSected = null;
-                    //
-					// }
-					// ----------交互--------------
 					camera.lookAt( scene.position );
 					renderer.render(scene, camera);
 				};
@@ -218,7 +176,6 @@ async function customShape(){
         //操场背景矩形
         const mkRect = () => {
             const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 1);
-            console.log(geometry);
             const material = new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide});
             const plane = new THREE.Mesh(geometry, material);
             plane.rotateX(-90 / 180 * Math.PI);
@@ -277,244 +234,11 @@ async function customShape(){
     scene.add(textObject3D);
 }
 
-/**
- * 加载模型
- * @return {Promise<void>}
- */
-async function loadModel(scene) {
 
-    const EnumInitMapModel = [
-        {
-            type: 'build1',
-            loaderType: ThreeUtil.loaderType.obj,
-            model: {
-                mtlPath: "/asserts/yun_yan/3d/build/",
-                objPath:"/asserts/yun_yan/3d/build/",
-                mtlFileName:"init_map_build1.mtl",
-                objFileName:"init_map_build1.obj",
-            }
-        },
-        {
-            type: 'build2',
-            loaderType: ThreeUtil.loaderType.obj,
-            model: {
-                mtlPath: "/asserts/yun_yan/3d/build/",
-                objPath:"/asserts/yun_yan/3d/build/",
-                mtlFileName:"init_map_build2.mtl",
-                objFileName:"init_map_build2.obj",
-            }
-        },
-        {
-            type: 'build3',
-            loaderType: ThreeUtil.loaderType.obj,
-            model: {
-                mtlPath: "/asserts/yun_yan/3d/build/",
-                objPath:"/asserts/yun_yan/3d/build/",
-                mtlFileName:"init_map_build3.mtl",
-                objFileName:"init_map_build3.obj",
-            }
-        },
-        {
-            type: 'mark1',
-            loaderType: ThreeUtil.loaderType.obj,
-            model: {
-                mtlPath: "/asserts/yun_yan/3d/mark/",
-                objPath:"/asserts/yun_yan/3d/mark/",
-                mtlFileName:"init_map_mark1.mtl",
-                objFileName:"init_map_mark1.obj",
-            }
-        },
-        {
-            type: 'mark2',
-            loaderType: ThreeUtil.loaderType.obj,
-            model: {
-                mtlPath: "/asserts/yun_yan/3d/mark/",
-                objPath:"/asserts/yun_yan/3d/mark/",
-                mtlFileName:"init_map_mark2.mtl",
-                objFileName:"init_map_mark2.obj",
-            }
-        },
-        {
-            type: 'map',
-            loaderType: ThreeUtil.loaderType.vtk,
-            model: {
-                path: "/asserts/yun_yan/3d/map/map.vtk",
-            }
-        }
-    ];
-
-    const loadModelPromises = EnumInitMapModel.map((item) => new Promise((resolve, reject) => {
-        switch (item.loaderType) {
-            case ThreeUtil.loaderType.obj:
-                ThreeUtil.loadMtlObj({
-                    ...item.model,
-                    progress:function(persent){
-                        // console.log(persent)
-                    },
-                    completeCallback:function(object){
-                        resolve({object, type: item.type, loaderType: item.loaderType});
-                    },
-                    errorCallback: function(error) {
-                        reject(error);
-                    }
-                });
-
-                break;
-
-            case ThreeUtil.loaderType.vtk:
-                ThreeUtil.loadVTK({
-                    path: item.model.path,
-                    completeCallback:function(object){
-                        resolve({object, type: item.type, loaderType: item.loaderType});
-                    },
-                });
-
-                break;
-        }
-    }));
-
-    const G_Object3DGroup = await Promise.all(loadModelPromises).then((resp) => {
-        const group = new THREE.Object3D();
-        let mark2Object = null;
-
-        resp.forEach((item) => {
-            let object = null;
-            let objects = [];
-
-            //----加工导入的模型-----
-            if(item.loaderType == ThreeUtil.loaderType.obj) {
-                object = item.object;
-                const y = 62.412;
-                switch (item.type) {
-                    case 'build1':
-                        [
-                            [-203, y, 163],
-                            [27, y,  150],
-                            [146, y, -22],
-                            [250, y, 140],
-                        ].map((item, index) => {
-                            const objectClone = object.clone();
-
-                            objectClone.traverse(function(child) {
-                                if (child instanceof THREE.Mesh) {
-                                    child.name = 'build_1_' + index;
-                                    child.material.side = THREE.DoubleSide; // 设置贴图模式为双面贴图
-                                    const formatMaterial = (childMaterial) => Array.isArray(childMaterial) ? childMaterial : [childMaterial];
-
-                                    formatMaterial(child.material).map((material) => {
-                                        material.fog = false;		// 设置rgb通道R通道颜色
-                                        material.transparent=true;	// 材质允许透明
-                                    });
-                                }
-                            });
-
-                            objectClone.position.set(...item);
-                            objects.push(objectClone);
-                        });
-                        break;
-
-                    case 'build2':
-                        [
-                            [-223, y, 103],
-                            [-17, y, 95],
-                            [94, y, -102],
-                            [206, y, 90],
-                        ].map((item, index) => {
-                            const objectClone = object.clone();
-                            objectClone.traverse(function(child) {
-                                if (child instanceof THREE.Mesh) {
-                                    child.name = 'build_2_' + index;
-                                    child.material.side = THREE.DoubleSide; // 设置贴图模式为双面贴图
-                                    const formatMaterial = (childMaterial) => Array.isArray(childMaterial) ? childMaterial : [childMaterial];
-
-                                    formatMaterial(child.material).map((material) => {
-                                        material.fog = false;		// 设置rgb通道R通道颜色
-                                        material.transparent=true;	// 材质允许透明
-                                    });
-                                }
-                            });
-
-                            objectClone.position.set(...item);
-                            objects.push(objectClone);
-                        });
-
-                        break;
-
-                    case 'build3':
-                        [
-                            [-283, y, 133],
-                            [-75, y - 18, 100],
-                            [54, y - 18, -50],
-                            [160, y - 18, 120],
-                        ].map((item, index) => {
-                            const objectClone = object.clone();
-                            objectClone.traverse(function(child) {
-                                if (child instanceof THREE.Mesh) {
-                                    child.name = 'build_3_' + index;
-                                    child.material.side = THREE.DoubleSide; // 设置贴图模式为双面贴图
-                                    const formatMaterial = (childMaterial) => Array.isArray(childMaterial) ? childMaterial : [childMaterial];
-
-                                    formatMaterial(child.material).map((material) => {
-                                        material.fog = false;		// 设置rgb通道R通道颜色
-                                        material.transparent=true;	// 材质允许透明
-                                    });
-                                }
-                            });
-
-                            objectClone.position.set(...item);
-                            objects.push(objectClone);
-                        });
-                        break;
-
-                    case 'mark1':
-                        const mark1Scale = 0.2;
-                        [
-                            [-263, 250, 123]
-                        ].map((item, index) => {
-                            const objectClone = object.clone();
-                            objectClone.traverse(function(child) {
-                                if (child instanceof THREE.Mesh) {
-                                    child.name = 'mark_1_' + index;
-                                    child.material.side = THREE.DoubleSide; // 设置贴图模式为双面贴图
-                                    const formatMaterial = (childMaterial) => Array.isArray(childMaterial) ? childMaterial : [childMaterial];
-
-                                    formatMaterial(child.material).map((material) => {
-                                        material.fog = false;
-                                        material.color.set(0x2E8B57);
-                                        material.transparent=true;	// 材质允许透明
-                                    });
-                                }
-                            });
-
-                            objectClone.scale.set(mark1Scale, mark1Scale, mark1Scale);
-                            objectClone.rotateY(90/180 * Math.PI);
-                            objectClone.position.set(...item);
-                            objects.push(objectClone)
-                        });
-                        break;
-
-                    case 'mark2':
-                        mark2Object = object;
-                        break;
-                }
-            } else if(item.loaderType == ThreeUtil.loaderType.vtk){
-                switch(item.type) {
-                    case 'map':
-                        const material = new THREE.MeshLambertMaterial( { color: 0x00FFFF, fog: false, side: THREE.DoubleSide } );
-                        const mesh = new THREE.Mesh( item.object, material );
-                        mesh.name = "map";
-                        mesh.rotateX(-90/180 * Math.PI);
-
-                        objects.push(mesh);
-                        break;
-                }
-            }
-
-            if (objects.length > 0) objects.forEach(item => group.add(item));
-        });
-
-        // 添加盒子
-        group.add(ThreeUtil.mkRectangularBox({
+// 添加盒子
+const addBox = (scene) => {
+    scene.add(
+        ThreeUtil.mkRectangularBox({
             shape:{
                 coordinate: [460, 100, 380],
                 length: [200, 50, 180]
@@ -523,62 +247,86 @@ async function loadModel(scene) {
                 color: 0x2E8B57,		// 颜色
                 lineWidth: 10			// 线宽
             }
-        }));
-
-        // 添加文字
-        [
-            {
-                text: "云岩区学校总数",
-                coordinate: [-313, 310, 123],
-            }
-        ].forEach(item => {
-            const textMesh = ThreeUtil.mkTextMesh(item.text);
-            textMesh.position.set(...item.coordinate);
-            group.add(textMesh);
-        });
-
-        // 添加特效标注2
-        [
-            [-163, 250, 123]
-        ].forEach(item => {
-            const mark2 = ThreeUtil.mkMark2(mark2Object);
-            mark2.scale.set(0.2, 0.2, 0.2);
-            mark2.position.set(...item);
-            // G_mark2_arr.push(mark2);
-            group.add(mark2);
-        });
-
-
-        return group;
-    },(error) => {
-        console.error(error);
-    });
-
-    scene.add(G_Object3DGroup);
+        })
+    )
 }
 
+// 加载obj模型
 const loadObjModel = (scene) => {
+    // obj文件大小为1.3M
+    const small = {
+        mtlPath: "/asserts/models/obj/small/",
+        objPath:"/asserts/models/obj/small/",
+        mtlFileName:"build_4.mtl",
+        objFileName:"build_4.obj",
+    };
 
+    // obj文件大小为84M
+    // 本地加载模型时间: 3s
+    // objLoader解析时间为: 60s
+    // 模型真正加载入webgl后不会卡顿
+    // 卡顿出现在obj解析过程
+    const big = {
+        mtlPath: "/asserts/models/obj/big/",
+        objPath:"/asserts/models/obj/big/",
+        mtlFileName:"bugatti.mtl",
+        objFileName:"bugatti.obj",
+    };
+
+    ThreeUtil.loadMtlObj(small).then((object) => {
+        scene.add(object);
+    }).catch(e => console.error(e));
 }
 
+// 加载vtk模型
+const loadVtkModel = (scene) => {
+    ThreeUtil.loadVTK("/asserts/models/vtk/map.vtk").then((geometry) => {
+        const material = new THREE.MeshLambertMaterial( { color: 0x00FFFF, fog: false, side: THREE.DoubleSide } );
+        const mesh = new THREE.Mesh( geometry, material );
+        mesh.name = "map";
+        // mesh.rotateX(-90/180 * Math.PI);
+        scene.add(mesh);
+    }).catch(e => console.error(e));
+};
 
 /**
  * 加载fbx模型
  * @param scene
  */
 const loadFbxModel = (scene) => {
+    const mixers = [];
+    var clock = new THREE.Clock();
+
     // ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/cottage_fbx.fbx").then((object) => {
     // ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/school.fbx").then((object) => {
     ThreeUtil.loadFbx("http://localhost:4000/asserts/models/fbx/Samba_Dancing.fbx").then((object) => {
-    //     console.log(object);
-        // object.scale(THREE.Vector3(0.5, 0.5, 0.5))
+        object.scale.set(0.5, 0.5, 0.5);
+
         object.traverse( function ( child ) {
             if ( child.isMesh ) {
                 child.castShadow = true;
                 child.receiveShadow = true;
             }
+        });
 
-        } );
+        scene.customAnimate = (() => {
+            // 处理"变形动画"
+            object.mixer = new THREE.AnimationMixer( object );
+            mixers.push( object.mixer );
+
+            const action = object.mixer.clipAction( object.animations[ 0 ] );
+            action.play();
+
+
+            return () => {
+                if ( mixers.length > 0 ) {
+                    for ( let i = 0; i < mixers.length; i ++ ) {
+                        mixers[ i ].update( clock.getDelta() );
+                    }
+                }
+            }
+        })()
+
         scene.add(object)
     }).catch(e => console.error(e))
 };
