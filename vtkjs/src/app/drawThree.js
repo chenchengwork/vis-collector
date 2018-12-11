@@ -1,7 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from 'mapbox-gl';
-import * as THREE from 'three';
-import "./threeLoader/GLTFLoader";
+import GltfLayer from './three/GltfLayer';
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiY2hlbmNoZW5nMTIiLCJhIjoiY2poN2JjcmJuMDY1cjJ3cDl0OG0xeWxzdyJ9.Jyy5bvJDCvtjPXSPZMazTg';
@@ -17,76 +16,6 @@ export default () => {
         pitch: 60
     });
 
-    const translate = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 148.98190, lat: -35.39847 });
-
-    const transform = {
-        translateX: translate.x,
-        translateY: translate.y,
-        translateZ: translate.z,
-        rotateX: Math.PI / 2,
-        rotateY: 0,
-        rotateZ: 0,
-        scale: 5.41843220338983e-8
-    };
-
-    class CustomLayer {
-        constructor() {
-            this.id = 'custom_layer';
-            this.type = 'custom';
-
-            this.camera = new THREE.Camera();
-            this.scene = new THREE.Scene();
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff);
-            directionalLight.position.set(0, -70, 100).normalize();
-            this.scene.add(directionalLight);
-
-            const directionalLight2 = new THREE.DirectionalLight(0xffffff);
-            directionalLight2.position.set(0, 70, 100).normalize();
-            this.scene.add(directionalLight2);
-
-            const loader = new THREE.GLTFLoader();
-            loader.load('/gltf/radar/34M_17.gltf', (function (gltf) {
-                this.scene.add(gltf.scene);
-            }).bind(this));
-        }
-
-        onAdd(map, gl) {
-            this.map = map;
-
-            this.renderer = new THREE.WebGLRenderer({
-                canvas: map.getCanvas(),
-                context: gl
-            });
-
-            this.renderer.autoClear = false;
-        }
-
-        // render3D(gl, matrix) {
-        render(gl, matrix) {
-
-            const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), transform.rotateX);
-            const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), transform.rotateY);
-            const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), transform.rotateZ);
-
-            // 转换为three.js格式的投影矩阵
-            const m = new THREE.Matrix4().fromArray(matrix);
-
-            // 转换为three.js格式的模型矩阵
-            const l = new THREE.Matrix4().makeTranslation(transform.translateX, transform.translateY, transform.translateZ)
-                .scale(new THREE.Vector3(transform.scale, -transform.scale, transform.scale))
-                .multiply(rotationX)
-                // .multiply(rotationY)
-                // .multiply(rotationZ);
-
-            this.camera.projectionMatrix = m.multiply(l);
-            // this.camera.projectionMatrix = m;
-            this.renderer.state.reset();
-            this.renderer.render(this.scene, this.camera);
-            this.map.triggerRepaint();
-        }
-    }
-
     map.on('load', function () {
         map.addLayer({
             'id': '3d-buildings',
@@ -101,6 +30,22 @@ export default () => {
             }
         });
 
-        map.addLayer(new CustomLayer());
+        const scale = 5.41843220338983e-8;
+        map.addLayer(new GltfLayer({
+            id: "three_gltf_layer",
+            data: {
+                url: "/gltf/radar/34M_17.gltf",               // gltf模型url
+                coordinates: [148.98190, -35.39847],          // 模型所在的位置
+                scale: { x: scale, y: -scale, z: scale },     // 缩放
+                rotate: { x: Math.PI / 2, y: 0, z: 0 }        // 旋转
+            }
+        }));
+
+        setTimeout(() => {
+            const layer = map.getLayer("three_gltf_layer").implementation;
+            layer.setData({
+                coordinates: [148.98190, -35.39817],
+            });
+        }, 3000)
     });
 }
