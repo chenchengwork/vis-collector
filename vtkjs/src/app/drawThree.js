@@ -125,21 +125,20 @@ const addPopup = (map) => {
         .setLngLat(center)
         .addTo(map);
 
+    // 存储已创建的标记
     const createdMark = {
         markMove: {
             transferPrisoner: {
                 mark: null,
                 domRef: null,
             },
+        },
+
+        camera: {
+
         }
     };
 
-    const markMoveData = {
-        transferPrisoner: {
-            position: center,
-            number: 20,
-        }
-    };
 
     const options = {
         markMove: {
@@ -156,6 +155,14 @@ const addPopup = (map) => {
         }
     };
 
+
+    // 创建移动标记
+    const markMoveData = {
+        transferPrisoner: {
+            position: center,
+            number: 20,
+        },
+    };
     for(let [key, val] of Object.entries(markMoveData)){
         // 创建marker
         if(!createdMark.markMove[key].mark){
@@ -165,7 +172,7 @@ const addPopup = (map) => {
 
                 const mark = new mapboxgl.Marker({
                     element: dom.el,
-                    offset: [0, -45]
+                    offset: [0, -style.height / 2]
                 })
                     .setLngLat(val.position)
                     .addTo(map);
@@ -181,14 +188,34 @@ const addPopup = (map) => {
             createdMark.markMove[key].mark.setLngLat(val.position);
             createdMark.markMove[key].domRef.updateNumber(val.number);
         }
-
     }
 
 
-    new mapboxgl.Marker({
-        element: createDOM(MarkCamera, {width: 30, height: 30}).el,
-        offset: [0, -Math.sqrt(30 * 30 + 30 *30) / 2]
-    })
-        .setLngLat([center[0] - 0.1, center[1] - 0.1])
-        .addTo(map);
+
+    // 创建摄像头
+    const cameraData =  [
+        {
+            status: 1,
+            position: [center[0] - 0.1, center[1] - 0.1],
+        }
+    ];
+
+    cameraData.forEach(item => {
+        // #CBCF2F
+        const statusToColor = {
+            "1": "#CBCF2F"
+        };
+
+        const width = 30;
+        const height = 30;
+
+        const dom = createDOM(MarkCamera, {width, height, bgColor: statusToColor[item.status]});
+        new mapboxgl.Marker({
+            element: dom.el,
+            offset: [0, -Math.sqrt(30 * 30 + 30 *30) / 2]
+        })
+            .setLngLat(item.position)
+            .addTo(map);
+    });
+
 }

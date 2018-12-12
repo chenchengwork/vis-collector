@@ -9,17 +9,16 @@ export class MarkMove extends PureComponent {
         icon: PropTypes.string,
         desc: PropTypes.string,
         number: PropTypes.number.isRequired,
-    }
-    state = {
-
     };
 
-    updateNumber = () => {
+    state = {
+        number: this.props.number
+    };
 
-    }
+    updateNumber = (number) => this.setState({number})
 
     render() {
-        const {width, height} = this.props;
+        const {width, height, icon, desc} = this.props;
         const contentHeight = 20;
         const columnHeight = height - contentHeight;
 
@@ -27,10 +26,10 @@ export class MarkMove extends PureComponent {
             <div className={css["mark-move"]} style={{width, height}}>
                 <div className={css.content} style={{height: contentHeight, borderRadius: contentHeight / 2}}>
                     <div className={css.icon}>
-                        <i className="iconfont icon-jiaohuan"/>
+                        <i className={`iconfont ${icon}`} />
                     </div>
-                    <span className={css.desc}>转运犯人 | 人数: </span>
-                    <span className={css.number}>20</span>
+                    <span className={css.desc}>{desc}</span>
+                    <span className={css.number}>{this.state.number}</span>
                 </div>
                 <div className={css.column} style={{width: 2, height: columnHeight}}></div>
             </div>
@@ -39,10 +38,22 @@ export class MarkMove extends PureComponent {
 }
 
 export class MarkCamera extends PureComponent{
+    static propTypes = {
+        width: PropTypes.number.isRequired,
+        height: PropTypes.number.isRequired,
+        bgColor: PropTypes.string.isRequired
+    };
+
+    state = {
+        bgColor: this.props.bgColor
+    };
 
     render() {
+        const { width, height } = this.props;
+        const { bgColor } = this.props;
+
         return (
-            <div className={css["mark-camera"]}>
+            <div className={css["mark-camera"]} style={{width, height, backgroundColor: bgColor}}>
 
             </div>
         )
