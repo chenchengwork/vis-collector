@@ -1,0 +1,693 @@
+<!-- 引用https://www.cnblogs.com/ccentry/p/9864847.html   -->
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=gb2312">
+    <script type="text/JavaScript" src="minMatrix.js"></script>
+    <!--<script type="text/JavaScript" src="jquery-2.1.4.min.js"></script>-->
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="polyhedron.js"></script>
+
+    <script id="vs" type="x-shader/x-vertex">
+        attribute vec3 position;
+        attribute vec3 normal;
+        attribute vec4 color;
+        uniform   mat4 mvpMatrix;
+        uniform   mat4 invMatrix;
+        uniform   vec3 lightDirection;
+        uniform   vec4 ambientColor;
+        varying   vec4 vColor;
+        uniform   float lightS;
+
+        void main(void){
+            vec3  invLight = normalize(invMatrix * vec4(lightDirection, 0)).xyz;
+            float diffuse  = clamp(dot(normal, invLight), 0.0, 1.0) * lightS;
+            vColor         = color * vec4(vec3(diffuse), 1.0) + ambientColor;
+            gl_Position    = mvpMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec4 vColor;
+        void main(void){
+            gl_FragColor = vColor;
+        }
+    </script>
+
+    <script>
+        onload = function(){
+            // canvas对象获取
+            var c = document.getElementById('canvas');
+            c.width = 1000;
+            c.height = 800;
+
+            // webgl的context获取
+            var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+            //初始化gl
+            initGL(gl);
+            // 顶点着色器和片段着色器的生成
+            var v_shader = create_shader('vs');
+            var f_shader = create_shader('fs');
+            // 程序对象的生成和连接
+            var prg = create_program(v_shader, f_shader);
+
+            // attributeLocation的获取
+            var attLocation = new Array(2);
+            attLocation[0] = gl.getAttribLocation(prg, 'position');
+            attLocation[1] = gl.getAttribLocation(prg, 'normal');
+            attLocation[2] = gl.getAttribLocation(prg, 'color');
+
+            // 将元素数attribute保存到数组中
+            var attStride = new Array(2);
+            attStride[0] = 3;
+            attStride[1] = 3;
+            attStride[2] = 4;
+
+
+            /**
+             * 光
+             * */
+                // 环境光，漫反射光
+            var ambientColor = [0.2, 0.2, 0.2, 1.0];
+            // 光照强度
+            var lightS = 1.6;
+            // 平行光源的方向
+            var lightDirection = [1, 1, 1];
+
+            /**
+             * 视图矩阵
+             */
+                // matIV对象生成
+            var m = new matIV();
+            // 画布的宽高比
+            var aspect = c.width / c.height;
+            var mMatrix = m.identity(m.create());
+            var invMatrix = m.identity(m.create());
+            var tmpMatrix = m.identity(m.create());
+            var mvpMatrix = m.identity(m.create());
+            // 将视图矩阵根据宽高比进行反比，避免X/Y平面内出现变形
+            tmpMatrix[0] = 1/aspect;
+            // 得到mvpMatrix定位坐标矩阵
+            //m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+            // mMatrix的逆矩阵
+            //m.inverse(mMatrix, invMatrix);
+
+
+
+            /**
+             * 绑定shader的uniform
+             * */
+                // 取得uniformLocation
+            var uniLocation = new Array();
+            uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix');
+            uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix');
+            uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection');
+            uniLocation[3] = gl.getUniformLocation(prg, 'ambientColor');
+            uniLocation[4] = gl.getUniformLocation(prg, 'lightS');
+            // 向uniformLocation中传入坐标变换矩阵
+            gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+            gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+            gl.uniform3fv(uniLocation[2], lightDirection);
+            gl.uniform4fv(uniLocation[3], ambientColor);
+            gl.uniform1f(uniLocation[4], lightS);
+
+            //绘制坐标系
+            drawCoordinates(0, 1, 0, 0);
+            // 清理gl
+            gl.flush();
+
+
+            /**
+             * 交互
+             * */
+
+                //判断是否鼠标左键按下
+            var mouseLeftKeyDown = false;
+            //判断是否鼠标右键按下
+            var mouseRightKeyDown = false;
+            //标记鼠标x坐标
+            var mouseX;
+            //标记鼠标y坐标
+            var mouseY;
+            //标记鼠标z坐标
+            var mouseZ;
+            //旋转球的半径
+            var R = 250;
+
+
+
+
+
+
+
+
+
+            $('#canvas').mousedown(function(e){
+
+                var inCircle = false;
+
+                if(e.which == 1){
+                    mouseLeftKeyDown = true;
+                    mouseRightKeyDown = false;
+
+                    mouseX = e.clientX - 0.5*c.width;
+                    mouseY = -(e.clientY - 0.5*c.height);
+                    if(R*R - mouseX*mouseX - mouseY*mouseY > 0){
+                        mouseZ = Math.sqrt(R*R - mouseX*mouseX - mouseY*mouseY);
+                    } else {
+                        mouseLeftKeyDown = false;
+                    }
+
+
+
+
+
+
+                    //转动前向量坐标
+                    $('#cordX').val(mouseX);
+                    $('#cordY').val(mouseY);
+                    $('#cordZ').val(mouseZ);
+
+                } else if(e.which == 3){
+                    mouseRightKeyDown = true;
+                    mouseLeftKeyDown = false;
+                }
+            });
+
+            $('#canvas').mouseup(function(e){
+                if(e.which == 1){
+                    mouseLeftKeyDown = false;
+                } else if(e.which == 3){
+                    mouseRightKeyDown = false;
+                }
+            });
+
+            $('#canvas').mouseout(function(e){
+                mouseLeftKeyDown = false;
+                mouseRightKeyDown = false;
+            });
+
+            $('#canvas').mousemove(function(e){
+                if(mouseLeftKeyDown){//鼠标左键按下
+
+                    var X_1 = e.clientX - 0.5*c.width;
+                    var Y_1 = -(e.clientY - 0.5*c.height);
+                    if(R*R - X_1*X_1 - Y_1*Y_1 > 0){
+                        var Z_1 = Math.sqrt(R*R - X_1*X_1 - Y_1*Y_1);
+                    } else {
+                        mouseLeftKeyDown = false;
+                    }
+
+
+
+                    //转动前向量坐标
+                    $('#cordX').val(mouseX);
+                    $('#cordY').val(mouseY);
+                    $('#cordZ').val(mouseZ);
+
+                    //转动后向量坐标
+                    $('#cordX1').val(X_1);
+                    $('#cordY1').val(Y_1);
+                    $('#cordZ1').val(Z_1);
+
+
+
+                    //先算出转动轴向量
+                    var axisX = -(Z_1*mouseY-mouseZ*Y_1);
+                    var axisY = -(X_1*mouseZ-mouseX*Z_1);
+                    var axisZ = +(Y_1*mouseX-mouseY*X_1);
+                    //轴向量单位化
+                    var mod_axis = Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+                    axisX = axisX/mod_axis;
+                    axisY = axisY/mod_axis;
+                    axisZ = axisZ/mod_axis;
+
+                    var a1 = mMatrix[0]*axisX + mMatrix[1]*axisY + mMatrix[2]*axisZ + mMatrix[3]*0;
+                    var a2 = mMatrix[4]*axisX + mMatrix[5]*axisY + mMatrix[6]*axisZ + mMatrix[7]*0;
+                    var a3 = mMatrix[8]*axisX + mMatrix[9]*axisY + mMatrix[10]*axisZ + mMatrix[11]*0;
+                    var a4 = mMatrix[12]*axisX + mMatrix[13]*axisY + mMatrix[14]*axisZ + mMatrix[15]*0;
+
+
+                    axisX = a1;
+                    axisY = a2;
+                    axisZ = a3;
+                    //轴向量单位化
+                    mod_axis = Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+                    axisX = axisX/mod_axis;
+                    axisY = axisY/mod_axis;
+                    axisZ = axisZ/mod_axis;
+
+
+
+                    //法向坐标
+                    $('#axisX').val(axisX);
+                    $('#axisY').val(axisY);
+                    $('#axisZ').val(axisZ);
+
+
+                    //计算转轴向量和转前向量的点积
+                    $('#00').val(axisX*mouseX + axisY*mouseY + axisZ*mouseZ);
+                    //计算转轴向量和转后向量的点积
+                    $('#01').val(axisX*X_1 + axisY*Y_1 + axisZ*Z_1);
+
+                    //再计算转动角弧度
+                    //a=(x1,y1,z1),b=(x2,y2,z2) a*b=x1x2+y1y2+z1z2 |a|=√(x1^2+y1^2+z1^2).|b|=√(x2^2+y2^2+z2^2)
+                    //cosθ=a*b/(|a|*|b|) 角θ=arccosθ
+                    //Math.acos(x) 反余弦函数
+                    var ab = X_1*mouseX + Y_1*mouseY + Z_1*mouseZ;
+                    var mod_a = Math.sqrt(X_1*X_1 + Y_1*Y_1 + Z_1*Z_1);
+                    var mod_b = Math.sqrt(mouseX*mouseX + mouseY*mouseY + mouseZ*mouseZ);
+                    var cos = ab/(mod_a*mod_b);
+                    var rad = Math.acos(cos);
+
+
+                    //转角弧度
+                    $('#rad').val(rad);
+
+                    rotateModel(axisX, axisY, axisZ, rad);
+
+
+                    mouseX = X_1;
+                    mouseY = Y_1;
+                    mouseZ = Z_1;
+
+                }
+            });
+
+            $('#rotate').click(function(){
+                var axisX = $('.axisX').val();
+                var axisY = $('.axisY').val();
+                var axisZ = $('.axisZ').val();
+                var rad = $('.rad').val();
+                rad = rad * Math.PI / 180;
+
+
+                var a1 = mMatrix[0]*axisX + mMatrix[1]*axisY + mMatrix[2]*axisZ + mMatrix[3]*0;
+                var a2 = mMatrix[4]*axisX + mMatrix[5]*axisY + mMatrix[6]*axisZ + mMatrix[7]*0;
+                var a3 = mMatrix[8]*axisX + mMatrix[9]*axisY + mMatrix[10]*axisZ + mMatrix[11]*0;
+                var a4 = mMatrix[12]*axisX + mMatrix[13]*axisY + mMatrix[14]*axisZ + mMatrix[15]*0;
+
+
+                axisX = a1;
+                axisY = a2;
+                axisZ = a3;
+                //轴向量单位化
+                mod_axis = Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+                axisX = axisX/mod_axis;
+                axisY = axisY/mod_axis;
+                axisZ = axisZ/mod_axis;
+
+
+                rotateModel(axisX, axisY, axisZ, rad);
+            });
+
+
+            /**
+             * 模型旋转函数
+             * x:旋转轴向量的x轴分量
+             * y:旋转轴向量的y轴分量
+             * z:旋转轴向量的z轴分量
+             * rad:绕旋转轴旋转的弧度
+             */
+            function rotateModel(x, y, z, rad){
+                initGL(gl);
+
+                // 模型旋转6度
+                //var rad = 1 * Math.PI / 180;
+                // 模型坐标变换矩阵的生成(沿着Y轴旋转)
+                //m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                //m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                //m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                //gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                //gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                // 使用索引进行绘图，画三角面
+                //gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+
+                drawCoordinates(x, y, z, rad);
+
+                // context刷新
+                gl.flush();
+            }
+
+
+
+
+
+
+            /**
+             * 生成着色器的函数
+             */
+            function create_shader(id){
+                // 用来保存着色器的变量
+                var shader;
+
+                // 根据id从HTML中获取指定的script标签
+                var scriptElement = document.getElementById(id);
+
+                // 如果指定的script标签不存在，则返回
+                if(!scriptElement){return;}
+
+                // 判断script标签的type属性
+                switch(scriptElement.type){
+
+                    // 顶点着色器的时候
+                    case 'x-shader/x-vertex':
+                        shader = gl.createShader(gl.VERTEX_SHADER);
+                        break;
+
+                    // 片段着色器的时候
+                    case 'x-shader/x-fragment':
+                        shader = gl.createShader(gl.FRAGMENT_SHADER);
+                        break;
+                    default :
+                        return;
+                }
+
+                // 将标签中的代码分配给生成的着色器
+                gl.shaderSource(shader, scriptElement.text);
+
+                // 编译着色器
+                gl.compileShader(shader);
+
+                // 判断一下着色器是否编译成功
+                if(gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
+
+                    // 编译成功，则返回着色器
+                    return shader;
+                }else{
+
+                    // 编译失败，弹出错误消息
+                    alert(gl.getShaderInfoLog(shader));
+                }
+            }
+
+            /**
+             * 程序对象的生成和着色器连接的函数
+             */
+            function create_program(vs, fs){
+                // 程序对象的生成
+                var program = gl.createProgram();
+
+                // 向程序对象里分配着色器
+                gl.attachShader(program, vs);
+                gl.attachShader(program, fs);
+
+                // 将着色器连接
+                gl.linkProgram(program);
+
+                // 判断着色器的连接是否成功
+                if(gl.getProgramParameter(program, gl.LINK_STATUS)){
+
+                    // 成功的话，将程序对象设置为有效
+                    gl.useProgram(program);
+
+                    // 返回程序对象
+                    return program;
+                }else{
+
+                    // 如果失败，弹出错误信息
+                    alert(gl.getProgramInfoLog(program));
+                }
+            }
+
+            /**
+             * 生成VBO的函数
+             */
+            function create_vbo(data){
+                // 生成缓存对象
+                var vbo = gl.createBuffer();
+
+                // 绑定缓存
+                gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+                // 向缓存中写入数据
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+
+                // 将绑定的缓存设为无效
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                // 返回生成的VBO
+                return vbo;
+            }
+
+            /**
+             * 绑定VBO相关的函数
+             */
+            function set_attribute(vbo, attL, attS){
+                // 处理从参数中得到的数组
+                for(var i in vbo){
+                    // 绑定缓存
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+
+                    // 将attributeLocation设置为有效
+                    gl.enableVertexAttribArray(attL[i]);
+
+                    //通知并添加attributeLocation
+                    gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+                }
+            }
+
+            /**
+             * IBO的生成函数
+             */
+            function create_ibo(data){
+                // 生成缓存对象
+                var ibo = gl.createBuffer();
+
+                // 绑定缓存
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+
+                // 向缓存中写入数据
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+
+                // 将缓存的绑定无效化
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                // 返回生成的IBO
+                return ibo;
+            }
+
+            /**
+             * 初始化gl
+             * */
+            function initGL(gl){
+                // 设定canvas初始化的颜色
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                // 设定canvas初始化时候的深度
+                gl.clearDepth(1.0);
+                // canvas的初始化
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                // 将深度测试设置为有效
+                gl.enable(gl.DEPTH_TEST);
+                // 指定一般深度测试的评价方法
+                gl.depthFunc(gl.LEQUAL);
+                // 将遮挡剔除设置为有效
+                gl.enable(gl.CULL_FACE);
+            }
+
+            /**
+             * bindBuffer
+             * */
+            function bindBuffer(vertexArray, normalArray, colorArray, indices){
+                /**
+                 * 三角面
+                 */
+                    // 生成VBO
+                var position_vbo = create_vbo(vertexArray);
+                var normal_vbo = create_vbo(normalArray);
+                var color_vbo = create_vbo(colorArray);
+                // 将VBO进行绑定并添加
+                set_attribute([position_vbo, normal_vbo, color_vbo], attLocation, attStride);
+                // 生成IBO
+                var ibo = create_ibo(indices);
+                // IBO进行绑定并添加
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+            }
+
+            /**
+             * 画坐标系
+             **/
+            function drawCoordinates(x, y, z, rad){
+                /**
+                 * y轴
+                 * */
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆柱模型
+                var cylinder = new cylinderGeo(0.03, 0.5, 15);
+                var cylinderPositionY = cylinder.vertices;
+                var cylinderNormalY = cylinder.normals;
+                var cylinderColor = [];
+                for(var i=0; i<cylinderPositionY.length/3; i++){
+                    cylinderColor.push(0.6, 1.0, 0.0, 1.0);
+                }
+                var cylinderIndexY = cylinder.faces;
+                //写缓存绑定vertex-shader
+                bindBuffer(cylinderPositionY, cylinderNormalY, cylinderColor, cylinderIndexY);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, cylinderIndexY.length, gl.UNSIGNED_SHORT, 0);
+
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.translate(mMatrix, [0, 0.5, 0], mMatrix);
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆锥模型
+                var cone = new coneGeo(0.05, 0.25, 15);
+                var conePositionY = cone.vertices;
+                var coneNormalY = cone.normals;
+                var coneColorY = [];
+                for(var i=0; i<conePositionY.length/3; i++){
+                    coneColorY.push(0.6, 1.0, 0.0, 1.0);
+                }
+                var coneIndexY = cone.faces;
+                bindBuffer(conePositionY, coneNormalY, coneColorY, coneIndexY);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, coneIndexY.length, gl.UNSIGNED_SHORT, 0);
+
+
+                /**
+                 * x轴
+                 * */
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.rotate(mMatrix, -90*Math.PI/180, [0, 0, 1], mMatrix);
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆柱模型
+                var cylinderPositionX = cylinder.vertices;
+                var cylinderNormalX = cylinder.normals;
+                var cylinderColorX = [];
+                for(var i=0; i<cylinderPositionX.length/3; i++){
+                    cylinderColorX.push(0.6, 0.1, 0.0, 1.0);
+                }
+                var cylinderIndexX = cylinder.faces;
+                //写缓存绑定vertex-shader
+                bindBuffer(cylinderPositionX, cylinderNormalX, cylinderColorX, cylinderIndexX);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, cylinderIndexX.length, gl.UNSIGNED_SHORT, 0);
+
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.translate(mMatrix, [0.5, 0, 0], mMatrix);
+                m.rotate(mMatrix, -90*Math.PI/180, [0, 0, 1], mMatrix);
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆锥模型
+                var conePositionX = cone.vertices;
+                var coneNormalX = cone.normals;
+                var coneColorX = [];
+                for(var i=0; i<conePositionX.length/3; i++){
+                    coneColorX.push(0.6, 0.1, 0.0, 1.0);
+                }
+                var coneIndexX = cone.faces;
+                bindBuffer(conePositionX, coneNormalX, coneColorX, coneIndexX);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, coneIndexX.length, gl.UNSIGNED_SHORT, 0);
+
+
+                /**
+                 * z轴
+                 * */
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.rotate(mMatrix, 90*Math.PI/180, [1, 0, 0], mMatrix);
+                //圆锥姿态
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆柱模型
+                var cylinderPositionZ = cylinder.vertices;
+                var cylinderNormalZ = cylinder.normals;
+                var cylinderColorZ = [];
+                for(var i=0; i<cylinderPositionZ.length/3; i++){
+                    cylinderColorZ.push(0.0, 0.1, 0.6, 1.0);
+                }
+                var cylinderIndexZ = cylinder.faces;
+                //写缓存绑定vertex-shader
+                bindBuffer(cylinderPositionZ, cylinderNormalZ, cylinderColorZ, cylinderIndexZ);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, cylinderIndexZ.length, gl.UNSIGNED_SHORT, 0);
+
+                //空间变换
+                mMatrix = m.identity(m.create());
+                m.translate(mMatrix, [0, 0, 0.5], mMatrix);
+                m.rotate(mMatrix, 90*Math.PI/180, [1, 0, 0], mMatrix);
+                m.rotate(mMatrix, rad, [x, y, z], mMatrix);
+                // 得到mvpMatrix定位坐标矩阵
+                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+                // mMatrix的逆矩阵
+                m.inverse(mMatrix, invMatrix);
+                // 向uniformLocation中传入坐标变换矩阵
+                gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
+                gl.uniformMatrix4fv(uniLocation[1], false, invMatrix);
+                //圆锥模型
+                var conePositionZ = cone.vertices;
+                var coneNormalZ = cone.normals;
+                var coneColorZ = [];
+                for(var i=0; i<conePositionZ.length/3; i++){
+                    coneColorZ.push(0.0, 0.1, 0.6, 1.0);
+                }
+                var coneIndexZ = cone.faces;
+                bindBuffer(conePositionZ, coneNormalZ, coneColorZ, coneIndexZ);
+                // 使用索引进行绘图，画三角面
+                gl.drawElements(gl.TRIANGLES, coneIndexZ.length, gl.UNSIGNED_SHORT, 0);
+            }
+        };
+
+
+    </script>
+    <!--<script src="polyhedron.js"></script>-->
+
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<br/>
+转动前X坐标：<input id="cordX">转动前Y坐标：<input id="cordY">转动前Z坐标：<input id="cordZ">和转轴的点积：<input id="00">
+<br/>
+转动后X坐标：<input id="cordX1">转动后Y坐标：<input id="cordY1">转动后Z坐标：<input id="cordZ1">和转轴的点积：<input id="01">
+<br/>
+旋转轴X坐标分量：<input id="axisX">旋转轴Y坐标分量：<input id="axisY">旋转轴Z坐标分量：<input id="axisZ">
+<br/>
+旋转角度：<input id="rad">
+<br/>
+===============================================旋转操作参数===============================================
+<br/>
+旋转轴X坐标分量：<input class='axisX'>旋转轴Y坐标分量：<input class="axisY">旋转轴Z坐标分量：<input class="axisZ">
+旋转角度：<input class="rad">
+<button id="rotate">旋转</button>
+</body>
+</html>
