@@ -27,6 +27,17 @@ const resolve = (config) => depend.merge({
     }
 }, config);
 
+// vtk.js编译需要用到
+const shaderLoader = (config) => depend.merge({
+    module: {
+        rules: [
+            {
+                test: /\.glsl$/i,
+                loader: 'shader-loader',
+            },
+        ]
+    }
+}, config);
 
 /**
  * 组装webpack config
@@ -39,6 +50,7 @@ module.exports = (pipeNodes = []) => {
         pipe.staticResource,
         pipe.css,
         pipe.scss,
+        shaderLoader,
         // pipe.babelAntd,
         pipe.babelReact,
 
