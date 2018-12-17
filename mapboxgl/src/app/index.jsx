@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import UseMapboxUtil from './UseMapboxUtil';
-import Threejs from './solution/threejs';
-import VtkJS from './solution/vtkjs';
+import loadable from "../loadable"
 
-import ChinaMap from './solution/chinaMap';
-import BeijingMap from './solution/beijingMap';
+const UseMapboxUtil = loadable(import("./UseMapboxUtil"));
+const Threejs = loadable(import("./solution/threejs"));
+const VtkJS = loadable(import("./solution/vtkjs"));
+
+const ChinaMap = loadable(import("./solution/chinaMap"));
+const BeijingMap = loadable(import("./solution/beijingMap"));
 
 export default class Map extends Component {
     render() {
@@ -12,9 +14,9 @@ export default class Map extends Component {
             <div>
                 {/*<UseMapboxUtil />*/}
                 {/*<Threejs />*/}
-                <VtkJS />
+                {/*<VtkJS />*/}
                 {/*<ChinaMap />*/}
-                {/*<BeijingMap />*/}
+                <BeijingMap />
             </div>
         );
     }
