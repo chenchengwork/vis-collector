@@ -23,15 +23,28 @@ export default class MapUtil extends LeafletUtil{
         }]
      */
     drawTyphoon(lines, pointCb = () => {}) {
+        let polylines = []
+        let points = [];
+
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             //
             const polyline = this.addPolyline(line.path);
 
+            const ItemPoints = [];
             for (let j = 0; j < line.path.length; j++){
                 const point = this.addCircleMarker(line.path[j]);
+                ItemPoints.push(point);
             }
+
+            polylines.push(polyline);
+            points.push(ItemPoints);
         }
+
+        return {
+            polylines,
+            points
+        };
     }
 
 

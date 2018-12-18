@@ -42,7 +42,21 @@ export default class Map extends PureComponent {
         })*/
 
         // 绘制台风到地图
-        mapUtil.drawTyphoon(lines);
+        const typhoonData = mapUtil.drawTyphoon(lines);
+
+        // 实现台风动态清除效果
+        // const newLines = lines.slice(0, 20)
+        // typhoonData.polylines.forEach((polyline, index) => {
+        //     if(newLines[index]){
+        //         polyline.setLatLngs(newLines[index].path);
+        //     }else {
+        //         setTimeout(() => {
+        //             polyline.remove();
+        //             typhoonData.points[index].forEach(point => point.remove());
+        //         }, 100 * index);
+        //     }
+        // });
+        // mapUtil.drawTyphoon(newLines);
 
         // 绘制风环形流场
         $.get('/asserts/data/windy_20000.json').then((resp) => {
