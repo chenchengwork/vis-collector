@@ -3,7 +3,7 @@ import { PureComponent, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import Circle from "./popup/Circle";
-import { MarkCamera, MarkMove } from "./popup/Mark";
+import { MarkCamera, MarkMove, Police } from "./popup/Mark";
 
 const createDOM = (VisComponent, props = {}) => {
     const el = document.createElement('div');
@@ -101,7 +101,7 @@ class ControlPanel extends PureComponent{
 class ChinaMap extends PureComponent{
 
     componentDidMount() {
-        const {center, zoom, pitch, bearing} = this.props.options;
+        const {center, zoom, pitch, bearing, isInteractive} = this.props.options;
 
         const map = this.map = new mapboxgl.Map({
             container: this.containerRef,
@@ -126,7 +126,8 @@ class ChinaMap extends PureComponent{
             center,
             zoom,
             pitch,
-            bearing
+            bearing,
+            interactive: isInteractive
         });
 
         map.on('load', () => {
@@ -284,7 +285,7 @@ class ChinaMap extends PureComponent{
         };
 
 
-        // 创建移动标记
+        // --------------创建移动标记--------------
         const markMoveData = {
             transferPrisoner: {
                 // position: center,
@@ -319,15 +320,26 @@ class ChinaMap extends PureComponent{
             }
         }
 
-
-
-        // 创建摄像头
+        // -----------创建摄像头--------------------
         const cameraData =  [
-            {
+            [ 116.670866999912278, 39.82804299968484 ],
+            [ 116.631204000064713, 39.79739400003325 ],
+            [ 116.696312999745373, 39.855230999810942 ],
+            [ 116.702285999999049, 39.866808000389085 ],
+            [ 116.706839000419677, 39.931044000280565 ],
+            [ 116.377354000187097, 39.987796000385288 ],
+            [ 116.107128999703718, 39.700354000037237 ],
+            [ 116.305814999862491, 39.830653000435802 ],
+            [ 116.396954000227083, 39.832002999738791 ],
+            [ 116.46483099985096, 39.834322999706842 ],
+            [ 116.441310999803022, 39.832176999668945 ],
+            [ 116.501443000194513, 39.818122999976651 ],
+            [ 116.382862999727877, 39.758155999999587 ],
+            [ 116.445311999949013, 39.790927000380918 ]
+        ].map((position) => ({
                 status: 1,
-                position: [center[0] - 0.1, center[1] - 0.1],
-            }
-        ];
+                position,
+        }));
 
         cameraData.forEach(item => {
             // #CBCF2F
@@ -335,18 +347,82 @@ class ChinaMap extends PureComponent{
                 "1": "#CBCF2F"
             };
 
-            const width = 30;
-            const height = 30;
+            const width = 20;
+            const height = 20;
 
             const dom = createDOM(MarkCamera, {width, height, bgColor: statusToColor[item.status]});
             new mapboxgl.Marker({
                 element: dom.el,
-                offset: [0, -Math.sqrt(30 * 30 + 30 *30) / 2]
+                offset: [0, -Math.sqrt(width * width + height * height) / 2]
             })
                 .setLngLat(item.position)
                 .addTo(map);
         });
-    }
+
+
+        // -----------创建警察--------------------
+        const policeData =  [
+            [ 116.36483099985096, 39.734322999706842 ],
+            [ 116.341310999803022, 39.832176999668945 ],
+            [ 116.401443000194513, 39.990927000380918 ],
+            [ 116.182862999727877, 39.858155999999587 ],
+            [ 116.245311999949013, 39.990927000380918 ]
+        ].map((position) => ({
+            status: 1,
+            position,
+        }));
+
+        policeData.forEach(item => {
+            const width = 20;
+            const height = 20;
+
+            const dom = createDOM(Police, {width, height});
+            new mapboxgl.Marker({
+                element: dom.el,
+                // offset: [0, -Math.sqrt(30 * 30 + 30 *30) / 2]
+            })
+                .setLngLat(item.position)
+                .addTo(map);
+        });
+
+
+        // ---------监狱-------------------
+        // const prisonData = {
+        //     transferPrisoner: {
+        //         // position: center,
+        //         position: [116.353957000415448, 39.080342000183327 ],
+        //         number: 20,
+        //     },
+        // };
+        //
+        //
+        // for(let [key, val] of Object.entries(prisonData)){
+        //     // 创建marker
+        //     if(!createdMark.markMove[key].mark){
+        //         const {style, classify} = options.markMove;
+        //         if(classify.hasOwnProperty(key)) {
+        //             const dom = createDOM(MarkMove, {...style, ...classify[key], number: val.number});
+        //
+        //             const mark = new mapboxgl.Marker({
+        //                 element: dom.el,
+        //                 // offset: [0, -style.height / 2]
+        //             })
+        //                 .setLngLat(val.position)
+        //                 .addTo(map);
+        //
+        //             createdMark.markMove[key] = {
+        //                 mark,
+        //                 domRef: dom.domRef
+        //             }
+        //         }
+        //     }
+        //     // 更新marker数据
+        //     else {
+        //         createdMark.markMove[key].mark.setLngLat(val.position);
+        //         createdMark.markMove[key].domRef.updateNumber(val.number);
+        //     }
+        // }
+    };
 
     render(){
         return (
