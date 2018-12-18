@@ -42,20 +42,43 @@ export default class Map extends PureComponent {
         })*/
 
         // 绘制台风到地图
-        const typhoonData = mapUtil.drawTyphoon(lines);
+        let typhoonData = mapUtil.drawTyphoon(lines);
 
         // 实现台风动态清除效果
-        // const newLines = lines.slice(0, 20)
-        // typhoonData.polylines.forEach((polyline, index) => {
-        //     if(newLines[index]){
-        //         polyline.setLatLngs(newLines[index].path);
-        //     }else {
-        //         setTimeout(() => {
-        //             polyline.remove();
-        //             typhoonData.points[index].forEach(point => point.remove());
-        //         }, 100 * index);
-        //     }
-        // });
+        setTimeout(() => {
+            const newLines = lines.slice(0, 20);
+            const newTyphoonData = [];
+
+            // 老数据 > 新数据
+            if(typhoonData.polylines.length > newLines.length){
+
+            }
+            // 老数据 < 新数据
+            else if(typhoonData.polylines.length < newLines.length){
+
+            }
+            // 老数据 == 新数据
+            else {
+
+            }
+
+            typhoonData.polylines.forEach((polyline, index) => {
+                if(newLines[index]){
+                    polyline.setLatLngs(newLines[index].path);
+                }else {
+                    setTimeout(() => {
+                        polyline.remove();
+                        typhoonData.points[index].forEach(point => point.remove());
+
+                        // typhoonData.polylines.splice(index, 1);
+                        // typhoonData.points.splice(index, 1);
+                    }, 100 * index);
+                }
+            });
+        }, 3000)
+
+
+
         // mapUtil.drawTyphoon(newLines);
 
         // 绘制风环形流场

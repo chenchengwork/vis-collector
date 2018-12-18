@@ -337,8 +337,8 @@ class ChinaMap extends PureComponent{
             [ 116.382862999727877, 39.758155999999587 ],
             [ 116.445311999949013, 39.790927000380918 ]
         ].map((position) => ({
-                status: 1,
-                position,
+            status: 1,
+            position,
         }));
 
         cameraData.forEach(item => {

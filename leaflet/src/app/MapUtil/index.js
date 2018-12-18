@@ -27,24 +27,44 @@ export default class MapUtil extends LeafletUtil{
         let points = [];
 
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            //
-            const polyline = this.addPolyline(line.path);
-
-            const ItemPoints = [];
-            for (let j = 0; j < line.path.length; j++){
-                const point = this.addCircleMarker(line.path[j]);
-                ItemPoints.push(point);
-            }
-
-            polylines.push(polyline);
-            points.push(ItemPoints);
+            const typhoon = this.drawSingleTyphoon(lines[i]);
+            polylines.push(typhoon.polyline);
+            points.push(typhoon.points);
         }
 
         return {
             polylines,
             points
         };
+    }
+
+    // 绘制单条台风
+    drawSingleTyphoon(line){
+        const points = [];
+        const polyline = this.addPolyline(line.path);
+        for (let j = 0; j < line.path.length; j++){
+            const point = this.addCircleMarker(line.path[j]);
+            points.push(point);
+        }
+
+        return {
+            polyline,
+            points
+        }
+    }
+
+    redrawSingleTyphoon(line, polyline, points){
+        polyline.setLatLngs(line.path);
+
+        for (let j = 0; j < line.path.length; j++){
+            if(points[j]){
+                points[j].setLatLng(line.path[j])
+            }else {
+
+            }
+            // const point = this.addCircleMarker(line.path[j]);
+            // points.push(point);
+        }
     }
 
 
