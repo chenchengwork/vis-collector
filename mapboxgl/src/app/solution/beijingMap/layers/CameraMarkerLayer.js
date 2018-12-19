@@ -1,4 +1,4 @@
-import {MarkCamera} from "../popup/Mark";
+import {MarkCamera} from "./Marker";
 import { mkMarker } from "./util";
 
 const width = 20;

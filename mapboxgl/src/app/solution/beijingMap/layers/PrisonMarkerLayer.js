@@ -1,4 +1,4 @@
-import {Prison} from "../popup/Mark";
+import {Prison} from "./Marker";
 import { mkMarker } from "./util";
 
 const width = 100;

@@ -1,4 +1,4 @@
-import {Police} from "../popup/Mark";
+import {Police} from "./Marker";
 import { mkMarker } from "./util";
 
 const width = 20;

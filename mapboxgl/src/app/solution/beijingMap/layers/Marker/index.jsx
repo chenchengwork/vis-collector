@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import css from './Mark.scss';
+import "./font/iconfont.css";
+import css from './index.scss';
 
 // 转移犯人
 export class MarkMove extends PureComponent {
@@ -26,7 +27,7 @@ export class MarkMove extends PureComponent {
         const columnHeight = height - contentHeight - carHeight;
 
         return (
-            <div className={css["mark-move"]} style={{width, height}}>
+            <div className={css.move} style={{width, height}}>
                 <div className={css.content} style={{height: contentHeight, borderRadius: contentHeight / 2}}>
                     <div className={css.icon} style={{backgroundColor: bgColor}}>
                         <i className={`iconfont ${icon}`} />
@@ -73,7 +74,7 @@ export class MarkCamera extends PureComponent{
         const { bgColor } = this.props;
 
         return (
-            <div className={css["mark-camera"]} style={{width, height, backgroundColor: bgColor}}>
+            <div className={css.camera} style={{width, height, backgroundColor: bgColor}}>
                 <i className={`iconfont icon-shexiangtou`} style={{fontSize: 12}} />
             </div>
         )
@@ -117,7 +118,7 @@ export class Prison extends PureComponent {
                     <span className={css.name}>{name}</span>
                 </div>
                 <div className={css.column} style={{width: 2, height: columnHeight}}></div>
-                <img src={require("./img/prison.png")}  style={{width, height: imgHeight}} />
+                <img src={require("./img/prison.png")}  style={{width: width / 2, height: imgHeight}} />
             </div>
         );
     }

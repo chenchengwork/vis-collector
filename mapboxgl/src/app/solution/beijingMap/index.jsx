@@ -1,26 +1,13 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import { PureComponent, Fragment } from 'react';
-import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
-import Circle from "./popup/Circle";
-
 import { MoveMarkerLayer, CameraMarkerLayer, PoliceMarkerLayer, PrisonMarkerLayer } from "./layers";
-
-const createDOM = (VisComponent, props = {}) => {
-    const el = document.createElement('div');
-    let domRef = null;
-    ReactDOM.render(<VisComponent ref={(ref) => domRef = ref} {...props}/>, el);
-
-    return {el, domRef};
-};
-
-const center = [116.2317,39.5427];  // 北京中心点
 
 export default class Index extends PureComponent{
     state = {
         options: {
-            center: [116.2317,39.9427],     // 北京中心点
-            zoom: 8,                        // 缩放等级
+            center: [116.3317,39.8427],     // 北京中心点
+            zoom: 10,                        // 缩放等级
             pitch: 50,                      // 倾斜角度
             bearing: 0,                     // 倾斜角度
             isInteractive: true,            // 是否开启交互
@@ -35,7 +22,7 @@ export default class Index extends PureComponent{
         return (
             <Fragment>
                 <ControlPanel updateOptions={this.updateOptions} options={options} />
-                <ChinaMap options={options} />
+                <BeijingMap options={options} />
             </Fragment>
         )
     }
@@ -97,9 +84,7 @@ class ControlPanel extends PureComponent{
     }
 }
 
-
-
-class ChinaMap extends PureComponent{
+class BeijingMap extends PureComponent{
 
     componentDidMount() {
         const {center, zoom, pitch, bearing, isInteractive} = this.props.options;
@@ -247,12 +232,68 @@ class ChinaMap extends PureComponent{
     }
 
     addPopup = (map) => {
-        // 基准点
-        new mapboxgl.Marker({
-            element: createDOM(Circle).el
-        })
-            .setLngLat(center)
-            .addTo(map);
+        const data = {
+            move: [
+                {
+                    id: "transferPrisoner-1",
+                    type: "transferPrisoner",
+                    position: [116.353957000415448, 39.980342000183327 ],
+                    number: 20,
+                },
+                {
+                    id: "escortPrisoner-1",
+                    type: "escortPrisoner",
+                    position: [116.424741000097242, 39.830972999904191 ],
+                    number: 30,
+                },
+                {
+                    id: "seeDoctor-1",
+                    type: "seeDoctor",
+                    position: [116.403464000063764, 39.871902999723829 ],
+                    number: 2,
+                },
+            ],
+            camera: [
+                [ 116.670866999912278, 39.82804299968484 ],
+                [ 116.631204000064713, 39.79739400003325 ],
+                [ 116.696312999745373, 39.855230999810942 ],
+                [ 116.702285999999049, 39.866808000389085 ],
+                [ 116.706839000419677, 39.931044000280565 ],
+                [ 116.377354000187097, 39.987796000385288 ],
+                [ 116.107128999703718, 39.700354000037237 ],
+                [ 116.305814999862491, 39.830653000435802 ],
+                [ 116.396954000227083, 39.832002999738791 ],
+                [ 116.46483099985096, 39.834322999706842 ],
+                [ 116.441310999803022, 39.832176999668945 ],
+                [ 116.501443000194513, 39.818122999976651 ],
+                [ 116.382862999727877, 39.758155999999587 ],
+                [ 116.445311999949013, 39.790927000380918 ]
+            ].map((position, index) => ({
+                status: [3, 6, 8].indexOf(index) !== -1 ? 2 : 1,
+                position,
+            })),
+
+            police: [
+                [116.36483099985096, 39.734322999706842],
+                [116.341310999803022, 39.832176999668945],
+                [116.401443000194513, 39.990927000380918],
+                [116.182862999727877, 39.858155999999587],
+                [116.245311999949013, 39.990927000380918]
+            ].map((position) => ({
+                position,
+            })),
+
+            prison: [
+                {
+                    position: [116.153957000415448, 40.080342000183327],
+                    name: "延庆监狱",
+                },
+                {
+                    position: [116.203957000415448, 39.780342000183327],
+                    name: "垦华监狱",
+                },
+            ],
+        };
 
         const moveMarkerLayer = new MoveMarkerLayer(map);
         const cameraMarkerLayer = new CameraMarkerLayer(map);
@@ -260,64 +301,16 @@ class ChinaMap extends PureComponent{
         const prisonMarkerLayer = new PrisonMarkerLayer(map);
 
         // 移动marker
-        moveMarkerLayer.setData([
-            {
-                type: "transferPrisoner",
-                position: [116.353957000415448, 39.980342000183327 ],
-                number: 20,
-            },
-            {
-                type: "escortPrisoner",
-                position: [116.424741000097242, 39.830972999904191 ],
-                number: 30,
-            },
-            {
-                type: "seeDoctor",
-                position: [116.403464000063764, 39.871902999723829 ],
-                number: 2,
-            },
-        ]);
+        moveMarkerLayer.setData(data.move);
 
         // 摄像头
-        cameraMarkerLayer.setData([
-            [ 116.670866999912278, 39.82804299968484 ],
-            [ 116.631204000064713, 39.79739400003325 ],
-            [ 116.696312999745373, 39.855230999810942 ],
-            [ 116.702285999999049, 39.866808000389085 ],
-            [ 116.706839000419677, 39.931044000280565 ],
-            [ 116.377354000187097, 39.987796000385288 ],
-            [ 116.107128999703718, 39.700354000037237 ],
-            [ 116.305814999862491, 39.830653000435802 ],
-            [ 116.396954000227083, 39.832002999738791 ],
-            [ 116.46483099985096, 39.834322999706842 ],
-            [ 116.441310999803022, 39.832176999668945 ],
-            [ 116.501443000194513, 39.818122999976651 ],
-            [ 116.382862999727877, 39.758155999999587 ],
-            [ 116.445311999949013, 39.790927000380918 ]
-        ].map((position, index) => ({
-            status: [3, 6, 8].indexOf(index) !== -1 ? 2 : 1,
-            position,
-        })));
+        cameraMarkerLayer.setData(data.camera);
 
         // 警察
-        policeMarkerLayer.setData([
-            [116.36483099985096, 39.734322999706842],
-            [116.341310999803022, 39.832176999668945],
-            [116.401443000194513, 39.990927000380918],
-            [116.182862999727877, 39.858155999999587],
-            [116.245311999949013, 39.990927000380918]
-        ].map((position) => ({
-            position,
-        })));
+        policeMarkerLayer.setData(data.police);
 
         // 监狱
-        prisonMarkerLayer.setData([
-            {
-                position: [116.053957000415448, 40.580342000183327],
-                name: "延庆监狱",
-            },
-        ]);
-
+        prisonMarkerLayer.setData(data.prison);
     };
 
     render(){

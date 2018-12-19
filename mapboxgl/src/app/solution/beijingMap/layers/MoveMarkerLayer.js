@@ -1,4 +1,4 @@
-import {MarkMove} from "../popup/Mark";
+import {MarkMove} from "./Marker";
 import { mkMarker } from "./util";
 
 const width = 100;
@@ -47,20 +47,20 @@ export default class MoveMarkerLayer{
 
     /**
      * 销毁marker实例
-     * @param [type]
+     * @param [id]
      * usage:
      *  可以指定type类型, 不指定将删除所有的marker
      */
-    destroy(type = null){
+    destroy(id = null){
         if(!type){
             Object.values(this.createdMarker).forEach(item => item.marker.remove());
         }else {
-            this.createdMarker[type].marker.remove();
+            this.createdMarker[id].marker.remove();
         }
     }
 
     _create(data){
-        (Array.isArray(data) ? data : [data]).forEach(item => this.createdMarker[item.type] = this._createMarker(item));
+        (Array.isArray(data) ? data : [data]).forEach(item => this.createdMarker[item.id] = this._createMarker(item));
 
         this.isCreated = true;
     }
@@ -69,9 +69,9 @@ export default class MoveMarkerLayer{
         const unCreatedData = []; // 收集未被创建类型的数据
 
         (Array.isArray(data) ? data : [data]).forEach(item => {
-            const {type, position, number} = item;
-            if(this.createdMarker[type]){
-                const {domRef, marker} = this.createdMarker[type];
+            const {id, position, number} = item;
+            if(this.createdMarker[id]){
+                const {domRef, marker} = this.createdMarker[id];
 
                 // 更新数据和位置
                 marker.setLngLat(position);
