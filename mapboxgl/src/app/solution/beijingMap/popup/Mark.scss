@@ -1,4 +1,4 @@
-@import url("http://at.alicdn.com/t/font_962869_m54edp5t7li.css");
+@import url("http://at.alicdn.com/t/font_962869_jnkfjhuka1.css");
 
 .center{
     display: flex;
@@ -26,7 +26,7 @@
             width: 16px;
             height: 16px;
             border-radius: 8px;
-            background-color: rgba(211, 84, 0 ,1);
+            //background-color: rgba(211, 84, 0 ,1);
             margin-left: 2px;
             color: #ffffff;
         }
@@ -44,9 +44,9 @@
         }
     }
 
-    .column {
-        background-image: linear-gradient(bottom, rgba(128, 139, 150, 0.5) 0%, rgba(211, 84, 0 ,1) 100%);
-    }
+    //.column {
+    //    background-image: linear-gradient(bottom, rgba(128, 139, 150, 0.5) 0%, rgba(211, 84, 0 ,1) 100%);
+    //}
 }
 
 // 摄像头
@@ -76,11 +76,11 @@
             justify-content: center;
             width: 20px;
             height: 20px;
-            background-color: rgba(211, 84, 0 ,1);
-            color: #ffffff;
+            background-color: #0076E8;
+            color: #001F3F;
         }
 
-        .desc{
+        .name{
             color: #ffffff;
             margin-left: 3px;
             font-size: 8px;

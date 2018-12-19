@@ -3,7 +3,8 @@ import { PureComponent, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import Circle from "./popup/Circle";
-import { MarkCamera, MarkMove, Police } from "./popup/Mark";
+
+import { MoveMarkerLayer, CameraMarkerLayer, PoliceMarkerLayer, PrisonMarkerLayer } from "./layers";
 
 const createDOM = (VisComponent, props = {}) => {
     const el = document.createElement('div');
@@ -174,7 +175,6 @@ class ChinaMap extends PureComponent{
         }
     }
 
-
     addBeijingLayer = (map) => {
         // 设置地图的背景颜色
         const bgLayer = map.addLayer({
@@ -254,74 +254,32 @@ class ChinaMap extends PureComponent{
             .setLngLat(center)
             .addTo(map);
 
-        // 存储已创建的标记
-        const createdMark = {
-            markMove: {
-                transferPrisoner: {
-                    mark: null,
-                    domRef: null,
-                },
-            },
+        const moveMarkerLayer = new MoveMarkerLayer(map);
+        const cameraMarkerLayer = new CameraMarkerLayer(map);
+        const policeMarkerLayer = new PoliceMarkerLayer(map);
+        const prisonMarkerLayer = new PrisonMarkerLayer(map);
 
-            camera: {
-
-            }
-        };
-
-
-        const options = {
-            markMove: {
-                style: {
-                    width: 100,
-                    height: 90
-                },
-                classify: {
-                    transferPrisoner: {
-                        icon: "icon-jiaohuan",
-                        desc: "转运犯人 | 人数:",
-                    },
-                }
-            }
-        };
-
-
-        // --------------创建移动标记--------------
-        const markMoveData = {
-            transferPrisoner: {
-                // position: center,
+        // 移动marker
+        moveMarkerLayer.setData([
+            {
+                type: "transferPrisoner",
                 position: [116.353957000415448, 39.980342000183327 ],
                 number: 20,
             },
-        };
-        for(let [key, val] of Object.entries(markMoveData)){
-            // 创建marker
-            if(!createdMark.markMove[key].mark){
-                const {style, classify} = options.markMove;
-                if(classify.hasOwnProperty(key)) {
-                    const dom = createDOM(MarkMove, {...style, ...classify[key], number: val.number});
+            {
+                type: "escortPrisoner",
+                position: [116.424741000097242, 39.830972999904191 ],
+                number: 30,
+            },
+            {
+                type: "seeDoctor",
+                position: [116.403464000063764, 39.871902999723829 ],
+                number: 2,
+            },
+        ]);
 
-                    const mark = new mapboxgl.Marker({
-                        element: dom.el,
-                        offset: [0, -style.height / 2]
-                    })
-                        .setLngLat(val.position)
-                        .addTo(map);
-
-                    createdMark.markMove[key] = {
-                        mark,
-                        domRef: dom.domRef
-                    }
-                }
-            }
-            // 更新marker数据
-            else {
-                createdMark.markMove[key].mark.setLngLat(val.position);
-                createdMark.markMove[key].domRef.updateNumber(val.number);
-            }
-        }
-
-        // -----------创建摄像头--------------------
-        const cameraData =  [
+        // 摄像头
+        cameraMarkerLayer.setData([
             [ 116.670866999912278, 39.82804299968484 ],
             [ 116.631204000064713, 39.79739400003325 ],
             [ 116.696312999745373, 39.855230999810942 ],
@@ -336,92 +294,30 @@ class ChinaMap extends PureComponent{
             [ 116.501443000194513, 39.818122999976651 ],
             [ 116.382862999727877, 39.758155999999587 ],
             [ 116.445311999949013, 39.790927000380918 ]
-        ].map((position) => ({
-            status: 1,
+        ].map((position, index) => ({
+            status: [3, 6, 8].indexOf(index) !== -1 ? 2 : 1,
             position,
-        }));
+        })));
 
-        cameraData.forEach(item => {
-            // #CBCF2F
-            const statusToColor = {
-                "1": "#CBCF2F"
-            };
-
-            const width = 20;
-            const height = 20;
-
-            const dom = createDOM(MarkCamera, {width, height, bgColor: statusToColor[item.status]});
-            new mapboxgl.Marker({
-                element: dom.el,
-                offset: [0, -Math.sqrt(width * width + height * height) / 2]
-            })
-                .setLngLat(item.position)
-                .addTo(map);
-        });
-
-
-        // -----------创建警察--------------------
-        const policeData =  [
-            [ 116.36483099985096, 39.734322999706842 ],
-            [ 116.341310999803022, 39.832176999668945 ],
-            [ 116.401443000194513, 39.990927000380918 ],
-            [ 116.182862999727877, 39.858155999999587 ],
-            [ 116.245311999949013, 39.990927000380918 ]
+        // 警察
+        policeMarkerLayer.setData([
+            [116.36483099985096, 39.734322999706842],
+            [116.341310999803022, 39.832176999668945],
+            [116.401443000194513, 39.990927000380918],
+            [116.182862999727877, 39.858155999999587],
+            [116.245311999949013, 39.990927000380918]
         ].map((position) => ({
-            status: 1,
             position,
-        }));
+        })));
 
-        policeData.forEach(item => {
-            const width = 20;
-            const height = 20;
+        // 监狱
+        prisonMarkerLayer.setData([
+            {
+                position: [116.053957000415448, 40.580342000183327],
+                name: "延庆监狱",
+            },
+        ]);
 
-            const dom = createDOM(Police, {width, height});
-            new mapboxgl.Marker({
-                element: dom.el,
-                // offset: [0, -Math.sqrt(30 * 30 + 30 *30) / 2]
-            })
-                .setLngLat(item.position)
-                .addTo(map);
-        });
-
-
-        // ---------监狱-------------------
-        // const prisonData = {
-        //     transferPrisoner: {
-        //         // position: center,
-        //         position: [116.353957000415448, 39.080342000183327 ],
-        //         number: 20,
-        //     },
-        // };
-        //
-        //
-        // for(let [key, val] of Object.entries(prisonData)){
-        //     // 创建marker
-        //     if(!createdMark.markMove[key].mark){
-        //         const {style, classify} = options.markMove;
-        //         if(classify.hasOwnProperty(key)) {
-        //             const dom = createDOM(MarkMove, {...style, ...classify[key], number: val.number});
-        //
-        //             const mark = new mapboxgl.Marker({
-        //                 element: dom.el,
-        //                 // offset: [0, -style.height / 2]
-        //             })
-        //                 .setLngLat(val.position)
-        //                 .addTo(map);
-        //
-        //             createdMark.markMove[key] = {
-        //                 mark,
-        //                 domRef: dom.domRef
-        //             }
-        //         }
-        //     }
-        //     // 更新marker数据
-        //     else {
-        //         createdMark.markMove[key].mark.setLngLat(val.position);
-        //         createdMark.markMove[key].domRef.updateNumber(val.number);
-        //     }
-        // }
     };
 
     render(){

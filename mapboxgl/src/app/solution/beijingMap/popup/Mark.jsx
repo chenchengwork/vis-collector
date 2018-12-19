@@ -19,20 +19,38 @@ export class MarkMove extends PureComponent {
     updateNumber = (number) => this.setState({number})
 
     render() {
-        const {width, height, icon, desc} = this.props;
+        const {width, height, icon, desc, bgColor} = this.props;
         const contentHeight = 20;
-        const columnHeight = height - contentHeight;
+        const carWidth = 15;
+        const carHeight = 10;
+        const columnHeight = height - contentHeight - carHeight;
 
         return (
             <div className={css["mark-move"]} style={{width, height}}>
                 <div className={css.content} style={{height: contentHeight, borderRadius: contentHeight / 2}}>
-                    <div className={css.icon}>
+                    <div className={css.icon} style={{backgroundColor: bgColor}}>
                         <i className={`iconfont ${icon}`} />
                     </div>
                     <span className={css.desc}>{desc}</span>
                     <span className={css.number}>{this.state.number}</span>
                 </div>
-                <div className={css.column} style={{width: 2, height: columnHeight}}></div>
+
+                <div style={{width: 2, height: columnHeight, backgroundImage: `-webkit-linear-gradient(bottom, rgba(128, 139, 150, 0.5) 0%, ${bgColor} 100%)`}} />
+
+                <div>
+                    <div className={css.center} style={{width: carWidth, height: carHeight, backgroundColor: "rgba(211, 84, 0 ,1)"}}>
+                        <i className={`iconfont icon-dkw_qiche`} />
+                    </div>
+                    <div style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: `${carWidth/2}px solid transparent`,
+                        borderRight: `${carWidth/2}px solid transparent`,
+                        borderTop: `${carWidth/2}px solid rgba(211, 84, 0 ,1)`
+                    }}></div>
+                </div>
+
+
             </div>
         );
     }
@@ -85,7 +103,7 @@ export class Prison extends PureComponent {
     };
 
     render() {
-        const {width, height, desc} = this.props;
+        const {width, height, name} = this.props;
         const contentHeight = 20;
         const imgHeight = 30;
         const columnHeight = height - contentHeight - imgHeight;
@@ -96,7 +114,7 @@ export class Prison extends PureComponent {
                     <div className={css.icon}>
                         <i className={`iconfont icon-jianyu`} />
                     </div>
-                    <span className={css.desc}>{desc}</span>
+                    <span className={css.name}>{name}</span>
                 </div>
                 <div className={css.column} style={{width: 2, height: columnHeight}}></div>
                 <img src={require("./img/prison.png")}  style={{width, height: imgHeight}} />
