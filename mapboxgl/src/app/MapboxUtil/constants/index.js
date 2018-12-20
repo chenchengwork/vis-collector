@@ -10,7 +10,7 @@ export const ACCESS_TOKEN = 'pk.eyJ1IjoiY2hlbmNoZW5nMTIiLCJhIjoiY2poN2JjcmJuMDY1
  */
 export const ZOOM = {
     maxZoom: 18,
-    minZoom: 4
+    minZoom: 1
 };
 
 /**

@@ -22,7 +22,7 @@ export default class TestMap{
         const layerID = mapboxUtil.setOsmTileLayer(MapboxUtil.G.osmTile.GaoDe.Normal.Map);
         // const layerID = mapboxUtil.setOsmTileLayer(MapboxUtil.G.osmTile.GaoDe.Normal.Map);
         // mapboxUtil.setOsmTileLayer(MapboxUtil.G.osmTile.GaoDe.Satellite.Map);
-        // mapboxUtil.setOsmTileLayer(MapboxUtil.G.osmTile.GaoDe.Satellite.Annotion);
+        // mapboxUtil.addOsmTileLayer(MapboxUtil.G.osmTile.GaoDe.Satellite.Annotion);
         // mapboxUtil.setOsmTileLayer(MapboxUtil.G.osmTile.TianDiTu.Satellite.Map);
 
         return layerID;
@@ -244,5 +244,62 @@ export default class TestMap{
                 }
             }
         ]);
+    }
+
+
+    /**
+     * 添加中国地图的贴图
+     *
+     * 制作贴图的过程:
+     *  1. 固定好地图容器的宽高, 中心点, 缩放等级
+     *  2. 将做好的地图截图给UI设计人员, 保证图片的宽高
+     *  3. 再次加载图片时,要和地图截图时的容器的宽高, 中心点, 缩放等级保持一致,这样才能正确加载图片
+     * @param map
+     */
+    doAddChinaImg(map){
+        const realZoom = map.getZoom();
+        map.setZoom(3);
+
+        const bounds = map.getBounds();
+        const northWest = bounds.getNorthWest();
+        const northEast = bounds.getNorthEast();
+        const southEast = bounds.getSouthEast();
+        const southWest = bounds.getSouthWest();
+
+        map.addLayer({
+            id: "china-map-img",
+            "type": "raster",
+            "source": {
+                type: "image",
+                url: require("./img/china_map.png"),
+                coordinates: [
+                    [northWest.lng, northWest.lat],
+                    [northEast.lng, northEast.lat],
+                    [southEast.lng, southEast.lat],
+                    [southWest.lng, southWest.lat],
+
+                ]
+            },
+            "paint": {
+                "raster-fade-duration": 0
+            }
+        });
+
+        map.setZoom(realZoom);
+
+        const china = require("./solution/chinaMap/geojson/china.json");
+        map.addLayer({
+            'id': 'maine',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': china
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#088',
+                'fill-opacity': 0.8
+            }
+        });
     }
 }

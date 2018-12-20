@@ -12,11 +12,11 @@ export default class Map extends Component {
     render() {
         return (
             <div>
-                {/*<UseMapboxUtil />*/}
+                <UseMapboxUtil />
                 {/*<Threejs />*/}
                 {/*<VtkJS />*/}
                 {/*<ChinaMap />*/}
-                <BeijingMap />
+                {/*<BeijingMap />*/}
             </div>
         );
     }

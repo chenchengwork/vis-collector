@@ -129,33 +129,34 @@ class BeijingMap extends PureComponent{
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if(this.map){
+            const map = this.map;
             const { center, zoom, pitch, bearing, isInteractive } = this.props.options;
 
-            this.map.setCenter(center);
-            this.map.setPitch(pitch);
-            this.map.setBearing(bearing);
-            this.map.zoomTo(parseFloat(zoom), {
+            map.setCenter(center);
+            map.setPitch(pitch);
+            map.setBearing(bearing);
+            map.zoomTo(parseFloat(zoom), {
                 duration: 4000,
                 animate: true,
             });
 
             // 是否开启交互
             if(isInteractive) {
-                this.map.boxZoom.enable();
-                this.map.scrollZoom.enable();
-                this.map.dragPan.enable();
-                this.map.dragRotate.enable();
-                this.map.keyboard.enable();
-                this.map.doubleClickZoom.enable();
-                this.map.touchZoomRotate.enable();
+                map.boxZoom.enable();
+                map.scrollZoom.enable();
+                map.dragPan.enable();
+                map.dragRotate.enable();
+                map.keyboard.enable();
+                map.doubleClickZoom.enable();
+                map.touchZoomRotate.enable();
             }else {
-                this.map.boxZoom.disable();
-                this.map.scrollZoom.disable();
-                this.map.dragPan.disable();
-                this.map.dragRotate.disable();
-                this.map.keyboard.disable();
-                this.map.doubleClickZoom.disable();
-                this.map.touchZoomRotate.disable();
+                map.boxZoom.disable();
+                map.scrollZoom.disable();
+                map.dragPan.disable();
+                map.dragRotate.disable();
+                map.keyboard.disable();
+                map.doubleClickZoom.disable();
+                map.touchZoomRotate.disable();
             }
         }
     }

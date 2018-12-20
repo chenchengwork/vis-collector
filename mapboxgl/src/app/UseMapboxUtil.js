@@ -9,7 +9,7 @@ export default class UseMapboxUtil extends Component {
     state = {
         mapboxStyle: MapboxUtil.G.styles.streets_v9,
         center: MapboxUtil.G.CENTER,
-        zoom: 4,
+        zoom: 9,
         pitch: 0,       // 地图倾斜角度 45
         bearing: 0,     // 地图旋转参数，单位是度数 20
         wms: '',
@@ -27,7 +27,7 @@ export default class UseMapboxUtil extends Component {
         // ------------初始化地图------------------
         const mapboxUtil = this.mapboxUtil = new MapboxUtil('mapbox-gl-id', {
             center,
-            zoom,
+            zoom: 3,
             pitch,      // 地图倾斜角度 40
             bearing,    // 地图旋转参数，单位是度数 20
             // localIdeographFontFamily: "'Noto Sans', 'Noto Sans CJK SC', sans-serif",
@@ -46,6 +46,9 @@ export default class UseMapboxUtil extends Component {
             const testMap = new TestMap(this.mapboxUtil);
 
             testMap.doSetOsmTileLayer();
+
+            // 添加中国贴图
+            testMap.doAddChinaImg(map);
 
             // testMap.doSetGeoJSONByFill();
 
@@ -68,7 +71,6 @@ export default class UseMapboxUtil extends Component {
             // testMap.doSetPixelCircleLayer();
 
         });
-        const map = mapboxUtil.map;
     }
 
     // 处理mapbox样式
@@ -95,6 +97,8 @@ export default class UseMapboxUtil extends Component {
 
     render() {
         const { mapboxStyle, pitch, bearing, wms } = this.state;
+
+        return (<div id="mapbox-gl-id"></div>)
 
         return (
             <div className={styles["mapbox-gl-map"]}>
