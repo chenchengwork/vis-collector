@@ -116,7 +116,7 @@ export default class MapboxUtil {
             // this.mouseTool.drawPolygon();
             // this.mouseTool.draw.changeMode('draw_rectangle');
 
-            console.log("初始化map样式: ", JSON.stringify(map.getStyle()));
+            // console.log("初始化map样式: ", JSON.stringify(map.getStyle()));
         })
     }
 

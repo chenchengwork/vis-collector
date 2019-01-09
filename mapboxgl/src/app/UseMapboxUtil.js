@@ -22,6 +22,10 @@ export default class UseMapboxUtil extends Component {
         const { center, zoom, mapboxStyle, pitch, bearing } = this.state;
         let circleZoomFn = null;
 
+        const a = document.querySelector("#mapbox-gl-id");
+        console.log(a.clientWidth);
+        console.log(a.clientHeight);
+
         // window.addEventListener('online', () => alert(1), false);
 
         // ------------初始化地图------------------
@@ -98,7 +102,7 @@ export default class UseMapboxUtil extends Component {
     render() {
         const { mapboxStyle, pitch, bearing, wms } = this.state;
 
-        return (<div id="mapbox-gl-id"></div>)
+        return (<div id="mapbox-gl-id" style={{width: 1389, height: 681}}></div>)
 
         return (
             <div className={styles["mapbox-gl-map"]}>
