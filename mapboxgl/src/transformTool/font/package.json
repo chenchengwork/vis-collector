@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fontnik": "^0.5.0"
+    "fontnik": "^0.5.2"
   }
 }

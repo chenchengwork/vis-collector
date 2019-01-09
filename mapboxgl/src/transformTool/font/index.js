@@ -55,4 +55,5 @@ function output2pbf(font, start, end, outputDir) {
 }
 
 // convert('./input/GuardianTextSansWeb-Bold.ttf', './output/');
-convert('./input/simsun.ttf', './output/');
+// convert('./input/simsun.ttf', './output/');
+convert('./input/weiruan_yahei.ttf', './output/');
