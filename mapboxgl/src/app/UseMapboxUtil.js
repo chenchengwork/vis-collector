@@ -18,20 +18,29 @@ export default class UseMapboxUtil extends Component {
     mapboxUtil = null;
 
     componentDidMount() {
+        this.drawMap();
+        window.addEventListener('resize', this.redraw)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.redraw)
+    }
+
+    redraw = () => {
+        const map = this.map;
+        if(map){
+            map.resize();
+        }
+    };
+
+    drawMap = () => {
         const mapboxgl = MapboxUtil.G.mapboxgl;
         const { center, zoom, mapboxStyle, pitch, bearing } = this.state;
-        let circleZoomFn = null;
-
-        const a = document.querySelector("#mapbox-gl-id");
-        console.log(a.clientWidth);
-        console.log(a.clientHeight);
-
-        // window.addEventListener('online', () => alert(1), false);
 
         // ------------初始化地图------------------
         const mapboxUtil = this.mapboxUtil = new MapboxUtil('mapbox-gl-id', {
             center,
-            zoom: 3,
+            zoom: 4,
             pitch,      // 地图倾斜角度 40
             bearing,    // 地图旋转参数，单位是度数 20
             // localIdeographFontFamily: "'Noto Sans', 'Noto Sans CJK SC', sans-serif",
@@ -44,15 +53,34 @@ export default class UseMapboxUtil extends Component {
                 "layers": []
             },
 
-            // style: streetsV9StyleJson
-
         }, (map) => {
+            this.map = map;
             const testMap = new TestMap(this.mapboxUtil);
 
+            // 添加基础底图
             testMap.doSetOsmTileLayer();
 
             // 添加中国贴图
-            testMap.doAddChinaImg(map);
+            testMap.doSetCustomImgToMapLayer(
+                require("./img/china_map.png"),
+                {
+                    containerWH: {
+                        width: 707,
+                        height: 524,
+                    },
+                    mapParams: {
+                        zoom: 3,
+                        center: [104.223828, 37.972688],
+                        pitch: 0,
+                        bearing: 0
+                    }
+                }
+            );
+
+            // -------- 绘制经纬度线 start ----------
+            console.log("map bounds:", map.getBounds());
+            testMap.doAddGridLine();
+
 
             // testMap.doSetGeoJSONByFill();
 

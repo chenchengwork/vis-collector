@@ -16,6 +16,8 @@ export const isObject = (val) => val != null && typeof val === 'object' && Array
  * @returns {boolean}
  */
 export const isPlainObject = (o) => {
+    if(!o) return false;
+
     const isObjectObject = () => isObject(o) === true && Object.prototype.toString.call(o) === '[object Object]';
 
     if (isObjectObject(o) === false) return false;

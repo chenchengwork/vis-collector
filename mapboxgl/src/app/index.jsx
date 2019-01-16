@@ -1,23 +1,13 @@
-import React, { Component } from 'react';
+import React from 'react';
 import loadable from "../loadable"
 
-const UseMapboxUtil = loadable(import("./UseMapboxUtil"));
-const Threejs = loadable(import("./solution/threejs"));
-const VtkJS = loadable(import("./solution/vtkjs"));
+const EnumComponents = [
+    loadable(import("./UseMapboxUtil")),
+    // loadable(import("./solution/threejs")),      // 测试threejs
+    // loadable(import("./solution/vtkjs")),        // 测试vtkjs
+    // loadable(import("./solution/chinaMap")),     // 测试chinaMap
+    // loadable(import("./solution/beijingMap"))    // 测试beijingMap
+];
 
-const ChinaMap = loadable(import("./solution/chinaMap"));
-const BeijingMap = loadable(import("./solution/beijingMap"));
+export default  () => EnumComponents.map((V_Component, index) => <V_Component key={index}/>);
 
-export default class Map extends Component {
-    render() {
-        return (
-            <div>
-                <UseMapboxUtil />
-                {/*<Threejs />*/}
-                {/*<VtkJS />*/}
-                {/*<ChinaMap />*/}
-                {/*<BeijingMap />*/}
-            </div>
-        );
-    }
-}

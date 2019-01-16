@@ -3,65 +3,12 @@ import mapboxgl from 'mapbox-gl';
 
 import MouseTool from './extend/MouseTool';
 import Turf from './Turf';
-import { isPlainObject } from './checkType'
 import queryString from 'query-string';
-
 
 // 加载mapUtil枚举文件
 import {ZOOM, CENTER, ACCESS_TOKEN, EnumMapboxStyles, EnumOSMTile} from './constants';
-
-/**
- * 生成uuid
- * @param {String} [prefix]
- * @return {string}
- */
-const generateUUID = (prefix = '') => {
-    let d = new Date().getTime();
-    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (d + Math.random() * 16) % 16 | 0;
-        d = Math.floor(d / 16);
-        return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
-    });
-    return prefix ? prefix + '_' + uuid : uuid;
-};
-
-/**
- * 对象转化为url参数
- * @param obj
- * @return {string}
- */
-const objToUrlParams = obj => {
-    let arr = [];
-    for (let [key, value] of Object.entries(obj)) {
-        arr.push(key + "=" + value);
-    }
-    return arr.join("&");
-};
-
-/**
- * 获取GeoJSON第一个coord
- * @param geoJson
- * @return {*} [[lng, lat], ...]
- */
-const getGeoJSONFirstCoord = (geoJson) => {
-    let oneFeature = geoJson;
-    if (geoJson.hasOwnProperty('features')) oneFeature = geoJson.features[0];
-    return oneFeature.geometry.coordinates[0];
-};
-
-/**
- * 获取bounds
- * @param [Array] coordinates [[lng, lat], ...]
- * @return {*}
- */
-const getBounds = (coordinates) => {
-    const bounds = coordinates.reduce(function (bounds, coord) {
-        return bounds.extend(coord);
-    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-
-    return bounds;
-}
-
+import {generateUUID, objToUrlParams, getBounds, getGeoJSONFirstCoord} from './helper';
+import { isPlainObject } from './checkType';
 
 /**
  * 边界layer ID
@@ -81,14 +28,14 @@ export default class MapboxUtil {
         osmTile: EnumOSMTile,
     };
 
-    constructor(containerId, opts, loadedMapCb = () => {
-    }, drawEventFn = {}) {
+    constructor(containerId, opts, loadedMapCb = () => {}, drawEventFn = {}) {
         this.mouseTool = null;
+        this.containerDom = document.querySelector(`#${containerId}`);
 
         // 初始化地图
         mapboxgl.accessToken = ACCESS_TOKEN;
         const map = this.map = new mapboxgl.Map(Object.assign({
-            container: containerId,
+            container: this.containerDom,
             center: CENTER,
             zoom: 4,
             minZoom: ZOOM.minZoom,
@@ -112,6 +59,7 @@ export default class MapboxUtil {
             loadedMapCb(map);
 
             this.mouseTool = new MouseTool(this.map, {}, drawEventFn);
+
             //
             // this.mouseTool.drawPolygon();
             // this.mouseTool.draw.changeMode('draw_rectangle');
@@ -141,7 +89,7 @@ export default class MapboxUtil {
     fitBounds(coordinates, opts = {}) {
         if (!Array.isArray(coordinates)) throw new Error('fitBounds参数必须传入数组');
         if (Array.isArray(coordinates[0])) {
-            return this.map.fitBounds(getBounds(coordinates), Object.assign({
+            return this.map.fitBounds(getBounds(mapboxgl, coordinates), Object.assign({
                 padding: 20,
             }, opts));
         }
@@ -510,44 +458,73 @@ export default class MapboxUtil {
 
     /**
      * 添加线
-     * @param {Array} data 数据
+     * @param {Array| Object} data 数据
      * @param {Array} data[].data 坐标[[lng1, lat1], [lng2, lat2],...]
      * @param {Array} [data[].properties] GeoJSON中的properties描述
+     *
      * @param {Object} opts
      * @param {Object} [opts.paintOpts] 参数说明 https://www.mapbox.com/mapbox-gl-js/style-spec#layers-line
      * @param {Object} [opts.layoutOpts] 参数说明 https://www.mapbox.com/mapbox-gl-js/style-spec#layers-line
      * @param {Object} [opts.fitOpts] 参数说明 https://www.mapbox.com/mapbox-gl-js/api/#cameraoptions
      * @param {Boolean} isFit
      * @return {String}
+     *
+     * usage:
+     * addLineLayer([
+                {
+                    data: [
+                        [-122.4833858013153, 37.829607404976734],
+                        [-122.4830961227417, 37.82932776098012],
+                        [-122.4830746650696, 37.82932776098012],
+                        [-122.48218417167662, 37.82889558180985],
+                        [-122.48218417167662, 37.82890193740421],
+                        [-122.48221099376678, 37.82868372835086],
+                        [-122.4822163581848, 37.82868372835086],
+                        [-122.48205006122589, 37.82801003030873]
+                    ],
+                    properties: {}
+                }
+         ])
+
+         或者
+        addLineLayer({data: [ [[1, 2], [3, 4]], [[1, 2], [3, 4]] ], properties: {}})
      */
     addLineLayer(data = [], opts = {}, isFit = true){
         const layerID = generateUUID('line');
         let bounds = [];
-        const features = data.map(item => {
-            const { data, properties } = item;
-            bounds = bounds.concat(data);
-            return {
-                'type': 'Feature',
-                'properties': Object.assign({}, properties || {}),
-                'geometry': {
-                    'type': 'LineString',
-                    'coordinates': data
+
+        const geoData = Array.isArray(data) ? {
+            type: "FeatureCollection",
+            features: data.map(item => {
+                const { data, properties } = item;
+                bounds = bounds.concat(data);
+                return {
+                    'type': 'Feature',
+                    'properties': Object.assign({}, properties || {}),
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': data
+                    }
                 }
+            })
+        }: {
+            'type': 'Feature',
+            'properties': Object.assign({}, data.properties || {}),
+            'geometry': {
+                'type': 'MultiLineString',
+                'coordinates': data.data
             }
-        });
+        };
 
         this.addLayer({
             'id': layerID,
             'type': 'line',
             'source': {
                 'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': features
-                }
+                data: geoData
             },
             'paint': Object.assign({
-                'line-width': 3,
+                'line-width': 1,
                 'line-color': "#33C9EB"
             }, opts.paintOpts || {}),
             'layout': Object.assign({}, opts.layoutOpts || {})
@@ -725,5 +702,149 @@ export default class MapboxUtil {
      */
     setPixelCircleLayer = this.getSetLayerFN(this.addPixelCircleLayer);
 
+
+    /**
+     * 将自定义贴图添加到地图中
+     *
+     * 制作贴图的过程:
+     *  1. 固定好地图容器的宽高, 中心点, 缩放等级, pitch, bearing
+     *  2. 将做好的地图截图给UI设计人员, 保证图片的宽高
+     *  3. 再次加载图片时,要和地图截图时的容器的宽高, 中心点, 缩放等级保持一致,这样才能正确加载图片
+     *
+     * @param imgUrl 贴图url
+     * @param mkImgForMapEnvParams 制作图片时，地图的环境变量(地图容器的宽高, 地图缩放等级, 地图中心点, pitch, bearing )
+     */
+    addCustomImgToMapLayer = (imgUrl, mkImgForMapEnvParams = {}) => {
+        const map = this.map;
+        const containerDom = this.containerDom;     // 地图容器的dom
+        const layerID = generateUUID('custom_image');
+
+        // 缓存当前地图的环境变量
+        const currentMapEnvParams = {
+            // 地图容器的宽高
+            containerWH: {
+                width: containerDom.clientWidth,
+                height: containerDom.clientHeight
+            },
+            mapParams: {
+                zoom: map.getZoom(),    // 地图缩放等级
+                center: [map.getCenter().lng, map.getCenter().lat], // 地图中心点
+                pitch: map.getPitch(),
+                bearing: map.getBearing(),
+            }
+        }
+
+        // 还原制作贴图时的环境
+        const {containerWH, mapParams} = mkImgForMapEnvParams;
+        containerDom.style.setProperty('width', `${containerWH.width}px`);
+        containerDom.style.setProperty('height', `${containerWH.height}px`);
+        map.setCenter(mapParams.center);
+        map.setZoom(mapParams.zoom);
+        map.setPitch(mapParams.pitch);
+        map.setBearing(mapParams.bearing);
+        map.resize();
+
+        // 将贴图添加到地图中
+        const bounds = map.getBounds();
+        const northWest = bounds.getNorthWest();
+        const northEast = bounds.getNorthEast();
+        const southEast = bounds.getSouthEast();
+        const southWest = bounds.getSouthWest();
+
+        this.addLayer({
+            id: layerID,
+            "type": "raster",
+            "source": {
+                type: "image",
+                url: imgUrl,
+                coordinates: [
+                    [northWest.lng, northWest.lat],
+                    [northEast.lng, northEast.lat],
+                    [southEast.lng, southEast.lat],
+                    [southWest.lng, southWest.lat],
+
+                ]
+            },
+            "paint": {
+                "raster-fade-duration": 0
+            }
+        });
+
+
+        // 恢复到当前的地图环境
+        containerDom.style.setProperty('width', `${currentMapEnvParams.containerWH.width}px`);
+        containerDom.style.setProperty('height', `${currentMapEnvParams.containerWH.height}px`);
+        map.setCenter(currentMapEnvParams.mapParams.center);
+        map.setZoom(currentMapEnvParams.mapParams.zoom);
+        map.setPitch(currentMapEnvParams.mapParams.pitch);
+        map.setBearing(currentMapEnvParams.mapParams.bearing);
+        map.resize();
+    }
+
+    /**
+     * 设置自定义贴图添加到地图中
+     * @type {*}
+     */
+    setCustomImgToMapLayer = this.getSetLayerFN(this.addCustomImgToMapLayer);
+
+
+    /**
+     * 生成栅格线数据
+     * @param {Object} params
+     * @param {Object} params.bounds
+     * @param {Object} params.bounds.ne     // 东北点
+     * @param {Object} params.bounds.sw     // 西南点
+     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
+     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
+     * @param {Number} params.crossPointLineLngLengthRate   // 交叉点线长度经度占比
+     * @param {Number} params.crossPointLineLatLengthRate   // 交叉点线长度维度占比
+     *
+     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
+     */
+    mkGridLineData = (params) => {
+        const horizontalLine = [];      // 水平线
+        const verticalLine = [];        // 垂直线
+        const crossPoints = [];         // 交叉点
+        const crossPointLines = [];     // 交叉线
+
+        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate } = params;
+        const maxLng = Math.max(bounds.ne.lng, bounds.sw.lng);
+        const minLng = Math.min(bounds.ne.lng, bounds.sw.lng);
+        const maxLat = Math.max(bounds.ne.lat, bounds.sw.lat);
+        const minLat = Math.min(bounds.ne.lat, bounds.sw.lat);
+
+        const lngStep = (maxLng - minLng) / gridVerticalNum;
+        const latStep = (maxLat - minLat) / gridHorizontalNum;
+
+
+        for(let i = 0; i < gridVerticalNum; i++){
+            const currentLng = minLng + i * lngStep;
+            verticalLine.push([[currentLng, minLat], [currentLng, maxLat]]);
+        }
+
+        for(let i = 0; i < gridHorizontalNum; i++){
+            const currentLat = minLat + i * latStep;
+            horizontalLine.push([[minLng, currentLat], [maxLng, currentLat]]);
+        }
+
+
+        for(let i = 0; i < verticalLine.length; i++){
+            const lng = verticalLine[i][0][0];
+            for(let j = 0; j < horizontalLine.length; j++){
+                const lat = horizontalLine[j][0][1];
+                crossPoints.push([lng, lat]);
+
+                crossPointLines.push([[lng * (1 - crossPointLineLngLengthRate), lat],[lng * (1 + crossPointLineLngLengthRate), lat]]);
+                crossPointLines.push([[lng, lat * (1 - crossPointLineLatLengthRate)],[lng, lat * (1 + crossPointLineLatLengthRate)]]);
+            }
+        }
+
+
+        return {
+            gridLines: [...horizontalLine, ...verticalLine],
+            crossPoints,
+            crossPointLines,
+        }
+    };
 }
 

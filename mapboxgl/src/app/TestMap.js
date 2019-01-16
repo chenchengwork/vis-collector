@@ -246,60 +246,43 @@ export default class TestMap{
         ]);
     }
 
+    /**
+     * 将自定义贴图添加到地图中
+     * @param imgUrl
+     * @param mkImgForMapEnvParams
+     */
+    doSetCustomImgToMapLayer = (imgUrl, mkImgForMapEnvParams = {}) => {
+        mapboxUtil.setCustomImgToMapLayer(imgUrl, mkImgForMapEnvParams);
+        mapboxUtil.setGeoJSONByFill(require("./solution/chinaMap/geojson/china.json"), {}, false)
+    }
 
     /**
-     * 添加中国地图的贴图
-     *
-     * 制作贴图的过程:
-     *  1. 固定好地图容器的宽高, 中心点, 缩放等级
-     *  2. 将做好的地图截图给UI设计人员, 保证图片的宽高
-     *  3. 再次加载图片时,要和地图截图时的容器的宽高, 中心点, 缩放等级保持一致,这样才能正确加载图片
-     * @param map
+     * 添加栅格线到地图中
      */
-    doAddChinaImg(map){
-        const realZoom = map.getZoom();
-        map.setZoom(3);
+    doAddGridLine = () => {
+        const bounds = mapboxUtil.map.getBounds();
 
-        const bounds = map.getBounds();
-        const northWest = bounds.getNorthWest();
-        const northEast = bounds.getNorthEast();
-        const southEast = bounds.getSouthEast();
-        const southWest = bounds.getSouthWest();
-
-        map.addLayer({
-            id: "china-map-img",
-            "type": "raster",
-            "source": {
-                type: "image",
-                url: require("./img/china_map.png"),
-                coordinates: [
-                    [northWest.lng, northWest.lat],
-                    [northEast.lng, northEast.lat],
-                    [southEast.lng, southEast.lat],
-                    [southWest.lng, southWest.lat],
-
-                ]
+        const {gridLines, crossPointLines, crossPoints} = mapboxUtil.mkGridLineData({
+            bounds: {
+                ne: bounds._ne, // 东北点
+                sw: bounds._sw  // 西南点
             },
-            "paint": {
-                "raster-fade-duration": 0
-            }
+            gridHorizontalNum: 6,              // 网格水平线数量
+            gridVerticalNum: 10,                // 网格垂直线数量
+            crossPointLineLngLengthRate: 0.0045,      // 交叉点线长度经度占比
+            crossPointLineLatLengthRate: 0.007,      // 交叉点线长度维度占比
         });
 
-        map.setZoom(realZoom);
-
-        const china = require("./solution/chinaMap/geojson/china.json");
-        map.addLayer({
-            'id': 'maine',
-            'type': 'fill',
-            'source': {
-                'type': 'geojson',
-                'data': china
-            },
-            'layout': {},
-            'paint': {
-                'fill-color': '#088',
-                'fill-opacity': 0.8
+        mapboxUtil.setLineLayer({data: gridLines});
+        mapboxUtil.addLineLayer(
+            {data: crossPointLines},
+            {
+                paintOpts: {
+                    'line-color': '#FFA500',
+                    'line-opacity': 1,
+                    'line-width': 2
+                }
             }
-        });
+        );
     }
 }
