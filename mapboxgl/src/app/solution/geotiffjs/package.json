@@ -1,0 +1,9 @@
+{
+  "scripts": {},
+  "dependencies": {
+    "plotty": "^0.3.1"
+  },
+  "devDependencies": {},
+  "author": "chencheng",
+  "license": "MIT"
+}

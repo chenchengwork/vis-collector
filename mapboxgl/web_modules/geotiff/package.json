@@ -1,0 +1,14 @@
+{
+  "name": "geotiff.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {},
+  "dependencies": {
+    "pako": "^1.0.3",
+    "xmldom": "0.1.*"
+  },
+  "devDependencies": {},
+  "author": "chencheng",
+  "license": "MIT"
+}
