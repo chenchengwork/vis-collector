@@ -2,10 +2,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { PureComponent } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-import * as plotty from 'plotty';
+// import * as plotty from 'plotty';
+import * as plotty from './myPlotty/plotty';
 import * as GeoTIFF from 'geotiff';
-
-//[479985, 4664085, 711015, 4899015]
 
 function mercator2lonlat(mercator){
     var lonlat={lng:0, lat:0};
@@ -18,19 +17,9 @@ function mercator2lonlat(mercator){
     return lonlat;
 }
 
-const getBoundsBymercator = (mercator) => {
-    const minLngLat = mercator2lonlat({x: mercator[0], y: mercator[1]});
-    const maxLngLat = mercator2lonlat({x: mercator[2], y: mercator[3]});
-
-    // 42.1006N_44.2439N__134.749E_137.551E
-
-    return [
-        [134.749, 44.2439],
-        [137.55, 44.2439],
-        [137.55, 42.1006],
-        [134.749, 42.1006],
-    ];
-
+const getBoundsByLngLat = (mercator) => {
+    const minLngLat = {lng: mercator[0], lat: mercator[1]};
+    const maxLngLat = {lng: mercator[2], lat: mercator[3]};
     return [
         [minLngLat.lng, maxLngLat.lat],
         [maxLngLat.lng, maxLngLat.lat],
@@ -38,6 +27,62 @@ const getBoundsBymercator = (mercator) => {
         [minLngLat.lng, minLngLat.lat],
     ]
 };
+
+/**
+ * 加载tiff文件
+ * @param url
+ * @return {Promise}
+ */
+const loadTiff = (url) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'arraybuffer';
+
+    xhr.onload = function(e) {
+        // if(e) return reject(e);
+        resolve(this.response);
+    };
+
+    xhr.send();
+});
+
+
+const pool = new GeoTIFF.Pool();
+
+/**
+ * 草原和沙漠颜色表
+ */
+plotty.addColorScale("grasslandDesertColorScale", [
+    "rgba(166,97,26, 0)",
+    "rgb(223,194,125)",
+    "rgb(245,245,245)",
+    "rgb(128,205,193)",
+    "rgb(1,133,113)",
+    "rgb(1,133,113)",
+    "rgb(1,133,113)",
+], [-1, -0.6, -0.2, 0, 0.2, 0.6, 1].map(item => (item + 1)/ 2));
+
+const tiffs = [
+    // "a1_ndvi_46.3180N_48.4920N__125.245E_128.502E__2017_04_02_02.20.11.tif",
+    // "stripped.tiff",
+
+    // {
+    //     filename: "a1_ndvi_46.3180N_48.4920N__125.245E_128.502E__2017_04_02_02.20.11.tif",
+    //     plotParams: {
+    //         domain:[-1,  1],
+    //         colorScale: "grasslandDesertColorScale",
+    //     }
+    // },
+
+    {
+        filename: "stripped.tiff",
+        plotParams: {
+            domain:[10, 65000],
+            // domain:[-1,  1],
+            colorScale: "viridis",
+        }
+    }
+];
 
 
 export default class GeoTiff extends PureComponent{
@@ -86,40 +131,20 @@ export default class GeoTiff extends PureComponent{
         });
     }
 
-
     addTiffLayer = (map) => {
-        const pool = new GeoTIFF.Pool();
+        tiffs.forEach((item) => {
+            const { filename, plotParams } = item;
 
-        plotty.addColorScale("mycolorscale", [
-            "rgba(166,97,26, 0)",
-            "rgb(223,194,125)",
-            "rgb(245,245,245)",
-            "rgb(128,205,193)",
-            "rgb(1,133,113)",
-            "rgb(1,133,113)",
-            "rgb(1,133,113)",
-        ], [-1, -0.6, -0.2, 0, 0.2, 0.6, 1].map(item => (item + 1)/ 2));
+            console.time(filename + "->加载tiff时间");
+            loadTiff('tiff/' + filename).then((resp) => {
+                console.timeEnd(filename + "->加载tiff时间");
 
-        const tiffs = [
-            // "a1_ndvi_42.1006N_44.2439N__134.749E_137.551E__2017_04_01_01.38.08.tif",
-            "stripped.tiff",
-        ];
-
-        tiffs.forEach(function(filename) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'tiff/' + filename, true);
-            xhr.responseType = 'arraybuffer';
-
-            xhr.onload = function(e) {
-                console.time("readRasters " + filename);
-                GeoTIFF.fromArrayBuffer(this.response)
+                console.time(filename + "->解析tiff时间");
+                GeoTIFF.fromArrayBuffer(resp)
                     .then(parser => parser.getImage())
                     .then((image) => {
-                        console.log(image);
-                        // console.log("getGDALMetadata",image.getGDALMetadata());
-                        // console.log("getOrigin",image.getOrigin());
-                        // console.log("getResolution",image.getResolution());
-                        console.log("getBoundingBox", image.getBoundingBox());
+                        console.log("image->", image);
+                        console.log("getBoundingBox->", image.getBoundingBox());
 
                         const width = image.getWidth();
                         const height = image.getHeight();
@@ -129,52 +154,50 @@ export default class GeoTiff extends PureComponent{
                             window: [0, 0, width, height],
                             fillValue: 0,
                             pool,
-                        })
-                            .then(function (rasters) {
-                                console.timeEnd("readRasters " + filename);
-                                const canvas = document.createElement("canvas");
-                                // document.body.appendChild(canvas);
+                        }).then((rasters) => {
+                            console.timeEnd(filename + "->解析tiff时间");
+                            const canvas = document.createElement("canvas");
 
-                                const plot = new plotty.plot({
-                                    canvas,
-                                    data: rasters[0],
-                                    width,
-                                    height,
-                                    // domain:[10, 65000],
-                                    domain:[-1,  1],
-                                    // colorScale: "viridis",
-                                    colorScale: "mycolorscale",
-                                    clampLow: false,
-                                    // clampHigh: true,
-                                });
-
-                                plot.render();
-
-                                map.addLayer({
-                                    "id": "tiff-image",
-                                    "source": {
-                                        "type": "image",
-                                        "url": canvas.toDataURL("image/png"),
-                                        // "coordinates": [
-                                        //     [100.923828, 38.272688],
-                                        //     [120.923828, 38.272688],
-                                        //     [120.923828, 29.272688],
-                                        //     [100.923828, 29.272688]
-                                        // ],
-                                        "coordinates": getBoundsBymercator(image.getBoundingBox())
-                                    },
-                                    "type": "raster",
-                                    "paint": {
-                                        "raster-opacity": 0.85
-                                    },
-                                    "layout": {},
-                                });
-
-                                canvas.remove();
+                            const plot = new plotty.plot({
+                                canvas,
+                                data: rasters[0],
+                                width,
+                                height,
+                                // domain:[10, 65000],
+                                // colorScale: "viridis",
+                                clampLow: false,
+                                // clampHigh: true,
+                                ...plotParams
                             });
+
+                            console.log("plot =>", plot)
+
+                            plot.render();
+
+                            map.addLayer({
+                                "id": `tiff-image-${filename}`,
+                                "source": {
+                                    "type": "image",
+                                    "url": canvas.toDataURL("image/png"),
+                                    // "coordinates": [
+                                    //     [100.923828, 38.272688],
+                                    //     [120.923828, 38.272688],
+                                    //     [120.923828, 29.272688],
+                                    //     [100.923828, 29.272688]
+                                    // ],
+                                    "coordinates": getBoundsByLngLat(image.getBoundingBox())
+                                },
+                                "type": "raster",
+                                "paint": {
+                                    "raster-opacity": 0.85
+                                },
+                                "layout": {},
+                            });
+
+                            canvas.remove();
+                        });
                     });
-            };
-            xhr.send();
+            }).catch(e => console.error(e));
         });
 
     };
