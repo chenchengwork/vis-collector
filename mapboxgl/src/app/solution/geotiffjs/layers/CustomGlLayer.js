@@ -5,22 +5,22 @@ export default class CustomGlLayer{
     type = 'custom';
 
     onAdd(map, gl) {
-        var vertexSource = "" +
+        const vertexSource = "" +
             "uniform mat4 u_matrix;" +
             "attribute vec2 a_pos;" +
             "void main() {" +
             "    gl_Position = u_matrix * vec4(a_pos, 0.0, 1.0);" +
             "}";
 
-        var fragmentSource = "" +
+        const fragmentSource = "" +
             "void main() {" +
             "    gl_FragColor = vec4(1.0, 0.0, 0.0, 0.5);" +
             "}";
 
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vertexShader, vertexSource);
         gl.compileShader(vertexShader);
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
         gl.shaderSource(fragmentShader, fragmentSource);
         gl.compileShader(fragmentShader);
 
@@ -31,9 +31,14 @@ export default class CustomGlLayer{
 
         this.aPos = gl.getAttribLocation(this.program, "a_pos");
 
-        var helsinki = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 25.004, lat: 60.239 });
-        var berlin = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 13.403, lat: 52.562 });
-        var kyiv = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 30.498, lat: 50.541 });
+        const helsinki = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 25.004, lat: 60.239 });
+        const berlin = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 13.403, lat: 52.562 });
+        const kyiv = mapboxgl.MercatorCoordinate.fromLngLat({ lng: 30.498, lat: 50.541 });
+        //
+        // console.log("helsinki =>", helsinki)
+        // var coord = new mapboxgl.MercatorCoordinate(1, 0.5, 0);
+        // console.log(coord.toLngLat());
+
 
         this.buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);

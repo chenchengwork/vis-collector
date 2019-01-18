@@ -64,7 +64,7 @@ export default class TiffLayer {
                         }).then((rasters) => {
                             console.timeEnd(filename + "->解析tiff时间");
                             const canvas = document.createElement("canvas");
-
+                            // console.log(rasters)
                             const plot = new plotty.plot({
                                 canvas,
                                 data: rasters[0],
@@ -81,17 +81,26 @@ export default class TiffLayer {
 
                             plot.render();
 
+                            // map.addLayer(
+                            //     {
+                            //         id: 'marks-canvas',
+                            //         type: 'raster',
+                            //         // paint: { 'raster-fade-duration': 0},
+                            //         source: {
+                            //             type: 'canvas',
+                            //             canvas: canvas, // ID of the HTML canvas DOM element
+                            //             animate: true,
+                            //             coordinates: getBoundsByLngLat(image.getBoundingBox()) // will be set later
+                            //         }
+                            //     },
+                            //     'waterway-label' // This allows you to insert the marks beneath the map labels
+                            // );
+
                             map.addLayer({
                                 "id": `tiff-image-${filename}`,
                                 "source": {
                                     "type": "image",
                                     "url": canvas.toDataURL("image/png"),
-                                    // "coordinates": [
-                                    //     [100.923828, 38.272688],
-                                    //     [120.923828, 38.272688],
-                                    //     [120.923828, 29.272688],
-                                    //     [100.923828, 29.272688]
-                                    // ],
                                     "coordinates": getBoundsByLngLat(image.getBoundingBox())
                                 },
                                 "type": "raster",
@@ -101,7 +110,7 @@ export default class TiffLayer {
                                 "layout": {},
                             });
 
-                            canvas.remove();
+                            // canvas.remove();
                         });
                     });
             }).catch(e => console.error(e));

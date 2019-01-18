@@ -1,7 +1,8 @@
 {
   "scripts": {},
   "dependencies": {
-    "plotty": "^0.3.1"
+    "plotty": "^0.3.1",
+    "twgl.js": "^4.8.1"
   },
   "devDependencies": {},
   "author": "chencheng",
