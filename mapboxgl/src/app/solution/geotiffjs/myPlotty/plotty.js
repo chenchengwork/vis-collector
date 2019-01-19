@@ -248,6 +248,7 @@ class plot {
         0.0, 1.0,
         1.0, 0.0,
         1.0, 1.0]), gl.STATIC_DRAW);
+
       gl.enableVertexAttribArray(texCoordLocation);
       gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
     } else {

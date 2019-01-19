@@ -33,11 +33,22 @@ const tiffs = [
             // domain:[-1,  1],
             colorScale: "viridis",
         }
-    }
+    },
+    // {
+    //     filename: "deflate.tiff",
+    //     plotParams: {
+    //         domain:[10, 65000],
+    //         // domain:[-1,  1],
+    //         colorScale: "viridis",
+    //     }
+    // }
 ];
 
 
+
+
 export default class TiffLayer {
+
     render(map){
         tiffs.forEach((item) => {
             const { filename, plotParams } = item;
@@ -70,31 +81,14 @@ export default class TiffLayer {
                                 data: rasters[0],
                                 width,
                                 height,
-                                // domain:[10, 65000],
-                                // colorScale: "viridis",
                                 clampLow: false,
                                 // clampHigh: true,
                                 ...plotParams
                             });
 
-                            console.log("plot =>", plot)
+                            console.log("plot =>", plot.setData);
 
                             plot.render();
-
-                            // map.addLayer(
-                            //     {
-                            //         id: 'marks-canvas',
-                            //         type: 'raster',
-                            //         // paint: { 'raster-fade-duration': 0},
-                            //         source: {
-                            //             type: 'canvas',
-                            //             canvas: canvas, // ID of the HTML canvas DOM element
-                            //             animate: true,
-                            //             coordinates: getBoundsByLngLat(image.getBoundingBox()) // will be set later
-                            //         }
-                            //     },
-                            //     'waterway-label' // This allows you to insert the marks beneath the map labels
-                            // );
 
                             map.addLayer({
                                 "id": `tiff-image-${filename}`,
@@ -109,6 +103,32 @@ export default class TiffLayer {
                                 },
                                 "layout": {},
                             });
+
+
+                            loadTiff('tiff/deflate.tiff').then((resp) => {
+                                console.timeEnd(filename + "->加载tiff时间");
+
+                                console.time(filename + "->解析tiff时间");
+                                GeoTIFF.fromArrayBuffer(resp)
+                                    .then(parser => parser.getImage())
+                                    .then((image) => {
+                                        console.log(image);
+                                        const width = image.getWidth();
+                                        const height = image.getHeight();
+                                        image.readRasters({
+                                            samples: [0],
+                                            window: [0, 0, width, height],
+                                            fillValue: 0,
+                                            pool,
+                                        }).then((rasters) => {
+                                            plot.setData(rasters[0], width, height )
+                                        });
+
+                                    })
+                            });
+
+
+
 
                             // canvas.remove();
                         });
