@@ -2,6 +2,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { PureComponent } from 'react';
 import mapboxgl from 'mapbox-gl';
 import CustomGlLayer from './layers/CustomGlLayer';
+import CustomGlLayer1 from './layers/CustomGlLayer1';
 import TiffLayer from './layers/TiffLayer';
 
 
@@ -13,6 +14,7 @@ export default class GeoTiff extends PureComponent{
 
             // 自定义gl layer
             map.addLayer(new CustomGlLayer());
+            // map.addLayer(new CustomGlLayer1());
 
             // tiff layer
             new TiffLayer(map).render()
