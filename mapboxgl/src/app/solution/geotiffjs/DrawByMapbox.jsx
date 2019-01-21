@@ -15,7 +15,7 @@ export default class GeoTiff extends PureComponent{
             map.addLayer(new CustomGlLayer());
 
             // tiff layer
-            new TiffLayer().render(map)
+            new TiffLayer(map).render()
         })
 
     }
