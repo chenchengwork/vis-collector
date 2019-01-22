@@ -9,11 +9,13 @@
   },
   "dependencies": {
     "@types/react": "^16.7.6",
-    "@types/react-dom": "^16.0.9"
+    "@types/react-dom": "^16.0.9",
+    "@types/webgl2": "0.0.4",
+    "twgl.js": "^4.8.1"
   },
   "devDependencies": {
     "awesome-typescript-loader": "^5.2.1",
-    "typescript": "^3.1.6"
+    "typescript": "^3.2.4"
   },
   "author": "chencheng",
   "license": "MIT"

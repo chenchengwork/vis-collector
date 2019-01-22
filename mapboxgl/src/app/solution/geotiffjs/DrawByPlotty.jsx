@@ -43,6 +43,7 @@ export default class DrawByPlotty extends PureComponent{
         var imageWindow = [0, 0, 500, 500];
         var tiffs = [
             "stripped.tiff",
+            // "nat_color.tif",
             // "tiled.tiff",
 
             // "tiledplanar.tiff",
@@ -135,10 +136,11 @@ export default class DrawByPlotty extends PureComponent{
                                         data: rasters[0],
                                         width,
                                         height,
-                                        domain:[10, 65000],
-                                        colorScale: "viridis",
+                                        // domain:[10, 65000],
+                                        domain:[-1,1],
+                                        colorScale: "greens",
                                         clampLow: false,
-                                        // clampHigh: true,
+                                        clampHigh: true,
                                     });
                                     plot.render();
                                 });

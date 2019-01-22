@@ -32,12 +32,8 @@ export default class WebGL extends React.PureComponent {
             }
         `;
 
-        const initBuffers = (gl: WebGLRenderingContext, prg: WebGLProgram): number => {
-            const vertices = new Float32Array([
-                0.0, 0.5,  1.0, 0.0, 0.0,
-                -0.5, -0.5, 0.0, 1.0, 0.0,
-                0.5, -0.5,	0.0, 0.0, 1.0
-            ]);
+        const drawTriangle = (gl: WebGLRenderingContext, prg: WebGLProgram, data: number[]): number => {
+            const vertices = new Float32Array(data);
 
             // 顶点数量
             const n = 3;
@@ -68,40 +64,29 @@ export default class WebGL extends React.PureComponent {
 
             // 解除缓冲区关系
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
+            gl.drawArrays(gl.TRIANGLES, 0, n);
             return n;
         };
 
-
-        const drawScene = (gl: WebGLRenderingContext, n: number) => {
+        function runWebGLApp() {
+            const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.enable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            // gl.viewport(0, 0, 0, 0);
 
-            gl.drawArrays(gl.TRIANGLES, 0, n);
-        }
+            drawTriangle(gl, prg, [
+                0.0, 0.1,  1.0, 0.0, 0.0,
+                -0.5, -0.5, 0.0, 1.0, 0.0,
+                0.5, -0.5,	0.0, 0.0, 1.0
+            ]);
 
-        type G_Params = {
-            gl: WebGLRenderingContext,
-            n: number,
-        };
+            drawTriangle(gl, prg, [
+                0.0, 0.3,  1.0, 0.0, 0.0,
+                -0.3, -0.3, 0.0, 1.0, 0.0,
+                0.3, -0.3,	0.0, 0.0, 1.0
+            ]);
 
-        let G: G_Params;
-
-        function renderLoop() {
-
-            drawScene(G.gl, G.n);
-            // raf(renderLoop);
-            window.requestAnimationFrame(renderLoop);
-        }
-
-        function runWebGLApp() {
-            const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
-            const n = initBuffers(gl, prg);
-            G = {gl, n};
-            renderLoop();
-
+            window.requestAnimationFrame(runWebGLApp);
         }
         runWebGLApp();
     };

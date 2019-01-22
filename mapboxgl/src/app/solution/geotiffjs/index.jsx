@@ -7,8 +7,8 @@ import DrawByTwgl from './DrawByTwgl';
 export default class GeoTiff extends PureComponent{
 
     render(){
-        // return (<DrawByPlotty />)
-        return ( <DrawByMapbox />)
+        return (<DrawByPlotty />)
+        // return ( <DrawByMapbox />)
         // return ( <DrawByTwgl />)
     }
 }
