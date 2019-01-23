@@ -1,0 +1,10 @@
+{
+  "scripts": {},
+  "dependencies": {
+    "deck.gl": "^6.3.7",
+    "react-map-gl": "^4.0.9"
+  },
+  "devDependencies": {},
+  "author": "chencheng",
+  "license": "MIT"
+}
