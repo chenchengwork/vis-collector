@@ -79,6 +79,7 @@ export default class UseMapboxUtil extends Component {
 
             // -------- 绘制经纬度线 start ----------
             console.log("map bounds:", map.getBounds());
+
             testMap.doAddGridLine();
 
 
@@ -108,8 +109,7 @@ export default class UseMapboxUtil extends Component {
     // 处理mapbox样式
     handleMapboxStyle = (mapboxStyle) => {
         this.setState({mapboxStyle});
-    }
-
+    };
 
     handleOk = () => {
         const { mapboxStyle, pitch, bearing } = this.state;
@@ -124,13 +124,12 @@ export default class UseMapboxUtil extends Component {
 
         // 处理bearing
         map.setBearing(bearing, {});
-
-    }
+    };
 
     render() {
         const { mapboxStyle, pitch, bearing, wms } = this.state;
 
-        return (<div id="mapbox-gl-id" style={{width: 1389, height: 681}}></div>)
+        return (<div id="mapbox-gl-id" style={{position: "fixed", width: "100%", height: "100%"}}></div>)
 
         return (
             <div className={styles["mapbox-gl-map"]}>

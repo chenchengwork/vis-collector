@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 
 import MouseTool from './extend/MouseTool';
 import Turf from './Turf';
-import queryString from 'query-string';
+import queryString from './query-string';
 
 // 加载mapUtil枚举文件
 import {ZOOM, CENTER, ACCESS_TOKEN, EnumMapboxStyles, EnumOSMTile} from './constants';

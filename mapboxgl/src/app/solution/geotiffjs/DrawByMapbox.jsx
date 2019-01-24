@@ -5,7 +5,7 @@ import CustomGlLayer from './layers/CustomGlLayer';
 import CustomGlLayer1 from './layers/CustomGlLayer1';
 import TiffLayer from './layers/TiffLayer';
 
-
+//http://10.0.4.29:5678/wcs?service=wcs&version=1.1.0&request=GetCoverage&IDENTIFIER=sentinel2_20180419t062215_rgb_cog&format=geotiff&boundingBox=106.5,-2.5,106.6,0.09&width=800&height=700&crs=4326
 export default class GeoTiff extends PureComponent{
 
     componentDidMount() {
