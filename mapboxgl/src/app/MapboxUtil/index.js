@@ -30,7 +30,7 @@ export default class MapboxUtil {
 
     constructor(containerId, opts, loadedMapCb = () => {}, drawEventFn = {}) {
         this.mouseTool = null;
-        this.containerDom = document.querySelector(`#${containerId}`);
+        this.containerDom = containerId instanceof HTMLElement ? containerId : document.querySelector(`#${containerId}`);
 
         // 初始化地图
         mapboxgl.accessToken = ACCESS_TOKEN;
