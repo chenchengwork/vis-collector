@@ -1,20 +1,22 @@
 /* global window */
+
+import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {Component} from 'react';
-import {render} from 'react-dom';
 import {StaticMap} from 'react-map-gl';
+
+// TODO 注意：当前demo有版本限制, deck.gl 和 @deck.gl/experimental-layers 在版本为6.3.0上是能跑通的, 具体升级有待观察
 import DeckGL, {PolygonLayer} from 'deck.gl';
 import {TripsLayer} from '@deck.gl/experimental-layers';
 
-// Set your mapbox token here
-// const MAPBOX_TOKEN = process.env.MapboxAccessToken; // eslint-disable-line
 const MAPBOX_TOKEN = "pk.eyJ1IjoiY2hlbmNoZW5nMTIiLCJhIjoiY2poN2JjcmJuMDY1cjJ3cDl0OG0xeWxzdyJ9.Jyy5bvJDCvtjPXSPZMazTg";
 
 // Source data CSV
 const DATA_URL = {
-    BUILDINGS:
-        'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/trips/buildings.json', // eslint-disable-line
-    TRIPS:
-        'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/trips/trips.json' // eslint-disable-line
+    // BUILDINGS: 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/trips/buildings.json', // eslint-disable-line
+    // TRIPS: 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/trips/trips.json' // eslint-disable-line
+
+    BUILDINGS: require("./data/buildings.json"),
+    TRIPS: require("./data/trips.json")
 };
 
 const LIGHT_SETTINGS = {
@@ -35,13 +37,38 @@ export const INITIAL_VIEW_STATE = {
     bearing: 0
 };
 
+const mapStyle = {
+    "version": 8,
+    // "sprite": "http://localhost:4000/asserts/mapbox/sprite/sprite",    // 加载图标来源
+    // "glyphs": "http://localhost:4000/asserts/mapbox/font/{fontstack}/{range}.pbf", // 加载字体
+    sources: {
+        "osm-tile_e3153e21-9e81-402a-c011-5312369292d8":{
+            "type":"raster",
+            "tiles":[
+                "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+            ],
+            "tileSize":256
+        }
+    },
+    layers: [
+        {
+            "id":"osm-tile_e3153e21-9e81-402a-c011-5312369292d8",
+            "type":"raster",
+            "source":"osm-tile_e3153e21-9e81-402a-c011-5312369292d8"
+        }
+    ]
+};
+
 export default class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            time: 0
+            time: 0,
+            mapStyle
         };
     }
+
+
 
     componentDidMount() {
         this._animate();
@@ -76,7 +103,7 @@ export default class App extends Component {
                 data: trips,
                 getPath: d => d.segments,
                 getColor: d => (d.vendor === 0 ? [253, 128, 93] : [23, 184, 190]),
-                opacity: 0.3,
+                opacity:1,
                 strokeWidth: 2,
                 trailLength,
                 currentTime: this.state.time
@@ -99,27 +126,6 @@ export default class App extends Component {
     render() {
         const {viewState, controller = true, baseMap = true} = this.props;
 
-        const mapStyle = {
-            "version": 8,
-            "sprite": "http://localhost:4000/asserts/mapbox/sprite/sprite",    // 加载图标来源
-            // "glyphs": "http://localhost:4000/asserts/mapbox/font/{fontstack}/{range}.pbf", // 加载字体
-            sources: {
-                "osm-tile_e3153e21-9e81-402a-c011-5312369292d8":{
-                    "type":"raster",
-                    "tiles":[
-                        "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
-                    ],
-                    "tileSize":256
-                }
-            },
-            layers: [
-                {
-                    "id":"osm-tile_e3153e21-9e81-402a-c011-5312369292d8",
-                    "type":"raster",
-                    "source":"osm-tile_e3153e21-9e81-402a-c011-5312369292d8"
-                }
-            ]
-        };
 
         return (
             <DeckGL
@@ -131,10 +137,13 @@ export default class App extends Component {
                 {baseMap && (
                     <StaticMap
                         reuseMaps
-                        // mapStyle="mapbox://styles/mapbox/dark-v9"
-                        mapStyle={mapStyle}
+                        mapStyle="mapbox://styles/mapbox/dark-v9"
+                        // mapStyle={mapStyle}
                         preventStyleDiffing={true}
                         mapboxApiAccessToken={MAPBOX_TOKEN}
+                        onViewportChange={(viewport, interactionState, oldViewState) => {
+                            this.setState({mapStyle})
+                        }}
                     />
                 )}
             </DeckGL>

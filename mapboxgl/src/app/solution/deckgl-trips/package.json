@@ -1,7 +1,8 @@
 {
   "scripts": {},
   "dependencies": {
-    "deck.gl": "^6.3.9",
+    "@deck.gl/experimental-layers": "^6.3.0",
+    "deck.gl": "^6.3.0",
     "react-map-gl": "^4.0.9"
   },
   "devDependencies": {},
