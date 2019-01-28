@@ -262,7 +262,7 @@ export default class TestMap{
     doAddGridLine = () => {
         const bounds = mapboxUtil.map.getBounds();
 
-        const {gridLines, crossPointLines, crossPoints} = mapboxUtil.mkGridLineData({
+        const {gridLines, crossPointLines, crossPoints} = mapboxUtil.mkGridLineDataByPixel({
             bounds: {
                 ne: bounds._ne, // 东北点
                 sw: bounds._sw  // 西南点

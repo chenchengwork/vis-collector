@@ -801,13 +801,13 @@ export default class MapboxUtil {
      *
      * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
      */
-    mkGridLineData = (params) => {
+    mkGridLineDataByLngLat = (params) => {
         const horizontalLine = [];      // 水平线
         const verticalLine = [];        // 垂直线
         const crossPoints = [];         // 交叉点
         const crossPointLines = [];     // 交叉线
 
-        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate } = params;
+        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate} = params;
         const maxLng = Math.max(bounds.ne.lng, bounds.sw.lng);
         const minLng = Math.min(bounds.ne.lng, bounds.sw.lng);
         const maxLat = Math.max(bounds.ne.lat, bounds.sw.lat);
@@ -817,25 +817,25 @@ export default class MapboxUtil {
         const latStep = (maxLat - minLat) / gridHorizontalNum;
 
 
-        for(let i = 0; i < gridVerticalNum; i++){
+        for (let i = 0; i < gridVerticalNum; i++) {
             const currentLng = minLng + i * lngStep;
             verticalLine.push([[currentLng, minLat], [currentLng, maxLat]]);
         }
 
-        for(let i = 0; i < gridHorizontalNum; i++){
+        for (let i = 0; i < gridHorizontalNum; i++) {
             const currentLat = minLat + i * latStep;
             horizontalLine.push([[minLng, currentLat], [maxLng, currentLat]]);
         }
 
 
-        for(let i = 0; i < verticalLine.length; i++){
+        for (let i = 0; i < verticalLine.length; i++) {
             const lng = verticalLine[i][0][0];
-            for(let j = 0; j < horizontalLine.length; j++){
+            for (let j = 0; j < horizontalLine.length; j++) {
                 const lat = horizontalLine[j][0][1];
                 crossPoints.push([lng, lat]);
 
-                crossPointLines.push([[lng * (1 - crossPointLineLngLengthRate), lat],[lng * (1 + crossPointLineLngLengthRate), lat]]);
-                crossPointLines.push([[lng, lat * (1 - crossPointLineLatLengthRate)],[lng, lat * (1 + crossPointLineLatLengthRate)]]);
+                crossPointLines.push([[lng * (1 - crossPointLineLngLengthRate), lat], [lng * (1 + crossPointLineLngLengthRate), lat]]);
+                crossPointLines.push([[lng, lat * (1 - crossPointLineLatLengthRate)], [lng, lat * (1 + crossPointLineLatLengthRate)]]);
             }
         }
 
@@ -845,6 +845,181 @@ export default class MapboxUtil {
             crossPoints,
             crossPointLines,
         }
+    };
+
+    /**
+     * 生成栅格线数据
+     * @param {Object} params
+     * @param {Object} params.bounds
+     * @param {Object} params.bounds.ne     // 东北点
+     * @param {Object} params.bounds.sw     // 西南点
+     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
+     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
+     * @param {Number} params.crossPointLineLngLengthRate   // 交叉点线长度经度占比
+     * @param {Number} params.crossPointLineLatLengthRate   // 交叉点线长度维度占比
+     *
+     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
+     */
+    mkGridLineDataByPixel = (params) => {
+        const map = this.map;
+        const horizontalLine = [];      // 水平线
+        const verticalLine = [];        // 垂直线
+        const crossPoints = [];         // 交叉点
+        const crossPointLines = [];     // 交叉线
+
+        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate} = params;
+        const projectNe = map.project(bounds.ne);
+        const projectSw = map.project(bounds.sw);
+
+        const maxX = Math.max(projectNe.x, projectSw.x);
+        const minX = Math.min(projectNe.x, projectSw.x);
+        const maxY = Math.max(projectNe.y, projectSw.y);
+        const minY = Math.min(projectNe.y, projectSw.y);
+
+        const xStep = (maxX - minX) / gridVerticalNum;
+        const yStep = (maxY - minY) / gridHorizontalNum;
+
+
+        for (let i = 0; i < gridVerticalNum; i++) {
+            const currentX = minX + i * xStep;
+            verticalLine.push([[currentX, minY], [currentX, maxY]]);
+        }
+
+        for (let i = 0; i < gridHorizontalNum; i++) {
+            const currentY = minY + i * yStep;
+            horizontalLine.push([[minX, currentY], [maxX, currentY]]);
+        }
+
+        for (let i = 0; i < verticalLine.length; i++) {
+            const x = verticalLine[i][0][0];
+            for (let j = 0; j < horizontalLine.length; j++) {
+                const y = horizontalLine[j][0][1];
+                crossPoints.push([x, y]);
+
+                crossPointLines.push([[x * (1 - crossPointLineLngLengthRate), y], [x * (1 + crossPointLineLngLengthRate), y]]);
+                crossPointLines.push([[x, y * (1 - crossPointLineLatLengthRate)], [x, y * (1 + crossPointLineLatLengthRate)]]);
+            }
+        }
+
+
+        return {
+            gridLines: [
+                ...horizontalLine.map(item => {
+                    return item.map(item1 => {
+                        const data = map.unproject(item1);
+                        return [data.lng, data.lat]
+                    })
+                }),
+                ...verticalLine.map(item => {
+                    return item.map(item1 => {
+                        const data = map.unproject(item1);
+                        return [data.lng, data.lat]
+                    })
+                })
+            ],
+            crossPoints: crossPoints.map(item => {
+                const data = map.unproject(item);
+                return [data.lng, data.lat]
+            }),
+            crossPointLines: crossPointLines.map(item => {
+                return item.map(item1 => {
+                    const data = map.unproject(item1);
+                    return [data.lng, data.lat]
+                })
+            }),
+        }
+    };
+
+
+    /**
+     * 生成栅格线数据
+     * @param {Object} params
+     * @param {Object} params.bounds
+     * @param {Object} params.bounds.ne     // 东北点
+     * @param {Object} params.bounds.sw     // 西南点
+     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
+     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
+     *
+     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
+     */
+    mkBboxDataByLngLat = (params) => {
+        const {bounds, gridHorizontalNum, gridVerticalNum } = params;
+        const maxLng = Math.max(bounds.ne.lng, bounds.sw.lng);
+        const minLng = Math.min(bounds.ne.lng, bounds.sw.lng);
+        const maxLat = Math.max(bounds.ne.lat, bounds.sw.lat);
+        const minLat = Math.min(bounds.ne.lat, bounds.sw.lat);
+
+        const lngStep = (maxLng - minLng) / gridVerticalNum;
+        const latStep = (maxLat - minLat) / gridHorizontalNum;
+
+        const data = [];
+        for(let i = 0; i < gridHorizontalNum; i++){
+            const currentLat1 = minLat + i * latStep;
+            const currentLat2 = minLat + (i + 1) * latStep;
+
+            for (let j = 0; j < gridVerticalNum; j++) {
+                const currentLng1 = minLng + j * lngStep;
+                const currentLng2 = minLng + (j+1) * lngStep;
+                data.push([
+                    [currentLng1, currentLat1],
+                    [currentLng2, currentLat1],
+                    [currentLng2, currentLat2],
+                    [currentLng1, currentLat2],
+                ]);
+            }
+        }
+
+        return data;
+    };
+
+
+    /**
+     * 生成栅格线数据
+     * @param {Object} params
+     * @param {Object} params.bounds
+     * @param {Object} params.bounds.ne     // 东北点
+     * @param {Object} params.bounds.sw     // 西南点
+     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
+     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
+     *
+     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
+     */
+    mkBboxDataByPixel = (params) => {
+        const map = this.map;
+        const {bounds, gridHorizontalNum, gridVerticalNum } = params;
+        const projectNe = map.project(bounds.ne);
+        const projectSw = map.project(bounds.sw);
+
+        const maxX = Math.max(projectNe.x, projectSw.x);
+        const minX = Math.min(projectNe.x, projectSw.x);
+        const maxY = Math.max(projectNe.y, projectSw.y);
+        const minY = Math.min(projectNe.y, projectSw.y);
+
+        const xStep = (maxX - minX) / gridVerticalNum;
+        const yStep = (maxY - minY) / gridHorizontalNum;
+
+        const data = [];
+        for(let i = 0; i < gridHorizontalNum; i++){
+            const currentY1 = minY + i * yStep;
+            const currentY2 = minY + (i + 1) * yStep;
+
+            for (let j = 0; j < gridVerticalNum; j++) {
+                const currentX1 = minX + j * xStep;
+                const currentX2 = minX + (j+1) * xStep;
+
+                const {lng: currentLng1, lat: currentLat1} = map.unproject([currentX1, currentY1]);
+                const {lng: currentLng2, lat: currentLat2} = map.unproject([currentX2, currentY2]);
+
+                data.push([
+                    [currentLng1, currentLat1],
+                    [currentLng2, currentLat1],
+                    [currentLng2, currentLat2],
+                    [currentLng1, currentLat2],
+                ]);
+            }
+        }
+
+        return data;
     };
 }
 
