@@ -796,67 +796,8 @@ export default class MapboxUtil {
      * @param {Object} params.bounds.sw     // 西南点
      * @param {Number} params.gridHorizontalNum     // 网格水平线数量
      * @param {Number} params.gridVerticalNum       // 网格垂直线数量
-     * @param {Number} params.crossPointLineLngLengthRate   // 交叉点线长度经度占比
-     * @param {Number} params.crossPointLineLatLengthRate   // 交叉点线长度维度占比
-     *
-     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
-     */
-    mkGridLineDataByLngLat = (params) => {
-        const horizontalLine = [];      // 水平线
-        const verticalLine = [];        // 垂直线
-        const crossPoints = [];         // 交叉点
-        const crossPointLines = [];     // 交叉线
-
-        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate} = params;
-        const maxLng = Math.max(bounds.ne.lng, bounds.sw.lng);
-        const minLng = Math.min(bounds.ne.lng, bounds.sw.lng);
-        const maxLat = Math.max(bounds.ne.lat, bounds.sw.lat);
-        const minLat = Math.min(bounds.ne.lat, bounds.sw.lat);
-
-        const lngStep = (maxLng - minLng) / gridVerticalNum;
-        const latStep = (maxLat - minLat) / gridHorizontalNum;
-
-
-        for (let i = 0; i < gridVerticalNum; i++) {
-            const currentLng = minLng + i * lngStep;
-            verticalLine.push([[currentLng, minLat], [currentLng, maxLat]]);
-        }
-
-        for (let i = 0; i < gridHorizontalNum; i++) {
-            const currentLat = minLat + i * latStep;
-            horizontalLine.push([[minLng, currentLat], [maxLng, currentLat]]);
-        }
-
-
-        for (let i = 0; i < verticalLine.length; i++) {
-            const lng = verticalLine[i][0][0];
-            for (let j = 0; j < horizontalLine.length; j++) {
-                const lat = horizontalLine[j][0][1];
-                crossPoints.push([lng, lat]);
-
-                crossPointLines.push([[lng * (1 - crossPointLineLngLengthRate), lat], [lng * (1 + crossPointLineLngLengthRate), lat]]);
-                crossPointLines.push([[lng, lat * (1 - crossPointLineLatLengthRate)], [lng, lat * (1 + crossPointLineLatLengthRate)]]);
-            }
-        }
-
-
-        return {
-            gridLines: [...horizontalLine, ...verticalLine],
-            crossPoints,
-            crossPointLines,
-        }
-    };
-
-    /**
-     * 生成栅格线数据
-     * @param {Object} params
-     * @param {Object} params.bounds
-     * @param {Object} params.bounds.ne     // 东北点
-     * @param {Object} params.bounds.sw     // 西南点
-     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
-     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
-     * @param {Number} params.crossPointLineLngLengthRate   // 交叉点线长度经度占比
-     * @param {Number} params.crossPointLineLatLengthRate   // 交叉点线长度维度占比
+     * @param {Number} params.crossPointLineXLength   // 交叉点线x轴长度单位(像素)
+     * @param {Number} params.crossPointLineYLength   // 交叉点线y轴长度单位(像素)
      *
      * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
      */
@@ -867,7 +808,7 @@ export default class MapboxUtil {
         const crossPoints = [];         // 交叉点
         const crossPointLines = [];     // 交叉线
 
-        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineLngLengthRate, crossPointLineLatLengthRate} = params;
+        const {bounds, gridHorizontalNum, gridVerticalNum, crossPointLineXLength, crossPointLineYLength} = params;
         const projectNe = map.project(bounds.ne);
         const projectSw = map.project(bounds.sw);
 
@@ -896,8 +837,11 @@ export default class MapboxUtil {
                 const y = horizontalLine[j][0][1];
                 crossPoints.push([x, y]);
 
-                crossPointLines.push([[x * (1 - crossPointLineLngLengthRate), y], [x * (1 + crossPointLineLngLengthRate), y]]);
-                crossPointLines.push([[x, y * (1 - crossPointLineLatLengthRate)], [x, y * (1 + crossPointLineLatLengthRate)]]);
+                // crossPointLines.push([[x * (1 - crossPointLineXLength), y], [x * (1 + crossPointLineXLength), y]]);
+                // crossPointLines.push([[x, y * (1 - crossPointLineLatLengthRate)], [x, y * (1 + crossPointLineLatLengthRate)]]);
+
+                crossPointLines.push([[x - crossPointLineXLength, y], [x + crossPointLineXLength, y]]);
+                crossPointLines.push([[x, y - crossPointLineYLength], [x, y + crossPointLineYLength]]);
             }
         }
 
@@ -940,49 +884,7 @@ export default class MapboxUtil {
      * @param {Number} params.gridHorizontalNum     // 网格水平线数量
      * @param {Number} params.gridVerticalNum       // 网格垂直线数量
      *
-     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
-     */
-    mkBboxDataByLngLat = (params) => {
-        const {bounds, gridHorizontalNum, gridVerticalNum } = params;
-        const maxLng = Math.max(bounds.ne.lng, bounds.sw.lng);
-        const minLng = Math.min(bounds.ne.lng, bounds.sw.lng);
-        const maxLat = Math.max(bounds.ne.lat, bounds.sw.lat);
-        const minLat = Math.min(bounds.ne.lat, bounds.sw.lat);
-
-        const lngStep = (maxLng - minLng) / gridVerticalNum;
-        const latStep = (maxLat - minLat) / gridHorizontalNum;
-
-        const data = [];
-        for(let i = 0; i < gridHorizontalNum; i++){
-            const currentLat1 = minLat + i * latStep;
-            const currentLat2 = minLat + (i + 1) * latStep;
-
-            for (let j = 0; j < gridVerticalNum; j++) {
-                const currentLng1 = minLng + j * lngStep;
-                const currentLng2 = minLng + (j+1) * lngStep;
-                data.push([
-                    [currentLng1, currentLat1],
-                    [currentLng2, currentLat1],
-                    [currentLng2, currentLat2],
-                    [currentLng1, currentLat2],
-                ]);
-            }
-        }
-
-        return data;
-    };
-
-
-    /**
-     * 生成栅格线数据
-     * @param {Object} params
-     * @param {Object} params.bounds
-     * @param {Object} params.bounds.ne     // 东北点
-     * @param {Object} params.bounds.sw     // 西南点
-     * @param {Number} params.gridHorizontalNum     // 网格水平线数量
-     * @param {Number} params.gridVerticalNum       // 网格垂直线数量
-     *
-     * @return {{crossPoints: Array, gridLines: *[], crossPointLines: Array}}
+     * @return {Array}
      */
     mkBboxDataByPixel = (params) => {
         const map = this.map;

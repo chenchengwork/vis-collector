@@ -269,8 +269,8 @@ export default class TestMap{
             },
             gridHorizontalNum: 6,              // 网格水平线数量
             gridVerticalNum: 10,                // 网格垂直线数量
-            crossPointLineLngLengthRate: 0.0045,      // 交叉点线长度经度占比
-            crossPointLineLatLengthRate: 0.007,      // 交叉点线长度维度占比
+            crossPointLineXLength: 5,      // 交叉点线x轴长度单位(像素)
+            crossPointLineYLength: 5,      // 交叉点线y轴长度单位(像素)
         });
 
         mapboxUtil.setLineLayer({data: gridLines});
