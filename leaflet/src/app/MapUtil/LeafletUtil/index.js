@@ -5,6 +5,9 @@ import IconMarker from './img/marker.png';
 
 // 加载切片服务配置
 import "./extend/tileServiceProvider";
+import "./extend/NonTiledLayer";
+import "./extend/NonTiledLayer.WCS";
+
 // 加载鼠标工具
 import MouseTool from './extend/mouseTool';
 // 加载风速layer
@@ -61,6 +64,7 @@ export default class LeafletUtil {
         }, options));
         // console.log(this.map, L.CRS);
         this.mouseTool = new MouseTool(this.map, L);
+
     }
 
     /**

@@ -28,6 +28,19 @@ export default class Map extends PureComponent {
 
         const map = mapUtil.map;
 
+        // 添加wcs服务
+        // map.addLayer(L.nonTiledLayer.wcs("http://10.0.5.42:5678", {
+        //     wcsOptions:{
+        //         service: "wcs",
+        //         version: "1.1.0",
+        //         request: "GetCoverage",
+        //         IDENTIFIER: "sentinel2_ndvi_20180419t032541_n0206_r018",
+        //         format: "geotiff",
+        //         width: 800,
+        //         height: 700,
+        //         crs: 3857
+        //     }
+        // }));
 
         // 绘制点到地图中
         // mapUtil.setMarker([31.59, 120.29]);
