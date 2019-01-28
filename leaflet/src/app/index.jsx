@@ -20,8 +20,8 @@ export default class Map extends PureComponent {
 
     componentDidMount() {
         const mapUtil = new MapUtil('mapid', {
-            crs:L.CRS.EPSG3857
-            // crs:MapUtil.G.L.CRS.EPSG4326,
+            crs:L.CRS.EPSG3857,                 // 投影坐标系, 墨卡托投影
+            // crs:L.CRS.EPSG4326,    // 大地坐标系
         });
 
         this.setState({mapUtil});
@@ -38,8 +38,8 @@ export default class Map extends PureComponent {
         //         format: "geotiff",
         //         width: 800,
         //         height: 700,
-        //         crs: 3857
-        //     }
+        //     },
+        //     crs: L.CRS.EPSG4326
         // }));
 
         // 绘制点到地图中

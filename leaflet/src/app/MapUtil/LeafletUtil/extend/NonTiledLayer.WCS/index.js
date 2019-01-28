@@ -1,6 +1,8 @@
 /*
  * L.NonTiledLayer.WCS is used for putting WCS non tiled layers on the map.
  */
+import "./NonTiledLayer";
+import * as plotty from './plotty';
 (function(L){
     L.NonTiledLayer.WCS = L.NonTiledLayer.extend({
 
@@ -124,7 +126,7 @@
         },
         _preLoadColorScale: function () {
             var canvas = document.createElement('canvas');
-            plot = new plotty.plot({
+            var plot = new plotty.plot({
                 canvas: canvas, data: [0],
                 width: 1, height: 1,
                 domain: [this.options.displayMin, this.options.displayMax],
@@ -142,8 +144,10 @@
                     canvas: self.plotCanvas,
                     data: self.raster.data,
                     width: self.raster.width, height: self.raster.height,
-                    domain: [self.options.displayMin, self.options.displayMax], colorScale: this.options.colorScale,
-                    clampLow: self.options.clampLow, clampHigh: self.options.clampHigh,
+                    domain: [self.options.displayMin, self.options.displayMax],
+                    colorScale: this.options.colorScale,
+                    clampLow: self.options.clampLow,
+                    clampHigh: self.options.clampHigh,
                 });
                 this.plot.setNoDataValue(-9999); //TODO: This should be an option not a magic number
                 this.plot.render();

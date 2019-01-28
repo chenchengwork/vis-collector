@@ -5,7 +5,7 @@ import IconMarker from './img/marker.png';
 
 // 加载切片服务配置
 import "./extend/tileServiceProvider";
-import "./extend/NonTiledLayer";
+// import "./extend/NonTiledLayer";
 import "./extend/NonTiledLayer.WCS";
 
 // 加载鼠标工具
