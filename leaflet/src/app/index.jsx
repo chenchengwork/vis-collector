@@ -5,6 +5,7 @@ import MapUtil from './MapUtil';
 
 
 import { lines } from './data/testData';
+import {CENTER} from "./MapUtil/LeafletUtil/constants";
 const ZOOM = MapUtil.G.ZOOM;
 const L = MapUtil.G.L;
 
@@ -19,14 +20,25 @@ export default class Map extends PureComponent {
 
 
     componentDidMount() {
+
         const mapUtil = new MapUtil('mapid', {
-            crs:L.CRS.EPSG3857,                 // 投影坐标系, 墨卡托投影
-            // crs:L.CRS.EPSG4326,    // 大地坐标系
+
+            center: [49.015284, 8.402703],
+            zoom: 15,
         });
 
-        this.setState({mapUtil});
+
+        // this.setState({mapUtil});
 
         const map = mapUtil.map;
+
+        // 添加TMS服务
+        // mapUtil.setTMSLayer("http://webst01.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}");
+
+        mapUtil.addTMSLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=hellowts");
+        // mapUtil.setTMSLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=sentinel2_rgb_20180419t032541_n0206_r018");
+
+
 
         // 添加wcs服务
         // map.addLayer(L.nonTiledLayer.wcs("http://10.0.5.42:5678", {
@@ -42,8 +54,12 @@ export default class Map extends PureComponent {
         //     crs: L.CRS.EPSG4326
         // }));
 
+
+
+
         // 绘制点到地图中
         // mapUtil.setMarker([31.59, 120.29]);
+
 
         /*mapUtil.map.on('layeradd', (e) => {
             mapUtil.map.removeLayer(e.layer)
@@ -55,58 +71,58 @@ export default class Map extends PureComponent {
         })*/
 
         // 绘制台风到地图
-        let typhoonData = mapUtil.drawTyphoon(lines);
+        // let typhoonData = mapUtil.drawTyphoon(lines);
 
         // 实现台风动态清除效果
-        setTimeout(() => {
-            const newLines = lines.slice(0, 20);
-            const newTyphoonData = [];
-
-            // 老数据 > 新数据
-            if(typhoonData.polylines.length > newLines.length){
-
-            }
-            // 老数据 < 新数据
-            else if(typhoonData.polylines.length < newLines.length){
-
-            }
-            // 老数据 == 新数据
-            else {
-
-            }
-
-            typhoonData.polylines.forEach((polyline, index) => {
-                if(newLines[index]){
-                    polyline.setLatLngs(newLines[index].path);
-                }else {
-                    setTimeout(() => {
-                        polyline.remove();
-                        typhoonData.points[index].forEach(point => point.remove());
-
-                        // typhoonData.polylines.splice(index, 1);
-                        // typhoonData.points.splice(index, 1);
-                    }, 100 * index);
-                }
-            });
-        }, 3000)
-
+        // setTimeout(() => {
+        //     const newLines = lines.slice(0, 20);
+        //     const newTyphoonData = [];
+        //
+        //     // 老数据 > 新数据
+        //     if(typhoonData.polylines.length > newLines.length){
+        //
+        //     }
+        //     // 老数据 < 新数据
+        //     else if(typhoonData.polylines.length < newLines.length){
+        //
+        //     }
+        //     // 老数据 == 新数据
+        //     else {
+        //
+        //     }
+        //
+        //     typhoonData.polylines.forEach((polyline, index) => {
+        //         if(newLines[index]){
+        //             polyline.setLatLngs(newLines[index].path);
+        //         }else {
+        //             setTimeout(() => {
+        //                 polyline.remove();
+        //                 typhoonData.points[index].forEach(point => point.remove());
+        //
+        //                 // typhoonData.polylines.splice(index, 1);
+        //                 // typhoonData.points.splice(index, 1);
+        //             }, 100 * index);
+        //         }
+        //     });
+        // }, 3000)
 
 
         // mapUtil.drawTyphoon(newLines);
 
         // 绘制风环形流场
-        $.get('/asserts/data/windy_20000.json').then((resp) => {
-            const windy = mapUtil.addWindyLayer(resp.data, {
-                crs: L.CRS.EPSG3857
-            }).addTo(mapUtil.map);
+        // $.get('/asserts/data/windy_20000.json').then((resp) => {
+        //     const windy = mapUtil.addWindyLayer(resp.data, {
+        //         crs: L.CRS.EPSG3857
+        //     }).addTo(mapUtil.map);
+        //
+        //     // 动态设置windy数据
+        //     setTimeout(() => {
+        //         $.get('/asserts/data/windy_10.json').then((resp) => {
+        //             windy.setData(resp.data)
+        //         })
+        //     }, 4000)
+        // }).catch(e => console.error(e));
 
-            // 动态设置windy数据
-            setTimeout(() => {
-                $.get('/asserts/data/windy_10.json').then((resp) => {
-                    windy.setData(resp.data)
-                })
-            }, 4000)
-        }).catch(e => console.error(e));
 
         // 添加高德路网图
         // const GaoDeAnnotion = L.tileLayer.tileServiceProvider('GaoDe.Satellite.Annotion', ZOOM);

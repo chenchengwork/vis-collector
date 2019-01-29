@@ -51,19 +51,29 @@ export default class LeafletUtil {
      * @returns {null|*}
      */
     constructor(mapId, options = {}) {
+        // const map = L.map('mapid', {
+        //     center: [49.015284, 8.402703],
+        //     zoom: 15
+        // });
+        // // new L.tileLayer("http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png").addTo(map);
+        // map.addLayer(new L.tileLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=hellowts"));
+        // return;
+
+
+
         this.map = L.map(mapId, Object.assign({
-            crs:L.CRS.EPSG3857,
+            crs:L.CRS.EPSG3857,     // 投影坐标系, 墨卡托投影
+            // crs:L.CRS.EPSG4326,    // 大地坐标系
             center: CENTER,
             zoom: ZOOM.minZoom,
             layers: [L.tileLayer.tileServiceProvider('Google.Satellite.Map', ZOOM)],
-            // layers: [L.tileLayer.tileServiceProvider('GaoDe.Satellite.Map', ZOOM)],
             zoomControl: false,
             doubleClickZoom: false,
             renderer: L.canvas()
             // renderer: L.svg()
         }, options));
         // console.log(this.map, L.CRS);
-        this.mouseTool = new MouseTool(this.map, L);
+        // this.mouseTool = new MouseTool(this.map, L);
 
     }
 
@@ -143,6 +153,20 @@ export default class LeafletUtil {
      * @type {*}
      */
     setWMSLayer = this.getSetLayerFN(this.addWMSLayer);
+
+    addTMSLayer(url, options = {}) {
+        const tmsTileLayer = L.tileLayer(url, options || {});
+
+        this.map.addLayer(tmsTileLayer);
+
+        return tmsTileLayer;
+    }
+
+    /**
+     * 设置TMS切片到地图中
+     * @type {*}
+     */
+    setTMSLayer = this.getSetLayerFN(this.addTMSLayer);
 
     /**
      * 添加GeoJSON数据
