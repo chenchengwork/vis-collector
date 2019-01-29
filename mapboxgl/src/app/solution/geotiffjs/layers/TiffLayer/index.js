@@ -67,32 +67,15 @@ export default class TiffLayer {
         }
     };
 
-    updateImage = (params) => {
-        for(let [layerId, value] of this.plotMap){
-            const { plot } = value;
-            const source = map.getSource(layerId);
-
-            // plot.setDomain([]);
-            // plot.setColorScale("name");
-            // plot.setClamp("clampLow", "clampHigh");
-
-            plot.render();
-
-            source.updateImage({
-                // url: 'https://www.mapbox.com/images/bar.png',
-                url: plot.getCanvas().toDataURL("image/png"),
-                // coordinates: [
-                //     [-76.54335737228394, 39.18579907229748],
-                //     [-76.52803659439087, 39.1838364847587],
-                //     [-76.5295386314392, 39.17683392507606],
-                //     [-76.54520273208618, 39.17876344106642]
-                // ]
-            });
-
-            // 修改图片的透明度
-            map.setPaintProperty(layerId, 'raster-opacity', 0.5);
-            // map.setLayoutProperty('my-layer', 'visibility', 'none');
-        }
+    download = (url) => {
+        let downloadElement = document.createElement('img');
+        const href = url;      //创建下载的链接
+        downloadElement.src = href;
+        // downloadElement.target = "_blank";
+        // downloadElement.download = filename;                //下载后文件名
+        document.body.appendChild(downloadElement);
+        // downloadElement.click();                            //点击下载
+        // document.body.removeChild(downloadElement);         //下载完成移除元素
     };
 
     drawImage = (tiffImg) => {
@@ -115,14 +98,17 @@ export default class TiffLayer {
                 clampLow: false,
                 ...plotParams
             });
-
             plot.render();
+
+            const url = plot.getCanvas().toDataURL("image/png");
+            // console.log(url);
+            // this.download(url);
 
             map.addLayer({
                 "id": layerId,
                 "source": {
                     "type": "image",
-                    "url": plot.getCanvas().toDataURL("image/png"),
+                    "url": url,
                     "coordinates": getBoundsByLngLat(tiffImg.getBoundingBox())
                 },
                 "type": "raster",
