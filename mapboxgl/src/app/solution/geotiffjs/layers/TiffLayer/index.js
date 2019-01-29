@@ -95,7 +95,7 @@ export default class TiffLayer {
                 data: rasters[0],
                 width,
                 height,
-                clampLow: false,
+                clampLow: true,
                 ...plotParams
             });
             plot.render();

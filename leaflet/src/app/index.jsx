@@ -23,8 +23,8 @@ export default class Map extends PureComponent {
 
         const mapUtil = new MapUtil('mapid', {
 
-            center: [49.015284, 8.402703],
-            zoom: 15,
+            // center: [49.015284, 8.402703],
+            // zoom: 15,
         });
 
 
@@ -34,8 +34,7 @@ export default class Map extends PureComponent {
 
         // 添加TMS服务
         // mapUtil.setTMSLayer("http://webst01.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}");
-
-        mapUtil.addTMSLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=hellowts");
+        // mapUtil.addTMSLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=hellowts");
         // mapUtil.setTMSLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=sentinel2_rgb_20180419t032541_n0206_r018");
 
 

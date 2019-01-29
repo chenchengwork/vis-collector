@@ -51,17 +51,9 @@ export default class LeafletUtil {
      * @returns {null|*}
      */
     constructor(mapId, options = {}) {
-        // const map = L.map('mapid', {
-        //     center: [49.015284, 8.402703],
-        //     zoom: 15
-        // });
-        // // new L.tileLayer("http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png").addTo(map);
-        // map.addLayer(new L.tileLayer("http://10.0.5.228:5678/wts/{z}/{x}/{y}?layer=hellowts"));
-        // return;
+        this.containerDom = mapId instanceof HTMLElement ? mapId : document.querySelector(`#${mapId}`);
 
-
-
-        this.map = L.map(mapId, Object.assign({
+        this.map = L.map(this.containerDom, Object.assign({
             crs:L.CRS.EPSG3857,     // 投影坐标系, 墨卡托投影
             // crs:L.CRS.EPSG4326,    // 大地坐标系
             center: CENTER,
