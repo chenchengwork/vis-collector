@@ -8,15 +8,15 @@
   },
   "dependencies": {
     "mapbox-gl": "^0.52.0",
-    "prop-types": "^15.6.2",
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0",
+    "prop-types": "^15.7.1",
+    "react": "^16.8.1",
+    "react-dom": "^16.8.1",
     "three": "^0.99.0",
     "vtk.js": "^8.3.2"
   },
   "devDependencies": {
     "shader-loader": "^1.3.1",
-    "webpack-pipe": "^1.0.10",
+    "webpack-pipe": "^1.0.11",
     "worker-loader": "^2.0.0"
   },
   "repository": {
