@@ -155,6 +155,8 @@ export default class Map extends Component {
             new Cesium.Cesium3DTileset({
                 // url: Cesium.IonResource.fromAssetId(8564),
                 url: "http://localhost:4000/asserts/school_3d_tile/tileset.json",
+                // url: "http://localhost:4000/asserts/Batched未标题_3/tileset.json",
+                // url: Cesium.IonResource.fromAssetId(17781),
             })
         );
 
