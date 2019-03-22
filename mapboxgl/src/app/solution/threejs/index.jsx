@@ -86,7 +86,12 @@ export default class ChinaMap extends PureComponent{
 
     addMarkLayer = (map) => {
         // const scale = 1;
-        let scale = 0.0000249532127261;
+        // let scale = 0.00000249532127261;
+        /*
+            123e3 -> 123000
+            123e-3 -> 0.123
+         */
+        let scale = 2.49e-6;    // 科学计数法
         map.addLayer(new MarkLayer({
             id: "three_mark_layer",
             data: {
