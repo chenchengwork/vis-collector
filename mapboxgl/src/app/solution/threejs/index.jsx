@@ -1,20 +1,10 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import { PureComponent } from 'react';
-import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import GltfLayer from './layer/GltfLayer';
 import MarkLayer from './layer/MarkLayer';
 
-const createDOM = (VisComponent, props = {}) => {
-    const el = document.createElement('div');
-    let domRef = null;
-    ReactDOM.render(<VisComponent ref={(ref) => domRef = ref} {...props}/>, el);
-
-    return {el, domRef};
-};
-
 const center = [116.2317,39.5427];  // 北京中心点
-
 
 export default class ChinaMap extends PureComponent{
 
