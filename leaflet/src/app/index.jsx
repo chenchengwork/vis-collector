@@ -109,18 +109,18 @@ export default class Map extends PureComponent {
         // mapUtil.drawTyphoon(newLines);
 
         // 绘制风环形流场
-        // $.get('/asserts/data/windy_20000.json').then((resp) => {
-        //     const windy = mapUtil.addWindyLayer(resp.data, {
-        //         crs: L.CRS.EPSG3857
-        //     }).addTo(mapUtil.map);
-        //
-        //     // 动态设置windy数据
-        //     setTimeout(() => {
-        //         $.get('/asserts/data/windy_10.json').then((resp) => {
-        //             windy.setData(resp.data)
-        //         })
-        //     }, 4000)
-        // }).catch(e => console.error(e));
+        $.get('/asserts/data/windy_20000.json').then((resp) => {
+            const windy = mapUtil.addWindyLayer(resp.data, {
+                crs: L.CRS.EPSG3857
+            }).addTo(mapUtil.map);
+
+            // 动态设置windy数据
+            setTimeout(() => {
+                $.get('/asserts/data/windy_10.json').then((resp) => {
+                    windy.setData(resp.data)
+                })
+            }, 4000)
+        }).catch(e => console.error(e));
 
 
         // 添加高德路网图

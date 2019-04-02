@@ -7,7 +7,7 @@
  interpolation and animation process.
  */
 
-var Windy = function( params ){
+const Windy = function( params ){
 
     const MIN_VELOCITY_INTENSITY = params.minVelocity || 0;                      // velocity at which particle intensity is minimum (m/s)
     const MAX_VELOCITY_INTENSITY = params.maxVelocity || 10;                     // velocity at which particle intensity is maximum (m/s)
@@ -18,7 +18,7 @@ var Windy = function( params ){
     const PARTICLE_REDUCTION = (Math.pow(window.devicePixelRatio,1/3) || 1.6);   // multiply particle count for mobiles by this amount
     const FRAME_RATE = params.frameRate || 15, FRAME_TIME = 1000 / FRAME_RATE;   // desired frames per second
 
-    var defaulColorScale = [
+    const defaulColorScale = [
         "rgb(36,104, 180)",
         "rgb(60,157, 194)",
         "rgb(128,205,193 )",
@@ -38,31 +38,31 @@ var Windy = function( params ){
 
     const colorScale = params.colorScale || defaulColorScale;
 
-    var NULL_WIND_VECTOR = [NaN, NaN, null];  // singleton for no wind in the form: [u, v, magnitude]
+    const NULL_WIND_VECTOR = [NaN, NaN, null];  // singleton for no wind in the form: [u, v, magnitude]
 
-    var builder;
-    var grid;
-    var gridData = params.data;
-    var date;
-    var λ0, φ0, Δλ, Δφ, ni, nj;
+    let builder;
+    let grid;
+    let gridData = params.data;
+    let date;
+    let λ0, φ0, Δλ, Δφ, ni, nj;
 
-    var setData = function (data) {
+    const setData = function (data) {
         gridData = data;
     };
 
     // interpolation for vectors like wind (u,v,m)
-    var bilinearInterpolateVector = function(x, y, g00, g10, g01, g11) {
-        var rx = (1 - x);
-        var ry = (1 - y);
-        var a = rx * ry,  b = x * ry,  c = rx * y,  d = x * y;
-        var u = g00[0] * a + g10[0] * b + g01[0] * c + g11[0] * d;
-        var v = g00[1] * a + g10[1] * b + g01[1] * c + g11[1] * d;
+    const bilinearInterpolateVector = function(x, y, g00, g10, g01, g11) {
+        const rx = (1 - x);
+        const ry = (1 - y);
+        const a = rx * ry,  b = x * ry,  c = rx * y,  d = x * y;
+        const u = g00[0] * a + g10[0] * b + g01[0] * c + g11[0] * d;
+        const v = g00[1] * a + g10[1] * b + g01[1] * c + g11[1] * d;
         return [u, v, Math.sqrt(u * u + v * v)];
     };
 
 
-    var createWindBuilder = function(uComp, vComp) {
-        var uData = uComp.data, vData = vComp.data;
+    const createWindBuilder = function(uComp, vComp) {
+        const uData = uComp.data, vData = vComp.data;
         return {
             header: uComp.header,
             //recipe: recipeFor("wind-" + uComp.header.surface1Value),
@@ -73,8 +73,8 @@ var Windy = function( params ){
         }
     };
 
-    var createBuilder = function(data) {
-        var uComp = null, vComp = null, scalar = null;
+    const createBuilder = function(data) {
+        let uComp = null, vComp = null, scalar = null;
 
         data.forEach(function(record) {
             switch (record.header.parameterCategory + "," + record.header.parameterNumber) {
@@ -94,10 +94,10 @@ var Windy = function( params ){
         return createWindBuilder(uComp, vComp);
     };
 
-    var buildGrid = function (data, callback) {
+    const buildGrid = function (data, callback) {
 
         builder = createBuilder(data);
-        var header = builder.header;
+        const header = builder.header;
 
         λ0 = header.lo1;
         φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
@@ -114,12 +114,12 @@ var Windy = function( params ){
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
         grid = [];
-        var p = 0;
-        var isContinuous = Math.floor(ni * Δλ) >= 360;
+        let p = 0;
+        const isContinuous = Math.floor(ni * Δλ) >= 360;
 
-        for (var j = 0; j < nj; j++) {
-            var row = [];
-            for (var i = 0; i < ni; i++, p++) {
+        for (let j = 0; j < nj; j++) {
+            const row = [];
+            for (let i = 0; i < ni; i++, p++) {
                 row[i] = builder.data(p);
             }
             if (isContinuous) {
@@ -141,23 +141,23 @@ var Windy = function( params ){
      * @param φ {Float} Latitude
      * @returns {Object}
      */
-    var interpolate = function(λ, φ) {
+    const interpolate = function(λ, φ) {
 
         if(!grid) return null;
 
-        var i = floorMod(λ - λ0, 360) / Δλ;  // calculate longitude index in wrapped range [0, 360)
-        var j = (φ0 - φ) / Δφ;                 // calculate latitude index in direction +90 to -90
+        const i = floorMod(λ - λ0, 360) / Δλ;  // calculate longitude index in wrapped range [0, 360)
+        const j = (φ0 - φ) / Δφ;                 // calculate latitude index in direction +90 to -90
 
-        var fi = Math.floor(i), ci = fi + 1;
-        var fj = Math.floor(j), cj = fj + 1;
+        const fi = Math.floor(i), ci = fi + 1;
+        const fj = Math.floor(j), cj = fj + 1;
 
-        var row;
+        let row;
         if ((row = grid[fj])) {
-            var g00 = row[fi];
-            var g10 = row[ci];
+            const g00 = row[fi];
+            const g10 = row[ci];
             if (isValue(g00) && isValue(g10) && (row = grid[cj])) {
-                var g01 = row[fi];
-                var g11 = row[ci];
+                const g01 = row[fi];
+                const g11 = row[ci];
                 if (isValue(g01) && isValue(g11)) {
                     // All four points found, so interpolate the value.
                     return builder.interpolate(i - fi, j - fj, g00, g10, g01, g11);
@@ -171,7 +171,7 @@ var Windy = function( params ){
     /**
      * @returns {Boolean} true if the specified value is not null and not undefined.
      */
-    var isValue = function(x) {
+    const isValue = function(x) {
         return x !== null && x !== undefined;
     };
 
@@ -179,21 +179,21 @@ var Windy = function( params ){
      * @returns {Number} returns remainder of floored division, i.e., floor(a / n). Useful for consistent modulo
      *          of negative numbers. See http://en.wikipedia.org/wiki/Modulo_operation.
      */
-    var floorMod = function(a, n) {
+    const floorMod = function(a, n) {
         return a - n * Math.floor(a / n);
     };
 
     /**
      * @returns {Number} the value x clamped to the range [low, high].
      */
-    var clamp = function(x, range) {
+    const clamp = function(x, range) {
         return Math.max(range[0], Math.min(x, range[1]));
     };
 
     /**
      * @returns {Boolean} true if agent is probably a mobile device. Don't really care if this is accurate.
      */
-    var isMobile = function() {
+    const isMobile = function() {
         return (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
     };
 
@@ -201,10 +201,10 @@ var Windy = function( params ){
      * Calculate distortion of the wind vector caused by the shape of the projection at point (x, y). The wind
      * vector is modified in place and returned by this function.
      */
-    var distort = function(projection, λ, φ, x, y, scale, wind, windy) {
-        var u = wind[0] * scale;
-        var v = wind[1] * scale;
-        var d = distortion(projection, λ, φ, x, y, windy);
+    const distort = function(projection, λ, φ, x, y, scale, wind, windy) {
+        const u = wind[0] * scale;
+        const v = wind[1] * scale;
+        const d = distortion(projection, λ, φ, x, y, windy);
 
         // Scale distortion vectors by u and v, then add.
         wind[0] = d[0] * u + d[2] * v;
@@ -212,19 +212,19 @@ var Windy = function( params ){
         return wind;
     };
 
-    var distortion = function(projection, λ, φ, x, y, windy) {
-        var τ = 2 * Math.PI;
-        // var H = Math.pow(10, -5.2);
-        var H = params.crs && params.crs.code === 'EPSG:4326' ? 5 : Math.pow(10, -5.2);
-        var hλ = λ < 0 ? H : -H;
-        var hφ = φ < 0 ? H : -H;
+    const distortion = function(projection, λ, φ, x, y, windy) {
+        const τ = 2 * Math.PI;
+        // const H = Math.pow(10, -5.2);
+        const H = params.crs && params.crs.code === 'EPSG:4326' ? 5 : Math.pow(10, -5.2);
+        const hλ = λ < 0 ? H : -H;
+        const hφ = φ < 0 ? H : -H;
 
-        var pλ = project(φ, λ + hλ,windy);
-        var pφ = project(φ + hφ, λ, windy);
+        const pλ = project(φ, λ + hλ,windy);
+        const pφ = project(φ + hφ, λ, windy);
 
         // Meridian scale factor (see Snyder, equation 4-3), where R = 1. This handles issue where length of 1º λ
         // changes depending on φ. Without this, there is a pinching effect at the poles.
-        var k = Math.cos(φ / 360 * τ);
+        const k = Math.cos(φ / 360 * τ);
         return [
             (pλ[0] - x) / hλ / k,
             (pλ[1] - y) / hλ / k,
@@ -233,14 +233,14 @@ var Windy = function( params ){
         ];
     };
 
-    var createField = function(columns, bounds, callback) {
+    const createField = function(columns, bounds, callback) {
 
         /**
          * @returns {Array} wind vector [u, v, magnitude] at the point (x, y), or [NaN, NaN, null] if wind
          *          is undefined at that point.
          */
         function field(x, y) {
-            var column = columns[Math.round(x)];
+            const column = columns[Math.round(x)];
             return column && column[Math.round(y)] || NULL_WIND_VECTOR;
         }
 
@@ -251,8 +251,8 @@ var Windy = function( params ){
         };
 
         field.randomize = function(o) {  // UNDONE: this method is terrible
-            var x, y;
-            var safetyNet = 0;
+            let x, y;
+            let safetyNet = 0;
             do {
                 x = Math.round(Math.floor(Math.random() * bounds.width) + bounds.x);
                 y = Math.round(Math.floor(Math.random() * bounds.height) + bounds.y)
@@ -265,81 +265,81 @@ var Windy = function( params ){
         callback( bounds, field );
     };
 
-    var buildBounds = function( bounds, width, height ) {
-        var upperLeft = bounds[0];
-        var lowerRight = bounds[1];
-        var x = Math.round(upperLeft[0]); //Math.max(Math.floor(upperLeft[0], 0), 0);
-        var y = Math.max(Math.floor(upperLeft[1], 0), 0);
-        var xMax = Math.min(Math.ceil(lowerRight[0], width), width - 1);
-        var yMax = Math.min(Math.ceil(lowerRight[1], height), height - 1);
+    const buildBounds = function( bounds, width, height ) {
+        const upperLeft = bounds[0];
+        const lowerRight = bounds[1];
+        const x = Math.round(upperLeft[0]); //Math.max(Math.floor(upperLeft[0], 0), 0);
+        const y = Math.max(Math.floor(upperLeft[1], 0), 0);
+        const xMax = Math.min(Math.ceil(lowerRight[0], width), width - 1);
+        const yMax = Math.min(Math.ceil(lowerRight[1], height), height - 1);
         return {x: x, y: y, xMax: width, yMax: yMax, width: width, height: height};
     };
 
-    var deg2rad = function( deg ){
+    const deg2rad = function( deg ){
         return (deg / 180) * Math.PI;
     };
 
-    var rad2deg = function( ang ){
+    const rad2deg = function( ang ){
         return ang / (Math.PI/180.0);
     };
 
-    var invert
+    let invert
 
     if (params.crs && params.crs.code === 'EPSG:4326') {
         invert = function (x, y, windy) {
-            var mapLonDelta = windy.east - windy.west;
-            var mapLatDelta = windy.south - windy.north;
-            var lat = rad2deg(windy.north) + y / windy.height * rad2deg(mapLatDelta);
-            var lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
+            const mapLonDelta = windy.east - windy.west;
+            const mapLatDelta = windy.south - windy.north;
+            const lat = rad2deg(windy.north) + y / windy.height * rad2deg(mapLatDelta);
+            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
             return [lon, lat];
         };
     } else {
         invert = function (x, y, windy) {
-            var mapLonDelta = windy.east - windy.west;
-            var worldMapRadius = windy.width / rad2deg(mapLonDelta) * 360 / (2 * Math.PI);
-            var mapOffsetY = (worldMapRadius / 2 * Math.log((1 + Math.sin(windy.south)) / (1 - Math.sin(windy.south))));
-            var equatorY = windy.height + mapOffsetY;
-            var a = (equatorY - y) / worldMapRadius;
-            var lat = 180 / Math.PI * (2 * Math.atan(Math.exp(a)) - Math.PI / 2);
-            var lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
+            const mapLonDelta = windy.east - windy.west;
+            const worldMapRadius = windy.width / rad2deg(mapLonDelta) * 360 / (2 * Math.PI);
+            const mapOffsetY = (worldMapRadius / 2 * Math.log((1 + Math.sin(windy.south)) / (1 - Math.sin(windy.south))));
+            const equatorY = windy.height + mapOffsetY;
+            const a = (equatorY - y) / worldMapRadius;
+            const lat = 180 / Math.PI * (2 * Math.atan(Math.exp(a)) - Math.PI / 2);
+            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
             return [lon, lat];
         };
     }
 
-    var mercY = function( lat ) {
+    const mercY = function( lat ) {
         return Math.log( Math.tan( lat / 2 + Math.PI / 4 ) );
     };
 
 
-    var project = function( lat, lon, windy) { // both in radians, use deg2rad if neccessary
-        var ymin = mercY(windy.south);
-        var ymax = mercY(windy.north);
-        var xFactor = windy.width / ( windy.east - windy.west );
-        var yFactor = windy.height / ( ymax - ymin );
+    const project = function( lat, lon, windy) { // both in radians, use deg2rad if neccessary
+        const ymin = mercY(windy.south);
+        const ymax = mercY(windy.north);
+        const xFactor = windy.width / ( windy.east - windy.west );
+        const yFactor = windy.height / ( ymax - ymin );
 
-        var y = mercY( deg2rad(lat) );
-        var x = (deg2rad(lon) - windy.west) * xFactor;
-        var y = (ymax - y) * yFactor; // y points south
+        let y = mercY( deg2rad(lat) );
+        const x = (deg2rad(lon) - windy.west) * xFactor;
+        y = (ymax - y) * yFactor; // y points south
         return [x, y];
     };
 
-    var interpolateField = function( grid, bounds, extent, callback ) {
+    const interpolateField = function( grid, bounds, extent, callback ) {
 
-        var projection = {};
-        var mapArea = ((extent.south - extent.north) * (extent.west - extent.east));
-        var velocityScale = VELOCITY_SCALE * Math.pow(mapArea, 0.4);
+        const projection = {};
+        const mapArea = ((extent.south - extent.north) * (extent.west - extent.east));
+        const velocityScale = VELOCITY_SCALE * Math.pow(mapArea, 0.4);
 
-        var columns = [];
-        var x = bounds.x;
+        const columns = [];
+        let x = bounds.x;
 
         function interpolateColumn(x) {
-            var column = [];
-            for (var y = bounds.y; y <= bounds.yMax; y += 2) {
-                var coord = invert( x, y, extent );
+            const column = [];
+            for (let y = bounds.y; y <= bounds.yMax; y += 2) {
+                const coord = invert( x, y, extent );
                 if (coord) {
-                    var λ = coord[0], φ = coord[1];
+                    const λ = coord[0], φ = coord[1];
                     if (isFinite(λ)) {
-                        var wind = grid.interpolate(λ, φ);
+                        let wind = grid.interpolate(λ, φ);
                         if (wind) {
                             wind = distort(projection, λ, φ, x, y, velocityScale, wind, extent);
                             column[y+1] = column[y] = wind;
@@ -352,7 +352,7 @@ var Windy = function( params ){
         }
 
         (function batchInterpolate() {
-            var start = Date.now();
+            const start = Date.now();
             while (x < bounds.width) {
                 interpolateColumn(x);
                 x += 2;
@@ -365,8 +365,8 @@ var Windy = function( params ){
         })();
     };
 
-    var animationLoop;
-    var animate = function(bounds, field) {
+    let animationLoop;
+    const animate = function(bounds, field) {
 
         function windIntensityColorScale(min, max) {
 
@@ -379,18 +379,18 @@ var Windy = function( params ){
             return colorScale;
         }
 
-        var colorStyles = windIntensityColorScale(MIN_VELOCITY_INTENSITY, MAX_VELOCITY_INTENSITY);
-        var buckets = colorStyles.map(function() { return []; });
+        const colorStyles = windIntensityColorScale(MIN_VELOCITY_INTENSITY, MAX_VELOCITY_INTENSITY);
+        const buckets = colorStyles.map(function() { return []; });
 
-        var particleCount = Math.round(bounds.width * bounds.height * PARTICLE_MULTIPLIER);
+        let particleCount = Math.round(bounds.width * bounds.height * PARTICLE_MULTIPLIER);
         if (isMobile()) {
             particleCount *= PARTICLE_REDUCTION;
         }
 
-        var fadeFillStyle = "rgba(0, 0, 0, 0.97)";
+        const fadeFillStyle = "rgba(0, 0, 0, 0.97)";
 
-        var particles = [];
-        for (var i = 0; i < particleCount; i++) {
+        const particles = [];
+        for (let i = 0; i < particleCount; i++) {
             particles.push(field.randomize({age: Math.floor(Math.random() * MAX_PARTICLE_AGE) + 0}));
         }
 
@@ -400,16 +400,16 @@ var Windy = function( params ){
                 if (particle.age > MAX_PARTICLE_AGE) {
                     field.randomize(particle).age = 0;
                 }
-                var x = particle.x;
-                var y = particle.y;
-                var v = field(x, y);  // vector at current position
-                var m = v[2];
+                const x = particle.x;
+                const y = particle.y;
+                const v = field(x, y);  // vector at current position
+                const m = v[2];
                 if (m === null) {
                     particle.age = MAX_PARTICLE_AGE;  // particle has escaped the grid, never to return...
                 }
                 else {
-                    var xt = x + v[0];
-                    var yt = y + v[1];
+                    const xt = x + v[0];
+                    const yt = y + v[1];
                     if (field(xt, yt)[2] !== null) {
                         // Path from (x,y) to (xt,yt) is visible, so add this particle to the appropriate draw bucket.
                         particle.xt = xt;
@@ -426,14 +426,14 @@ var Windy = function( params ){
             });
         }
 
-        var g = params.canvas.getContext("2d");
+        const g = params.canvas.getContext("2d");
         g.lineWidth = PARTICLE_LINE_WIDTH;
         g.fillStyle = fadeFillStyle;
         g.globalAlpha = 0.6;
 
         function draw() {
             // Fade existing particle trails.
-            var prev = "lighter";
+            const prev = "lighter";
             g.globalCompositeOperation = "destination-in";
             g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             g.globalCompositeOperation = prev;
@@ -455,11 +455,11 @@ var Windy = function( params ){
             });
         }
 
-        var then = Date.now();
+        let then = Date.now();
         (function frame() {
             animationLoop = requestAnimationFrame(frame);
-            var now = Date.now();
-            var delta = now - then;
+            const now = Date.now();
+            const delta = now - then;
             if (delta > FRAME_TIME) {
                 then = now - (delta % FRAME_TIME);
                 evolve();
@@ -468,9 +468,9 @@ var Windy = function( params ){
         })();
     };
 
-    var start = function( bounds, width, height, extent ){
+    const start = function( bounds, width, height, extent ){
 
-        var mapBounds = {
+        const mapBounds = {
             south: deg2rad(extent[0][1]),
             north: deg2rad(extent[1][1]),
             east: deg2rad(extent[1][0]),
@@ -493,12 +493,12 @@ var Windy = function( params ){
         });
     };
 
-    var stop = function () {
+    const stop = function () {
         if (windy.field) windy.field.release();
         if (animationLoop) cancelAnimationFrame(animationLoop);
     };
 
-    var windy = {
+    const windy = {
         params: params,
         start: start,
         stop: stop,
