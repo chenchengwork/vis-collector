@@ -1,11 +1,9 @@
 import React, { PureComponent } from 'react';
 import styles from './Map.scss';
 import MapUtil from './MapUtil';
-
-
-
 import { lines } from './data/testData';
 import {CENTER} from "./MapUtil/LeafletUtil/constants";
+
 const ZOOM = MapUtil.G.ZOOM;
 const L = MapUtil.G.L;
 
@@ -105,19 +103,18 @@ export default class Map extends PureComponent {
         //     });
         // }, 3000)
 
-
         // mapUtil.drawTyphoon(newLines);
 
         // 绘制风环形流场
-        $.get('/asserts/data/windy_20000.json').then((resp) => {
-            const windy = mapUtil.addWindyLayer(resp.data, {
+        $.get('/asserts/data/windy_20000.json').then((data) => {
+            const windy = mapUtil.addWindyLayer(data, {
                 crs: L.CRS.EPSG3857
             }).addTo(mapUtil.map);
 
             // 动态设置windy数据
             setTimeout(() => {
-                $.get('/asserts/data/windy_10.json').then((resp) => {
-                    windy.setData(resp.data)
+                $.get('/asserts/data/windy_10.json').then((data) => {
+                    windy.setData(data)
                 })
             }, 4000)
         }).catch(e => console.error(e));

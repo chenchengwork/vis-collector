@@ -58,7 +58,8 @@ export default class LeafletUtil {
             // crs:L.CRS.EPSG4326,    // 大地坐标系
             center: CENTER,
             zoom: ZOOM.minZoom,
-            layers: [L.tileLayer.tileServiceProvider('Google.Satellite.Map', ZOOM)],
+            // layers: [L.tileLayer.tileServiceProvider('Google.Satellite.Map', ZOOM)],
+            layers: [L.tileLayer.tileServiceProvider('Geoq.Normal.Map', ZOOM)],
             zoomControl: false,
             doubleClickZoom: false,
             renderer: L.canvas()
