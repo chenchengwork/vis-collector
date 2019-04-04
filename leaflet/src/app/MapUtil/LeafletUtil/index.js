@@ -302,5 +302,23 @@ export default class LeafletUtil {
      */
     setCircleMarker = this.getSetLayerFN(this.addCircleMarker);
 
+    /**
+     * 依据坐标和盒子的宽高，计算position的x和y
+     * @param {Array} coordinate [ lat, lng ]
+     * @param {Number} boxWidth
+     * @param {Number} boxHeight
+     * @returns {{x: number, y: number}}
+     */
+    computeBoxPosByCoord = (coordinate, boxWidth, boxHeight) =>{
+        const map = this.map;
+        const mapWidth = map.getSize().x,
+            mapHeight = map.getSize().y,
+            coord = this.map.latLngToContainerPoint(L.latLng(coordinate[0], coordinate[1]));
+
+        const x = coord.x + boxWidth > mapWidth ? coord.x - boxWidth - 50 : coord.x + 50;
+        const y = coord.y - boxHeight/2 > mapHeight ? coord.y + boxHeight/2 : coord.y - boxHeight/2;
+
+        return { x, y }
+    }
 }
 
