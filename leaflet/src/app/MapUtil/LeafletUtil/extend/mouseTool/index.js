@@ -189,6 +189,9 @@ export default class MouseTool{
         this.L = L;
         // 测距工具
         this.measure = new Measure(map, L);
+
+        // 按esc键取消鼠标操作
+        window.addEventListener("keydown", (e) => e.keyCode === 27 && this.close())
     }
 
     /**
