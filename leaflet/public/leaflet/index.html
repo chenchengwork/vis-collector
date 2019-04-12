@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    <script src="../openlayer/dist/plotty.min.js"></script>
+    <script src="../openlayer/dist/geotiffjs/geotiff.browserify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <script src="js/leafletGeoTiff.js"></script>
+    <title>Title</title>
+</head>
+<body>
+<div >
+    <div id="mapid" style="width:100%; height:600px;float:left;"></div>
+</div>
+<script>
+    var mymap = L.map('mapid').setView([40.2, 110.30], 8);
+    var layerInstance = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+
+   /* var tiffLayer = L.tileLayer('http://10.0.4.146:5678/ndvi/{z}/{x}/{y}?layer=LC08_L1TP_127032_20180215_20180222_01_T1_RGNIR&format=image/tiff').addTo(mymap);
+
+
+    tiffLayer.on('load', function (event) {
+        console.log(tiffLayer.getTileUrl());
+    });*/
+
+    var tiffLayer = L.leafletGeotiff('http://10.0.5.102:5678/ndvi/{z}/{x}/{y}?layer=LC08_L1TP_127032_20180215_20180222_01_T1_RGNIR&format=image/tiff',{
+        domain: [-0.2, 0.2],
+        noDataValue: 10,
+        palette: 'viridis',
+    }).addTo(mymap);
+
+    var datafunctions = {};
+    datafunctions['NDVI'] = function(b) {
+        // console.log(b);
+        if(b[1]+b[2]+b[3]==0) return 10; // return 10 as nodata value
+        return ( b[3] - b[1] ) / ( b[3] + b[1] ); // otherwise return NDVI
+    };
+    datafunctions['NDI45'] = function(b) {
+        if(b[1]+b[2]+b[3]==0) return 10; // return 10 as nodata value
+        return  (b[2] - b[1] ) / ( b[2] + b[1]); // otherwise return NDVI
+    };
+    tiffLayer.dataFunction =  datafunctions['NDVI'];
+
+
+</script>
+</body>
+</html>

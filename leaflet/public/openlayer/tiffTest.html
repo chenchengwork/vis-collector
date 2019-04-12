@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="dist/plotty.min.js"></script>
+    <script src="dist/geotiffjs/geotiff.bundle.js"></script>
+    <title>Title</title>
+<body>
+</head>
+<canvas id="plot"></canvas>
+<script>
+    // ...
+    // const tiff =  GeoTIFF.formUrl('./data/4466.tiff');
+    (async function() {
+        const tiff = await GeoTIFF.fromUrl('http://localhost:9898/data/4466.tif');
+        const image = await tiff.getImage();
+        const data = await image.readRasters();
+        console.log(data);
+        const canvas = document.getElementById("plot");
+        const plot = new plotty.plot({
+            canvas,
+            data: data[0],
+            width: image.getWidth(),
+            height: image.getHeight(),
+            domain: [0,1000],
+            colorScale: "blackbody"
+        });
+        plot.render();
+        console.log(canvas.toDataURL());
+    })();
+</script>
+</body>
+</html>

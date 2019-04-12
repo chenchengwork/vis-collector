@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>plottygeotiff</title>
+
+    <script src="dist/plotty.min.js"></script>
+    <script src="dist/nouislider.js"></script>
+    <script src="dist/geotiffjs/geotiff.browserify.js"></script>
+    <script src="dist/ol-debug.js"></script>
+    <script src="olGeoTiff_07.js"></script>
+
+    <!-- jquery is NOT required and only used for handling the user input... just lazyness :) -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="dist/nouislider.css" type="text/css">
+    <link rel="stylesheet" href="dist/ol-debug.css" type="text/css">
+    <style>
+        .slider { width: 100%; margin-top: 50px; }
+        .map { width: 100%; height: 600px; margin-top: 20px; }
+        select { margin-top: 15px; }
+        .mapcontainer { padding: 0 100px; text-align: center; }
+        .slidercontainer { padding: 0 100px; }
+    </style>
+</head>
+<body>
+<div class="mapcontainer">
+    <div id="s2map" class="map"></div>
+
+    <div class="slidercontainer">
+        <div class="slider domainslider"></div>
+        <div class="slider opacityslider"></div>
+    </div>
+    <select class="palette">
+        <option>viridis</option>
+        <option>inferno</option>
+        <option>rainbow</option>
+        <option>jet</option>
+        <option>hsv</option>
+        <option>hot</option>
+        <option>cool</option>
+        <option>spring</option>
+        <option>summer</option>
+        <option>autumn</option>
+        <option>winter</option>
+        <option>bone</option>
+        <option>copper</option>
+        <option>greys</option>
+        <option>yignbu</option>
+        <option>greens</option>
+        <option>yiorrd</option>
+        <option>bluered</option>
+        <option>rdbu</option>
+        <option>picnic</option>
+        <option>portland</option>
+        <option selected>blackbody</option>
+        <option>earth</option>
+        <option>electric</option>
+        <option>magma</option>
+        <option>plasma</option>
+    </select>
+    <select class="datafunction">
+        <option selected>NDVI</option>
+        <option>NDI45</option>
+    </select>
+</div>
+
+<script>
+    // set variables
+    const projection = ol.proj.get('EPSG:4326');
+    const projectionExtent = projection.getExtent();
+    const size = ol.extent.getWidth(projectionExtent) / 256;
+    const resolutions = new Array(18);
+    const matrixIds = new Array(18);
+
+    // create matrix
+    for (let z = 0; z < 18; ++z) {
+        // generate resolutions and matrixIds arrays for this WMTS
+        // eslint-disable-next-line no-restricted-properties
+        resolutions[z] = size / Math.pow(2, (z + 1));
+        matrixIds[z] = z;
+    }
+
+    // define the wms layer
+    /*var wmslayer_s2 = new ol.layer.Tile({
+        source: new ol.source.WMTS({
+            // url: 'https://ungarj.github.io/mapchete_testdata/tiled_data/raster/cleantopo/{TileMatrix}/{TileRow}/{TileCol}.tif',
+            url: 'http://localhost:9898/data/4466.tif',
+            projection,
+            tileGrid: new ol.tilegrid.WMTS({
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions,
+                matrixIds,
+            }),
+            tilePixelRatio: 256,
+            requestEncoding: 'REST',
+            transition: 0,
+        })
+    });*/
+    var wmslayer_s2 = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: 'http://localhost:9898/data/4466.tif',
+            opaque: false
+        })
+    })
+
+    // eox baselayer
+    var tile_grid = new ol.tilegrid.WMTS({origin:ol.extent.getTopLeft(projectionExtent),resolutions:resolutions,matrixIds:matrixIds});
+    var s2maps = new ol.layer.Tile({
+        source: new ol.source.WMTS({
+            layer:'s2cloudless',
+            attributions:[new ol.Attribution({html:'<a xmlns:dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016 &amp; 2017)'})],
+            matrixSet:'WGS84',
+            format:'image/jpeg',
+            projection:projection,
+            tileGrid:tile_grid,
+            style:'default',
+            wrapX:!0,
+            urls:[
+                "//a.s2maps-tiles.eu/wmts/",
+                "//b.s2maps-tiles.eu/wmts/",
+                "//c.s2maps-tiles.eu/wmts/",
+                "//d.s2maps-tiles.eu/wmts/",
+                "//e.s2maps-tiles.eu/wmts/"
+            ]
+        })
+    });
+
+    // define the map
+    var map_result_s2 = new ol.Map({
+        target: 's2map',
+        layers: [
+            s2maps,
+            wmslayer_s2,
+        ],
+        view: new ol.View({
+            projection,
+            center: [16.411407470703125, 48.27875518798828],
+            zoom: 8,
+            maxZoom: 14,
+            minZoom: 3
+        }),
+        controls: ol.control.defaults({
+            attributionOptions: {
+                collapsible: false
+            }
+        }),
+    });
+
+    // setup datafunctions
+    var datafunctions = {};
+    datafunctions['NDVI'] = function(b) {
+        if(b[1]+b[2]+b[3]+b[4]==0) return 10; // return 10 as nodata value
+        return ( b[4] - b[3] ) / ( b[4] + b[3] ); // otherwise return NDVI
+    };
+    datafunctions['NDI45'] = function(b) {
+        if(b[1]+b[2]+b[3]+b[4]==0) return 10; // return 10 as nodata value
+        return ( b[4] - b[1] ) / ( b[4] + b[1] ); // otherwise return NDVI
+    };
+
+    // olGeoTiff setup
+    var olgt_s2map = new olGeoTiff(wmslayer_s2);
+    olgt_s2map.plotOptions.domain = [-0.2, 0.2];
+    olgt_s2map.plotOptions.noDataValue = 10;
+    olgt_s2map.plotOptions.palette = 'blackbody';
+    olgt_s2map.plotOptions.dataFunction = datafunctions['NDVI'];
+
+    // handle user input
+    $(document).ready(function() {
+        var $container = $('#s2map').parent();
+
+        // slider1 (domain)
+        var slider = $container.find('.domainslider')[0];
+
+        noUiSlider.create(slider, {
+            start: olgt_s2map.plotOptions.domain,
+            connect: true,
+            range: { 'min': -1, 'max': 1 },
+            tooltips: true,
+        });
+
+        slider.noUiSlider.on('change', function(values) {
+            console.log(111);
+            olgt_s2map.plotOptions.domain = [values[0], values[1]];
+            olgt_s2map.redraw();
+        });
+
+        // slider2 (opacity)
+        var slider2 = $container.find('.opacityslider')[0];
+
+        var opacity = 1;
+        noUiSlider.create(slider2, {
+            start: opacity,
+            connect: true,
+            range: { 'min': 0, 'max': 1 },
+            tooltips: true,
+        });
+        wmslayer_s2.setOpacity(opacity);
+
+        slider2.noUiSlider.on('slide', function(values) {
+            wmslayer_s2.setOpacity(values[0]*1);
+        });
+
+        // palette
+        $container.find('.palette').on("change", function() {
+            var palette = this.options[this.selectedIndex].text;
+            olgt_s2map.plotOptions.palette = palette;
+            olgt_s2map.redraw();
+        });
+
+        // datafunctions
+        $container.find('.datafunction').on("change", function() {
+            var func = this.options[this.selectedIndex].text;
+            olgt_s2map.plotOptions.dataFunction = datafunctions[func];
+            olgt_s2map.redraw();
+        });
+    });
+
+</script>
+</body>
+</html>
