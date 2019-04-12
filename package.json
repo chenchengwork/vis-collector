@@ -9,8 +9,8 @@
   "dependencies": {
     "mapbox-gl": "^0.52.0",
     "prop-types": "^15.7.1",
-    "react": "^16.8.1",
-    "react-dom": "^16.8.1",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
     "three": "^0.99.0",
     "vtk.js": "^8.3.2"
   },

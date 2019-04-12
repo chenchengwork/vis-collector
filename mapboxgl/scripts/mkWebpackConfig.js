@@ -32,7 +32,7 @@ const shaderLoader = (config) => depend.merge({
     module: {
         rules: [
             {
-                test: /\.glsl$/i,
+                test: /\.glsl|vs|fs$/i,
                 loader: 'shader-loader',
             },
         ]
