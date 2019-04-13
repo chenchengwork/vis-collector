@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const data = JSON.parse(fs.readFileSync('tmp.json'));
 const name = process.argv[2];
+
 const u = data.u;
 const v = data.v;
 
