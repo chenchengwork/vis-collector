@@ -51,6 +51,7 @@ const Windy = function( params ){
     };
 
     // interpolation for vectors like wind (u,v,m)
+    // 插值向量数据
     const bilinearInterpolateVector = function(x, y, g00, g10, g01, g11) {
         const rx = (1 - x);
         const ry = (1 - y);
@@ -343,7 +344,6 @@ const Windy = function( params ){
                         if (wind) {
                             wind = distort(projection, λ, φ, x, y, velocityScale, wind, extent);
                             column[y+1] = column[y] = wind;
-
                         }
                     }
                 }
@@ -438,7 +438,6 @@ const Windy = function( params ){
             g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             g.globalCompositeOperation = prev;
             g.globalAlpha = 0.9;
-
             // Draw new particle trails.
             buckets.forEach(function(bucket, i) {
                 if (bucket.length > 0) {
@@ -471,7 +470,7 @@ const Windy = function( params ){
     const start = function( bounds, width, height, extent ){
 
         const mapBounds = {
-            south: deg2rad(extent[0][1]),
+            south: deg2rad(extent[0][1]),   // 转换成弧度
             north: deg2rad(extent[1][1]),
             east: deg2rad(extent[1][0]),
             west: deg2rad(extent[0][0]),

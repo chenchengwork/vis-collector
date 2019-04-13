@@ -76,7 +76,7 @@ export default class MapUtil extends LeafletUtil{
     addWindyLayer(windyData, opts = {}) {
         const windyVelocityLayer = L.windyVelocityLayer(Object.assign({
             data: windyData,
-            maxVelocity: 15,    // 调整风速大小
+            velocityScale: 0.005,    // 调整风速大小
         }, opts));
 
         return windyVelocityLayer

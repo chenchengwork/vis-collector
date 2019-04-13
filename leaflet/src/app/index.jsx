@@ -107,16 +107,26 @@ export default class Map extends PureComponent {
 
         // 绘制风环形流场
         $.get('/asserts/data/windy_20000.json').then((data) => {
+            // console.log(data)
             const windy = mapUtil.addWindyLayer(data, {
-                crs: L.CRS.EPSG3857
+                crs: L.CRS.EPSG3857,
+                // velocityScale: 0.002
             }).addTo(mapUtil.map);
+            let windy2 = null;
+
+            // $.get('/asserts/data/windy_10.json').then((data) =>{
+            //     windy2 = mapUtil.addWindyLayer(data, {
+            //         crs: L.CRS.EPSG3857,
+            //         velocityScale: 0.005,
+            //     }).addTo(mapUtil.map);
+            // })
 
             // 动态设置windy数据
-            setTimeout(() => {
-                $.get('/asserts/data/windy_10.json').then((data) => {
-                    windy.setData(data)
-                })
-            }, 4000)
+            // setTimeout(() => {
+            //     $.get('/asserts/data/windy_10.json').then((data) => {
+            //         windy.setData(data)
+            //     })
+            // }, 4000)
         }).catch(e => console.error(e));
 
 
