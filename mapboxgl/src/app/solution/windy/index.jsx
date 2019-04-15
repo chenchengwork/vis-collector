@@ -1,103 +1,124 @@
-import "mapbox-gl/dist/mapbox-gl.css";
-import { PureComponent } from 'react';
-import mapboxgl from 'mapbox-gl';
-// import WindLayer from './layer/WindLayer';
+import React, {useRef, useEffect} from "react";
 
-import drawWind from './drawWind';
+import WindGL from './glWindy';
 
-export default class ChinaMap extends PureComponent{
+const Windy = () => {
+    const canvasRef = useRef(null);
 
-    componentDidMount() {
-        const map = new mapboxgl.Map({
-            container: this.containerRef,
-            // style: 'mapbox://styles/mapbox/streets-v9',
-            style:{
-                "version": 8,
-                "sprite": "http://localhost:4000/asserts/mapbox/sprite/sprite",    // 加载图标来源
-                "glyphs": "http://localhost:4000/asserts/mapbox/font/{fontstack}/{range}.pbf", // 加载字体
-                "sources": {},
-                "layers": []
-            },
-            center: [116.2317,39.9427],  // 北京中心点
-            zoom: 4,
-            pitch: 0
-        });
+    useEffect(() => {
+        getDataByImg()
+        const canvas = canvasRef.current;
+        const pxRatio = Math.max(Math.floor(window.devicePixelRatio) || 1, 2);
+        const gl = canvas.getContext('webgl', {antialiasing: false});
 
-        map.on('load', () => {
-            this.addOsmLayer(map);
-            console.log(map.getBounds())
-            const canvas = document.createElement("canvas");
-            map.addSource('wind_canvas', {
-                type: 'canvas',
-                canvas: canvas,
-                animate: true,
-                coordinates: [
-                    [146.75171953123885, 46.79940187958502],
-                    [85.71168046874095, 46.79940187958502],
-                    [85.71168046874095, 32.323463859132445],
-                    [146.75171953123885, 32.323463859132445]
-                ]
-            });
+        const wind = new WindGL(gl);
+        wind.numParticles = 65536;
 
-            map.addLayer({
-                id: 'canvas',
-                type: 'raster',
-                source: 'wind_canvas',
-                    // data-source: 'my-dataset',
-            });
+        function frame() {
+            if (wind.windData) {
+                wind.draw();
+            }
+            requestAnimationFrame(frame);
+        }
+        frame();
 
-            console.log(canvas)
-            drawWind(canvas)
 
-            // this.addWindLayer(map);
-        });
-    }
+        function updateRetina() {
+            const ratio = pxRatio;
+            canvas.width = canvas.clientWidth * ratio;
+            canvas.height = canvas.clientHeight * ratio;
+            wind.resize();
+        }
+        updateRetina();
 
-    addOsmLayer = (map) => {
-        map.addLayer({
-            "id": "base_layer",
-            "type": "raster",
-            "source": {
-                "type": "raster",
-                'tiles': [
-                    // 高德的卫星地图osm瓦片服务
-                    // "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
-                    // 普通地图
-                    "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
-                ],
-                'tileSize': 256
-            },
-            "paint": {},
-            "layout": {},
-        });
-    }
 
-    addWindLayer = (map) => {
-        // map.addLayer(new WindLayer());
-    }
+        // 获取风场数据
+        getWindData(0).then((data) => {
+            console.log(data);
+            wind.setWind(data);
+        })
+    }, [])
 
-    render(){
-        return (
-            <div>
-                <div style={{textAlign: "center"}}>webgl wind融合mapboxgl</div>
-                <div style={{position: "relative"}}>
-                    <div
-                        ref={(ref) => this.containerRef = ref}
-                        style={{position: "fixed", width: "100%", height: "100%", border: "1px solid green"}}
-                    >
-                        {/*<canvas
-                            ref={(ref) => this.windCanvasRef = ref}
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                position: "absolute",
-                                zIndex: 1
-                            }}
-                        />*/}
-                    </div>
-                </div>
-            </div>
-        )
+    return (
+        <canvas
+            ref={canvasRef}
+            style={{
+                position: "fixed",
+                width: "100%",
+                height: "100%",
+                backgroundColor: "#000"
+            }}
+        />
+    )
+};
+
+
+export default Windy;
+
+
+const getWindData = (name) => new Promise((resolve, reject) => {
+    const windFiles = {
+        0: 'a',
+        1: '2016112000',
+        6: '2016112006',
+        12: '2016112012',
+        18: '2016112018',
+        24: '2016112100',
+        30: '2016112106',
+        36: '2016112112',
+        42: '2016112118',
+        48: '2016112200'
+    };
+
+    const getJSON = (url, callback) => {
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'json';
+        xhr.open('get', url, true);
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                callback(xhr.response);
+            } else {
+                throw new Error(xhr.statusText);
+            }
+        };
+        xhr.send();
+    };
+
+
+    getJSON('http://localhost:4000/example/windy_demo/wind/' + windFiles[name] + '.json', function (windData) {
+        const windImage = new Image();
+        windData.image = windImage;
+        windImage.src = 'http://localhost:4000/example/windy_demo/wind/' + windFiles[name] + '.png';
+        windImage.onload = function () {
+            // wind.setWind(windData);
+            resolve(windData);
+        };
+    });
+});
+
+const getDataByImg = () => {
+    const img = document.createElement("img");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    img.setAttribute("src", "http://localhost:4000/example/windy_demo/wind/a.png");
+    img.onload = () => {
+        //将图片放到canvas
+        ctx.drawImage(img,0,0);
+        //获取到图片数据
+        //开始复制的左上角位置的 x 坐标,开始复制的左上角位置的 y 坐标,将要复制的矩形区域的宽度。将要复制的矩形区域的高度。
+        const imgData = ctx.getImageData(0,0,400,400);
+        //想更清楚图片数据的可以   console.log(imgData);
+        //一个包含颜色信息的数组，以4个一个单位，分别表示rgba
+        const data = imgData.data;
+        console.log(data);
+        for(let i = 0;i< data.length;i+=4){
+            //灰度效果.299 * r + .587 * g + .114 * b;  （这是公式，原理我不懂）
+            //data[i]-----r
+            //data[i+1]----g
+            //data[i+2]----b
+            //data[i+3]----a
+            data[i] = data[i+1] = data[i+2] =.299*data[i]+.587*data[i+1]+.114*data[i+2];
+        }
+        console.log(data);
     }
 }
-
