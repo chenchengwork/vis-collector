@@ -18,7 +18,7 @@ const Windy = function( params ){
     const PARTICLE_REDUCTION = (Math.pow(window.devicePixelRatio,1/3) || 1.6);   // multiply particle count for mobiles by this amount
     const FRAME_RATE = params.frameRate || 15, FRAME_TIME = 1000 / FRAME_RATE;   // desired frames per second
 
-    const defaulColorScale = [
+    const defaultColorScale = [
         "rgb(36,104, 180)",
         "rgb(60,157, 194)",
         "rgb(128,205,193 )",
@@ -36,7 +36,7 @@ const Windy = function( params ){
         "rgb(180,0,35)"
     ];
 
-    const colorScale = params.colorScale || defaulColorScale;
+    const colorScale = params.colorScale || defaultColorScale;
 
     const NULL_WIND_VECTOR = [NaN, NaN, null];  // singleton for no wind in the form: [u, v, magnitude]
 
