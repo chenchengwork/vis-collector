@@ -1,52 +1,46 @@
 const PNG = require('pngjs').PNG;
 const fs = require('fs');
+const path = require("path");
 
+const srcFile = process.argv[2];    // srcJson/windy_10.json
+if(!srcFile){
+    throw new Error("请传入源文件")
+}
+
+if(!fs.existsSync(srcFile)){
+    throw new Error(`${srcFile}文件不存在!`);
+}
+
+const name = process.argv[3] || path.basename(srcFile, ".json");
+
+const data = JSON.parse(fs.readFileSync(srcFile));
 // const data = JSON.parse(fs.readFileSync('windy_10.json'));
-const data = JSON.parse(fs.readFileSync('creat_big.json'));
-// const name = process.argv[2];
-const name = "a";
-console.log(data)
-// const uData = data[0];
-// const vData = data[1];
+// const data = JSON.parse(fs.readFileSync('creat_big.json'));
 
 const getMin = (data) => {
-    let min = 0;
-    for(let i = 0; i < data.length; i++){
-        if(min > data[i]){
-            min = data[i];
-        }
-    }
-
-    return min;
-}
+    let value = 0;
+    data.forEach(item => value = Math.min(value, item));
+    return value;
+};
 
 const getMax = (data) => {
-    let max = 0;
-    for(let i = 0; i < data.length; i++){
-        if(max < data[i]){
-            max = data[i];
-        }
-    }
-
-    return max;
-}
+    let value = 0;
+    data.forEach(item => value = Math.max(value, item));
+    return value;
+};
 
 const u = {
     values: data[0].data,
-    // minimum: Math.min(...data[0].data),
-    minimum: getMin(...data[0].data),
-    // maximum: Math.max(...data[0].data),
-    maximum: getMax(...data[0].data),
+    minimum: getMin(data[0].data),
+    maximum: getMax(data[0].data),
     Ni: data[0].header.nx,
     Nj: data[0].header.ny,
     refTime: data[0].header.refTime,
 };
 const v = {
     values: data[1].data,
-    // minimum: Math.min(...data[1].data),
-    minimum: Math.getMin(...data[1].data),
-    // maximum: Math.max(...data[1].data),
-    maximum: getMax(...data[1].data),
+    minimum: getMin(data[1].data),
+    maximum: getMax(data[1].data),
     Ni: data[1].header.nx,
     Nj: data[1].header.ny,
     refTime: data[1].header.refTime,
@@ -68,26 +62,36 @@ for (let y = 0; y < height; y++) {
         const k = y * width + (x + width / 2) % width;
         png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
         png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
-        png.data[i + 2] = 0;
+        // png.data[i + 2] = 0;
+        png.data[i + 2] = u.values[k] < 0 ? 0 : 1;
         png.data[i + 3] = 255;
     }
 }
 
-png.pack().pipe(fs.createWriteStream(name + '.png'));
+// png.pack().pipe(fs.createWriteStream(name + '.png'));
+png.pack().pipe(fs.createWriteStream(`output/${name}.png`));
 
-fs.writeFileSync(name + '.json', JSON.stringify({
-    source: 'http://nomads.ncep.noaa.gov',
-    // date: formatDate(u.dataDate + '', u.dataTime),
-    date: u.refTime,
-    width: width,
-    height: height,
-    uMin: u.minimum,
-    uMax: u.maximum,
-    vMin: v.minimum,
-    vMax: v.maximum
-}, null, 2) + '\n');
+// // TODO 以下是webgl-windy的json格式
+//
+// fs.writeFileSync(`output/${name}.json`, JSON.stringify({
+//     // source: 'http://nomads.ncep.noaa.gov',
+//     // date: formatDate(u.dataDate + '', u.dataTime),
+//     date: u.refTime,
+//     width: width,
+//     height: height,
+//     uMin: u.minimum,
+//     uMax: u.maximum,
+//     vMin: v.minimum,
+//     vMax: v.maximum
+// }, null, 2) + '\n');
 
-function formatDate(date, time) {
-    return date.substr(0, 4) + '-' + date.substr(4, 2) + '-' + date.substr(6, 2) + 'T' +
-        (time < 10 ? '0' + time : time) + ':00Z';
-}
+
+
+// TODO 以下是windy.js的json格式
+data[0].header.min = u.minimum;
+data[0].header.max = u.maximum;
+data[1].header.min = v.minimum;
+data[1].header.max = v.maximum;
+fs.writeFileSync(`output/${name}.json`, JSON.stringify([data[0].header, data[1].header], null, 2) + '\n');
+
+

@@ -104,21 +104,44 @@ const getDataByImg = () => {
     img.onload = () => {
         //将图片放到canvas
         ctx.drawImage(img,0,0);
+        console.log(img.height);
         //获取到图片数据
         //开始复制的左上角位置的 x 坐标,开始复制的左上角位置的 y 坐标,将要复制的矩形区域的宽度。将要复制的矩形区域的高度。
-        const imgData = ctx.getImageData(0,0,400,400);
+        const imgData = ctx.getImageData(0,0,img.width,img.height);
         //想更清楚图片数据的可以   console.log(imgData);
         //一个包含颜色信息的数组，以4个一个单位，分别表示rgba
         const data = imgData.data;
         console.log(data);
-        for(let i = 0;i< data.length;i+=4){
-            //灰度效果.299 * r + .587 * g + .114 * b;  （这是公式，原理我不懂）
-            //data[i]-----r
-            //data[i+1]----g
-            //data[i+2]----b
-            //data[i+3]----a
-            data[i] = data[i+1] = data[i+2] =.299*data[i]+.587*data[i+1]+.114*data[i+2];
+
+
+
+        const descInfo = {
+            "uMin": -25,
+            "uMax": 26.56,
+            "vMin": -28.26,
+            "vMax": 25.26
+        };
+
+        const windy = [
+            {
+                data: [],
+                header: {}
+            },
+            {
+                data: [],
+                header: {}
+            }
+        ];
+
+        console.time("time->");
+        for(let i = 0; i < data.length; i += 4){
+            // u风场
+            windy[0].data.push(data[i] * (descInfo.uMax - descInfo.uMin) / 255 + descInfo.uMin);
+
+            // v风场
+            windy[1].data.push(data[i+1] * (descInfo.vMax - descInfo.vMin) / 255 + descInfo.vMin);
         }
-        console.log(data);
+        console.timeEnd("time->");
+        console.log(windy);
     }
 }
