@@ -2,33 +2,30 @@ export const drawWindyByJson = (mapUtil) => {
     // $.get('/asserts/data/windy_json/windy_20000.json').then((data) => {
     // $.get('/asserts/data/windy_json/lv1.json').then((data) => {
     $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
+
+        console.log("data->", data);
+        const newData = [
+            {
+                data: data[0].data,
+                header: data[0].header
+            },
+            {
+                data: data[1].data,
+                header: data[1].header
+            }
+        ]
+        data[0].data = data[0].data.slice(0, 5000)
+        data[1].data = data[1].data.slice(0, 5000)
+        console.log(data)
+
         const windy = mapUtil.addWindyLayer(data, {
-            // crs: L.CRS.EPSG3857,
-            // colorScale: [
-            //     "rgb(36,104, 180)",
-            //     "rgb(60,157, 194)",
-            //     "rgb(128,205,193 )",
-            //     "rgb(151,218,168 )",
-            //     "rgb(198,231,181)",
-            //     "rgb(238,247,217)",
-            //     "rgb(255,238,159)",
-            //     "rgb(252,217,125)",
-            //     "rgb(255,182,100)",
-            //     "rgb(252,150,75)",
-            //     "rgb(250,112,52)",
-            //     "rgb(245,64,32)",
-            //     "rgb(237,45,28)",
-            //     "rgb(220,24,32)",
-            //     "rgb(180,0,35)"
-            // ]
+            colorScale: ["rgb(180,0,35)"]
         }).addTo(mapUtil.map);
 
-        // 动态设置windy数据
-        // setTimeout(() => {
-        //     $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
-        //         windy.setData(data)
-        //     })
-        // }, 4000)
+        setTimeout(() => {
+            windy.setData(newData);
+        }, 3000)
+
     }).catch(e => console.error(e));
 };
 
@@ -53,12 +50,6 @@ export const drawWindyByImg = (mapUtil) => {
                 const data = imgData.data;
                 // console.log(data);
 
-                const descInfo = {
-                    "uMin": -25,
-                    "uMax": 26.56,
-                    "vMin": -28.26,
-                    "vMax": 25.26
-                };
                 const [uHeader, vHeader] = windyJson;
                 const {min: uMin, max: uMax} = uHeader;
                 const {min: vMin, max: vMax} = vHeader;
@@ -73,20 +64,31 @@ export const drawWindyByImg = (mapUtil) => {
                         header: vHeader
                     }
                 ];
-
+                console.log("data->", data);
                 console.time("time->");
-                for(let i = 0; i < data.length; i += 4){
-                    const flag = data[i+2] == 0 ? -1 : 1;
-                    // console.log(data[i+2])
+                // for(let i = 0; i < data.length; i += 4){
+                //     // u风场
+                //     windData[0].data.push((data[i] * (uMax - uMin) / 255 + uMin));
+                //
+                //     // v风场
+                //     windData[1].data.push((data[i + 1] * (vMax - vMin) / 255 + vMin));
+                // }
+
+                for(let i = 0; i < data.length; i += 8){
+                    const flag = data[i + 2].toString();
+                    const uFlag = flag[0] == 1 ? 1 : -1;
+                    const vFlag = flag[1] == 1 ? 1 : -1;
                     // u风场
-                    windData[0].data.push((data[i] * (uMax - descInfo.uMin) / 255 + uMin) * flag);
+                    const uInt = data[i];
+                    windData[0].data.push(parseFloat(`${uInt * uFlag}.${data[i+4]}`));
 
                     // v风场
-                    windData[1].data.push((data[i+1] * (vMax - vMin) / 255 + vMin) * flag);
+                    const vInt = data[i + 1];
+                    windData[1].data.push(parseFloat(`${vInt * vFlag}.${data[i+5]}`));
                 }
                 console.timeEnd("time->");
 
-                console.log(windData);
+                console.log("windData->", windData);
                 resolve(windData);
 
                 canvas.remove();
@@ -94,18 +96,101 @@ export const drawWindyByImg = (mapUtil) => {
             }
 
         }).catch(e => console.error(e));
-
     });
 
     getWindDataByImg(
         "http://localhost:4000/asserts/data/windy_img/windy_10.json",
         "http://localhost:4000/asserts/data/windy_img/windy_10.png"
-    // "http://localhost:4000/asserts/data/windy_img/lv1.json",
-    //     "http://localhost:4000/asserts/data/windy_img/lv1.png"
-    ).then((windData) => {
-        const windy = mapUtil.addWindyLayer(windData, {
+        // "http://localhost:4000/asserts/data/windy_img/lv1.json",
+        //     "http://localhost:4000/asserts/data/windy_img/lv1.png"
 
+        // "http://localhost:4000/asserts/data/windy_img/test.json",
+        //     "http://localhost:4000/asserts/data/windy_img/test.png"
+    ).then((windData) => {
+        // return;
+        const windy = mapUtil.addWindyLayer(windData, {
+            colorScale: ["rgb(180,0,35)"]
         }).addTo(mapUtil.map);
     })
 
 };
+
+export const drawWindyByTif = (mapUtil) => {
+    const GeoTIFF = require('geotiff/src/main');
+
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/u_v_tiled.tif")
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/tt.tif")
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/float4.tif")
+    GeoTIFF.fromUrl("/asserts/data/windy_tif/uv_4326.tif")
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/test_4326_byte_d4.tif")
+        .then((tif) => tif.getImage())
+        .then((image) => {
+            // console.log("image.getBoundingBox", image.getBoundingBox());
+            const [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
+
+            image.readRasters().then((imageData) => {
+                const width = imageData.width;
+                const height = imageData.height;
+                const uData = imageData[0];
+                const vData = imageData[1];
+
+                const lngLat = {
+                    // "lo2": maxLng,
+                    // "lo1": minLng,
+                    // "la2": maxLat,
+                    // "la1": minLat,
+
+
+                    "lo2": maxLng,
+                    "lo1": minLng,
+                    "la2": maxLat,
+                    "la1": minLat,
+                }
+
+                const other = {
+                    "dx": (maxLng - minLng) / width,
+                    "dy": (minLat - maxLat) / height,
+                    // dx: "0.040544070051016054",
+                    // dy: "-0.028572421603732637",
+                    "nx": width,
+                    "ny": height,
+                };
+
+                const windData = [
+                    {
+                        data: uData,
+                        header: {
+                            ...lngLat,
+                            ...other,
+                            "parameterCategory": 2,
+                            "parameterNumber": 2
+                        }
+                    },
+                    {
+                        data: vData,
+                        header: {
+                            "lo2": 359,
+                            "lo1": 0,
+                            "dx": 1,
+                            "dy": 1,
+                            "nx": 360,
+                            "ny": 181,
+                            "la2": -90,
+                            "la1": 90,
+                            "parameterCategory": 2,
+                            "parameterNumber": 3,
+                            ...lngLat,
+                            ...other
+                        }
+                    }
+                ];
+
+                console.log('windData->', windData)
+                // const windy = mapUtil.addWindyLayer(windData, {
+                //     colorScale: ["rgb(180,0,35)"]
+                // }).addTo(mapUtil.map);
+            })
+        })
+
+
+}

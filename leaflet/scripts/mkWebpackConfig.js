@@ -28,6 +28,35 @@ const resolve = (config) => depend.merge({
 }, config);
 
 
+const geoTiff = (config) => {
+    const isProduction = (process.env.NODE_ENV === 'production');
+
+    return depend.merge({
+        module: {
+            rules: [
+                {
+                    test: /\.worker\.js$/,
+                    use: {
+                        loader: 'worker-loader',
+                        options: {
+                            name: isProduction ? '[hash].decoder.worker.min.js' : '[hash].decoder.worker.js',
+                            inline: true,
+                            fallback: true,
+                        },
+                    },
+                }
+            ]
+        },
+        node: {
+            fs: 'empty',
+            buffer: 'empty',
+            http: 'empty',
+        },
+    }, config)
+}
+
+
+
 /**
  * 组装webpack config
  * @return {*}
@@ -35,6 +64,7 @@ const resolve = (config) => depend.merge({
 module.exports = (pipeNodes = []) => {
     const config = assemble([
         ...pipeNodes,
+        geoTiff,
         pipe.base,
         pipe.staticResource,
         pipe.css,

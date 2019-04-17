@@ -109,8 +109,9 @@ const Windy = function( params ){
         ni = header.nx;
         nj = header.ny;    // number of grid points W-E and N-S (e.g., 144 x 73)
 
-        date = new Date(header.refTime);
-        date.setHours(date.getHours() + header.forecastTime);
+        // TODO 暂时注释掉时间, 没有发现时间的作用
+        // date = new Date(header.refTime);
+        // date.setHours(date.getHours() + header.forecastTime);
 
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml

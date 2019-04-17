@@ -1,5 +1,5 @@
 {
-  "name": "try-leaflet",
+  "name": "try-mapboxgl",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",

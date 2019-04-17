@@ -1,0 +1,22 @@
+.screen{
+    .cover{
+        position: relative;
+        width: 100%;
+        height: 100%;
+
+        .edit{
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(46, 46, 46, 0.5);
+        }
+
+        img{
+            width: 100%;
+            height: 150px;
+        }
+    }
+}

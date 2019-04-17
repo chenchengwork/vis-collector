@@ -1,0 +1,16 @@
+{
+  "name": "try-mapboxgl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node ./scripts/dev.js",
+    "build": "node ./scripts/build.js /data/web_bundle/vis_collector /"
+  },
+  "dependencies": {
+
+  },
+  "devDependencies": {},
+  "author": "chencheng",
+  "license": "MIT"
+}

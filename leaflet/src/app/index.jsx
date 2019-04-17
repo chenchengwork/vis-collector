@@ -7,7 +7,7 @@ import {CENTER} from "./MapUtil/LeafletUtil/constants";
 const ZOOM = MapUtil.G.ZOOM;
 const L = MapUtil.G.L;
 
-import { drawWindyByJson, drawWindyByImg } from './testMapUtil';
+import { drawWindyByJson, drawWindyByImg, drawWindyByTif } from './testMapUtil';
 
 export default class Map extends PureComponent {
     state = {
@@ -124,8 +124,9 @@ export default class Map extends PureComponent {
 
 
         // 绘制
-        // drawWindyByJson(mapUtil);
-        drawWindyByImg(mapUtil);
+        drawWindyByJson(mapUtil);
+        // drawWindyByImg(mapUtil);
+        // drawWindyByTif(mapUtil);
 
         // 添加高德路网图
         // const GaoDeAnnotion = L.tileLayer.tileServiceProvider('GaoDe.Satellite.Annotion', ZOOM);

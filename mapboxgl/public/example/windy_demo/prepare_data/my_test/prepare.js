@@ -46,52 +46,122 @@ const v = {
     refTime: data[1].header.refTime,
 };
 
-const width = u.Ni;
-const height = u.Nj - 1;
+// 以下是windy.js
+if(true) {
 
-const png = new PNG({
-    colorType: 2,
-    filterType: 4,
-    width: width,
-    height: height
-});
+    let width = u.Ni;
+// let height = u.Nj - 1;
+    let height = u.Nj;
 
-for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-        const i = (y * width + x) * 4;
-        const k = y * width + (x + width / 2) % width;
-        png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
-        png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
-        // png.data[i + 2] = 0;
-        png.data[i + 2] = u.values[k] < 0 ? 0 : 1;
-        png.data[i + 3] = 255;
+    const png = new PNG({
+        colorType: 2,
+        filterType: 4,
+        width: width,
+        height: height * 2
+    });
+
+    // for (let y = 0; y < height; y++) {
+    //     for (let x = 0; x < width; x++) {
+    //         const i = (y * width + x) * 4;
+    //         // const k = y * width + (x + width / 2) % width;
+    //         const k = y * width + x;
+    //         png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+    //         png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+    //         png.data[i + 2] = 0;
+    //         png.data[i + 3] = 255;
+    //     }
+    // }
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 8;
+            const k = y * width + x;
+            const uArr = u.values[k].toString().split(".");
+            const uInt = parseInt(uArr[0]);
+            const uDecimal = parseInt(uArr[1]);
+
+            const vArr = v.values[k].toString().split(".");
+            const vInt = parseInt(vArr[0]);
+            const vDecimal = parseInt(vArr[1]);
+
+            // png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+            // png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+            png.data[i + 0] = Math.abs(uInt);
+            png.data[i + 1] = Math.abs(vInt);
+            png.data[i + 2] = parseInt(`${uInt > 0 ? 1 : 2}${vInt > 0 ? 1 : 2}`);
+            png.data[i + 3] = 255;
+
+            png.data[i + 4] = uDecimal;
+            png.data[i + 5] = vDecimal;
+            png.data[i + 6] = 0;
+            png.data[i + 7] = 255;
+        }
     }
-}
 
-// png.pack().pipe(fs.createWriteStream(name + '.png'));
-png.pack().pipe(fs.createWriteStream(`output/${name}.png`));
-
-// // TODO 以下是webgl-windy的json格式
-//
-// fs.writeFileSync(`output/${name}.json`, JSON.stringify({
-//     // source: 'http://nomads.ncep.noaa.gov',
-//     // date: formatDate(u.dataDate + '', u.dataTime),
-//     date: u.refTime,
-//     width: width,
-//     height: height,
-//     uMin: u.minimum,
-//     uMax: u.maximum,
-//     vMin: v.minimum,
-//     vMax: v.maximum
-// }, null, 2) + '\n');
-
+    png.pack().pipe(fs.createWriteStream(`output/${name}.png`));
 
 
 // TODO 以下是windy.js的json格式
-data[0].header.min = u.minimum;
-data[0].header.max = u.maximum;
-data[1].header.min = v.minimum;
-data[1].header.max = v.maximum;
-fs.writeFileSync(`output/${name}.json`, JSON.stringify([data[0].header, data[1].header], null, 2) + '\n');
+    data[0].header.min = u.minimum;
+    data[0].header.max = u.maximum;
+    data[1].header.min = v.minimum;
+    data[1].header.max = v.maximum;
+    fs.writeFileSync(`output/${name}.json`, JSON.stringify([data[0].header, data[1].header], null, 2) + '\n');
+
+}
+// 以下是webgl-windy.js
+else {
+
+    let width = u.Ni;
+    // let height = u.Nj - 1;
+    let height = u.Nj;
+
+    const png = new PNG({
+        colorType: 2,
+        filterType: 4,
+        width: width,
+        height: height
+    });
+
+// for (let y = 0; y < height; y++) {
+//     for (let x = 0; x < width; x++) {
+//         const i = (y * width + x) * 4;
+//         const k = y * width + (x + width / 2) % width;
+//         png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+//         png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+//         // png.data[i + 2] = 0;
+//         png.data[i + 2] = u.values[k] < 0 ? 0 : 1;
+//         png.data[i + 3] = 255;
+//     }
+// }
 
 
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4;
+            // const k = y * width + (x + width / 2) % width;
+            const k = y * width + x;
+            png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+            png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+            png.data[i + 2] = 0;
+            png.data[i + 3] = 255;
+        }
+    }
+
+    png.pack().pipe(fs.createWriteStream(`output/${name}_webgl.png`));
+
+// // TODO 以下是webgl-windy的json格式
+    //
+    fs.writeFileSync(`output/${name}_webgl.json`, JSON.stringify({
+        source: 'http://nomads.ncep.noaa.gov',
+        // date: formatDate(u.dataDate + '', u.dataTime),
+        date: u.refTime,
+        width: width,
+        height: height,
+        uMin: u.minimum,
+        uMax: u.maximum,
+        vMin: v.minimum,
+        vMax: v.maximum
+    }, null, 2) + '\n');
+
+}

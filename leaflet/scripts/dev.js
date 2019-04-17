@@ -10,6 +10,7 @@ doDev({
 	webpackConfig: mkWebpackConfig([pipe.development]),
     devServerConfig: {},
 	host: "localhost",
+	// host: "10.0.4.93",
 	port: 4000
 });
 

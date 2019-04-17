@@ -1,0 +1,36 @@
+.app-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background: #edf1f5;
+    padding: 0 24px;
+    height: 45px;
+    margin-bottom: 1px;
+
+    .flex-box {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .vertical-bar {
+        width: 2px;
+        height: 18px;
+        margin-right: 10px;
+        background-color: #20a1e0;
+    }
+
+    .title {
+        font-size: 18px;
+        text-align: left;
+        color: #99A3BF;
+    }
+
+    :global {
+        .ant-form {
+            position: absolute;
+            right: 16px;
+        }
+    }
+}
