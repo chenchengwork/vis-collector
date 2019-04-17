@@ -4,6 +4,8 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import "videojs-flash";
 
+//可以测试的rtmp流媒体服务: https://blog.csdn.net/renhui1112/article/details/70141725
+
 const Video = memo(({url, options = {}, onError}) => {
     const videoRef = useRef(null);
 

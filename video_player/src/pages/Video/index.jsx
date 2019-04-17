@@ -1,5 +1,4 @@
-import React, { Fragment, Component} from 'react';
-import {observer, inject} from 'mobx-react';
+import React, { Component } from 'react';
 
 import styles from './index.scss';
 import { MainContent, MainHeader } from 'layouts/MainLayout'
@@ -8,11 +7,6 @@ import PropTypes from 'prop-types';
 import Video from 'components/Video';
 
 
-@inject((stores) => ({
-    listStore: stores.screen.listStore,
-    createStore: stores.screen.createStore,
-}))
-@observer
 export default class Screen extends Component{
     static propTypes = {
         modalControl: PropTypes.object,
