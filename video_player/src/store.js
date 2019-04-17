@@ -7,5 +7,5 @@ configure({
 });
 
 export default {
-    screen: require("./pages/Screen/models").default
+    screen: require("./pages/Video/models").default
 };
