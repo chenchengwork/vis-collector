@@ -12,6 +12,11 @@ import "./extend/NonTiledLayer.WCS";
 import MouseTool from './extend/mouseTool';
 // 加载风速layer
 import "./extend/windyVelocity";
+
+// 加载风速tile layer
+import "./extend/windyTile";
+
+
 // 加载移动Marker
 import "./extend/movingMarker";
 
@@ -82,6 +87,13 @@ export default class LeafletUtil {
             return oldLayer = addLayer.apply(this, params);
         }
     })();
+
+    addWindyTile = () => {
+        const layer = L.windyTileLayer({});
+        return layer.addTo(this.map);
+        this.map.addLayer(layer);
+        return layer;
+    }
 
 	/**
 	 * 绑定清除地图的回调

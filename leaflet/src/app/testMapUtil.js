@@ -1,33 +1,140 @@
 export const drawWindyByJson = (mapUtil) => {
     // $.get('/asserts/data/windy_json/windy_20000.json').then((data) => {
-    // $.get('/asserts/data/windy_json/lv1.json').then((data) => {
-    $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
+    $.get('/asserts/data/windy_json/lv1.json').then((data) => {
+    // $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
 
         console.log("data->", data);
-        const newData = [
-            {
-                data: data[0].data,
-                header: data[0].header
-            },
-            {
-                data: data[1].data,
-                header: data[1].header
-            }
-        ]
-        data[0].data = data[0].data.slice(0, 5000)
-        data[1].data = data[1].data.slice(0, 5000)
-        console.log(data)
 
         const windy = mapUtil.addWindyLayer(data, {
-            colorScale: ["rgb(180,0,35)"]
+            colorScale: ["rgb(180,0,35)"],
+            frameRate: 60
         }).addTo(mapUtil.map);
 
-        setTimeout(() => {
-            windy.setData(newData);
-        }, 3000)
+        // setInterval(() => {
+        //     windy.setData(data)
+        // }, 2000)
+
+        // const dataNull = [];
+        // for(let i = 0; i < data[0].data.length; i++){
+        //     dataNull.push(null);
+        // }
+        //
+        // const newData = [];
+        // const step = data[0].data.length / 10;
+        // for(let i = 0; i < 10; i++){
+        //     // console.log(data[0].data.slice(i * step, step));
+        //     const start = i * step;
+        //     const end = (i+1) *step;
+        //     const uData = dataNull.slice();
+        //     const vData = dataNull.slice();
+        //     for(let j = start; j < end; j++){
+        //         uData[j] = data[0].data[j];
+        //         vData[j] = data[1].data[j];
+        //     }
+        //
+        //     newData.push([
+        //         {
+        //             // data: data[0].data.slice(i * step, (i+1) *step),
+        //             data: uData,
+        //             header: data[0].header
+        //         },
+        //         {
+        //             // data: data[1].data.slice(i * step, (i+1) * step),
+        //             data: vData,
+        //             header: data[1].header
+        //         }
+        //     ])
+        // }
+        //
+        // let windy = null;
+        //
+        // newData.forEach((item, index) => {
+        //     setTimeout(() => {
+        //         console.log('item', item)
+        //         if(!windy){
+        //             windy = mapUtil.addWindyLayer(item, {
+        //                 colorScale: ["rgb(180,0,35)"],
+        //                 frameRate: 60
+        //             }).addTo(mapUtil.map)
+        //         }else{
+        //             windy.setData(item)
+        //         }
+        //
+        //     }, index * 500);
+        // })
 
     }).catch(e => console.error(e));
 };
+
+
+export const drawWindyBySplitJson = (mapUtil) => {
+
+    $.get('/asserts/data/split_windy_json/output/header.json').then((header) => {
+        const splitNum = header.splitNum;
+        const gridNum = header.nx * header.ny;
+        // console.log('gridNum->', gridNum)
+        const dataNull = [];
+        let windy = null;
+        for(let i = 0; i < gridNum; i++){
+            dataNull.push(null);
+        }
+
+        const uData = dataNull.slice();
+        const vData = dataNull.slice();
+        const step = gridNum / splitNum;
+        for(let i = 1; i <= splitNum; i++){
+            const start = (i-1) * step;
+            const end = (i) *step;
+
+            // setTimeout(() => {
+                $.get(`/asserts/data/split_windy_json/output/${i}_data.json`).then((data) => {
+
+                    for(let j = start; j < end; j++){
+                        // const uArr = data[0][j-start].split(".");
+                        // const vArr = data[1][j-start].split(".");
+                        // uData[j] = `${uArr[0]}.${uArr[1].slice(0, 4)}`;
+                        // vData[j] = `${vArr[0]}.${vArr[1].slice(0, 4)}`;
+
+                        uData[j] = data[0][j-start];
+                        vData[j] = data[1][j-start];
+                    }
+
+                    const windData = [
+                        {
+                            data: uData,
+                            header: {
+                                ...header,
+                                "parameterCategory": 2,
+                                "parameterNumber": 2
+                            },
+                        },
+                        {
+                            data: vData,
+                            header:{
+                                ...header,
+                                "parameterCategory": 2,
+                                "parameterNumber": 3
+                            },
+                        }
+                    ];
+
+                    // console.log('windData->', windData)
+
+                    if(!windy){
+                        windy = mapUtil.addWindyLayer(windData, {
+                            colorScale: ["rgb(180,0,35)"],
+                            frameRate: 60
+                        }).addTo(mapUtil.map);
+                    }else {
+                        windy.setData(windData);
+                    }
+                })
+            // }, 1000 * i)
+        }
+
+    });
+};
+
 
 
 export const drawWindyByImg = (mapUtil) => {
@@ -122,6 +229,7 @@ export const drawWindyByTif = (mapUtil) => {
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/tt.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/float4.tif")
     GeoTIFF.fromUrl("/asserts/data/windy_tif/uv_4326.tif")
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/01.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/test_4326_byte_d4.tif")
         .then((tif) => tif.getImage())
         .then((image) => {

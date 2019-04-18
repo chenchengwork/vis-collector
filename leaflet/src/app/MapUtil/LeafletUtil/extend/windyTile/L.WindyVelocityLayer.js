@@ -108,9 +108,7 @@ import Windy from './Windy';
         },
 
         _clearAndRestart: function(){
-            // console.log("_clearAndRestart")
-            // TODO 暂时不清除
-            // if (this._context) this._context.clearRect(0, 0, 3000, 3000);
+            if (this._context) this._context.clearRect(0, 0, 3000, 3000);
             if (this._windy) this._startWindy();
         },
 

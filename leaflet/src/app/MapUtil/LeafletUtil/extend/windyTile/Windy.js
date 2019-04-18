@@ -7,8 +7,6 @@
  interpolation and animation process.
  */
 
-import WindyWorker from './Windy.worker';
-
 const Windy = function( params ){
 
     const MIN_VELOCITY_INTENSITY = params.minVelocity || 0;                      // velocity at which particle intensity is minimum (m/s)
@@ -364,7 +362,6 @@ const Windy = function( params ){
                     return;
                 }
             }
-            // console.log('columns->', columns)
             createField(columns, bounds, callback);
         })();
     };
@@ -436,7 +433,6 @@ const Windy = function( params ){
         g.globalAlpha = 0.6;
 
         function draw() {
-            // console.log('buckets->', buckets)
             // Fade existing particle trails.
             const prev = "lighter";
             g.globalCompositeOperation = "destination-in";
@@ -461,7 +457,6 @@ const Windy = function( params ){
 
         let then = Date.now();
         (function frame() {
-            // console.time("frame->")
             animationLoop = requestAnimationFrame(frame);
             const now = Date.now();
             const delta = now - then;
@@ -470,12 +465,11 @@ const Windy = function( params ){
                 evolve();
                 draw();
             }
-            // console.timeEnd("frame->")
         })();
     };
 
-    let testBounds = null;
     const start = function( bounds, width, height, extent ){
+
         const mapBounds = {
             south: deg2rad(extent[0][1]),   // 转换成弧度
             north: deg2rad(extent[1][1]),
@@ -485,85 +479,18 @@ const Windy = function( params ){
             height: height
         };
 
-        // stop();
-        // if(grid) return;
+        stop();
+
         // build grid
-
-        // const windyWorker = new WindyWorker();
-        // windyWorker.postMessage({
-        //     type: "buildGrid",
-        //     data: [
-        //         {
-        //             data: new Float32Array(gridData[0].data).buffer,
-        //             header: gridData[0].header
-        //         },
-        //         {
-        //             data: new Float32Array(gridData[1].data).buffer,
-        //             header: gridData[1].header
-        //         }
-        //     ]
-        // });
-        // // windyWorker.postMessage({type: "buildGrid", data: new Float32Array([1,2]).buffer});
-        // windyWorker.onmessage = (e) => {
-        //    // console.log(e);
-        //    const { type, data } = e.data;
-        //    return;
-        //    switch (type) {
-        //        case "buildGrid": {
-        //            console.log(data);
-        //            grid = data.grid;
-        //            λ0 = data.λ0;
-        //            φ0 = data.φ0;  // the grid's origin (e.g., 0.0E, 90.0N)
-        //
-        //            Δλ = data.Δλ;
-        //            Δφ = data.Δφ;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
-        //
-        //            ni = data.ni;
-        //            nj = data.nj;    // number of grid points W-E and N-S (e.g., 144 x 73)
-        //
-        //            builder = {
-        //                header: data.header,
-        //                interpolate: bilinearInterpolateVector
-        //            };
-        //
-        //            buildGridCallback({
-        //                date: date,
-        //                interpolate: interpolate
-        //            })
-        //            break;
-        //        }
-        //    }
-        // };
-
-
-        const buildGridCallback = function(grid){
-            console.time("interpolateField->")
-
+        buildGrid(gridData, function(grid){
             // interpolateField
             interpolateField( grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
                 // animate the canvas with random points
-                stop();
-                testBounds = bounds;
-                console.log('testBounds', testBounds);
                 windy.field = field;
-                console.time("animate->");
                 animate( bounds, field );
-                console.timeEnd("animate->");
             });
-            console.timeEnd("interpolateField->")
-        };
 
-        // if(grid){
-        //     // console.log(grid);
-        //     buildGridCallback({
-        //         interpolate: interpolate
-        //     });
-        //     return;
-        // }
-
-        console.time("buildGrid->");
-        buildGrid(gridData, buildGridCallback);
-        console.timeEnd("buildGrid->")
+        });
     };
 
     const stop = function () {
