@@ -1,10 +1,6 @@
 import React, { PureComponent } from 'react';
 import styles from './Map.scss';
 import MapUtil from './MapUtil';
-import {CENTER} from "./MapUtil/LeafletUtil/constants";
-
-const ZOOM = MapUtil.G.ZOOM;
-const L = MapUtil.G.L;
 
 import * as testUtil from './testMapUtil';
 
@@ -13,24 +9,14 @@ export default class Map extends PureComponent {
         mapUtil: null,
     };
 
-    // componentDidCatch(e){
-    //     console.error(e);
-    // }
-
-
     componentDidMount() {
-
         const mapUtil = new MapUtil('mapid', {
-
             // center: [49.015284, 8.402703],
             // zoom: 15,
         });
 
-
-
         // 绘制台风到地图
-        let typhoonData = testUtil.testDrawTyphoon(mapUtil);
-
+        // let typhoonData = testUtil.testDrawTyphoon(mapUtil);
 
         // 绘制风环形流场
         /*
@@ -53,7 +39,6 @@ export default class Map extends PureComponent {
         // testUtil.drawWindyByImg(mapUtil);
         // testUtil.drawWindyByTif(mapUtil);
 
-
         // mapUtil.addWindyTile()
 
         // testUtil.setWMSLayer();
@@ -63,21 +48,14 @@ export default class Map extends PureComponent {
 
         // 移动的marker
         // testUtil.testMoveMarker(L, mapUtil)
-    }
 
-    resetMap = (opts = {}) => {
-        this.state.mapUtil.map.remove();
-
-        const mapUtil = new MapUtil('mapid', opts);
-
-        this.setState({mapUtil});
+        // 地理编码和逆编码
+        testUtil.testGeoCoder(mapUtil);
     }
 
     render() {
-        const { mapUtil } = this.state;
         return (
             <div className={styles["leaflet-map"]}>
-                {/*{mapUtil ? <ControlPanel mapUtil={mapUtil} resetMap={this.resetMap}/> : null }*/}
                 <div id="mapid"></div>
             </div>
         );

@@ -1,282 +1,152 @@
-<html>
+<!DOCTYPE html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-    <title>ksplayer demo</title>
-    <meta content="直播SDK，点播SDK，金山云，视频云，视频播放，KLS，KVS，Kingsoft，KingCloud, Playback, KSPlayer, ksplayer" name="keywords">
-    <meta content="KSPlayer是金山云的Web端视频播放器，该播放器Web SDK让您可以在主流的桌面和移动端浏览器上播放rtmp、hls、http-flv协议的直播视频以及mp4、m3u8格式的点播视频。KSPlayer基于video.js框架开发，提供稳定和易于使用的API。本SDK隶属于金山云视频云解决方案" name="description">
-    <link rel="stylesheet" href="./ksplayer.min.css">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+    <title>Big Data In Worker Example</title>
 
     <style>
         body {
-            color: #868688;
-            background-color: #FAFCFF;
-            padding: 40px 0;
-            text-align: center;
-            font-size: 1em;
-            margin: 0;
+            padding: 2em;
         }
-        h1{
-            margin: 20px 0 10px;
-            font-weight: 500;
-            line-height: 1.1;
-        }
-        .video-container {
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 800px;
-            min-height :150px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .video-js {
-            margin: 0;
-            width: 96%;
-            height: 100%;
-            display:block;
-        }
-        .control-bar {
-            margin-top: 20px;
-        }
-        .control-bar input {
-            border: 1px solid #ccc;
-        }
-        .control-bar button{
-            padding:8px 30px;
-            background-color: cornflowerblue;
-            outline:none;
-            border: none;
-            color: #ffffff;
-            font-weight: 500;
-        }
-        .control-bar button:hover {
-            cursor: pointer;
-        }
-        .control-bar input {
-            width: 75%;
-            line-height: 2.5;
-            height: 34px;
-            padding: 0 10px;
-            margin-bottom: 10px;
-        }
-        .video-js .wider-style{
-            width: 150px;
-        }
-
-        #snapshot{
-            width: 360px;
-            margin: 0 auto;
+        #result {
+            max-height: 500px;
+            overflow: auto;
         }
     </style>
-
-</head>
 <body>
-<h1>KSPlayer Demo</h1>
-<p>KSPlayer让您可以在所有主要的桌面和移动端浏览器上播放mp4，m3u8格式的点播视频和rtmp、hls、http-flv协议的直播视频</p>
-<div class="video-container" >
-    <div data-vjs-player>
-        <!--two choices for style:  vjs-default-skin or vjs-sublime-skin-->
-        <video id=example-video  class="video-js mobile-first-skin" controls preload="auto" width="360" height="640" crossorigin="anonymous">
-            <source src="http://ks3-cn-beijing.ksyun.com/ksplayer/video/fangdou_720p.mp4"
-                    type="video/mp4">
-        </video>
+
+<h1>Big Data (using transferable objects) In Web Worker Example</h1>
+<details>
+    <summary>What is 'Big Data' and Web Worker got to do with each other?</summary>
+    <div>
+        TODO...
+        <p>This demo illustrates <a href="http://dev.w3.org/html5/spec/common-dom-interfaces.html#transferable-objects" target="_blank">transferable objects</a>.
+            Transferable objects are objects that are not copied (e.g. using something like <a href="http://updates.html5rocks.com/2011/09/Workers-ArrayBuffer" target="_blank">structured cloning</a>).
+            Instead, the data is transferred from one context to another. The 'version' from the calling context is no longer available once transferred
+            to the new context. For example, when transferring an <code>ArrayBuffer</code> from main app to Worker, the
+            original <code>ArrayBuffer</code> from the main thread is cleared and no longer usable.
+            This vastly improves performance of sending data to a Worker. </p>
+        <p>This demo sends a 32MB <code>ArrayBuffer</code> to a worker and back using a prefixed version of <code>postMessage()</code>
+            that supports transferable objects: <code><a href="http://dev.w3.org/html5/workers/#dedicated-workers-and-the-dedicatedworkerglobalscope-interface" target="_blank">webkitPostMessage()</a></code>.
+            If your browser doesn't support transferables, the sample falls back to old-skool structured cloning.</p>
+        <p><b>Support:</b> Chrome Dev Channel 17+</p>
     </div>
-</div>
-<div class="control-bar">
-    <input id="video-url" placeholder="输入视频URL"> <button id="change-video">加载</button>
-</div>
-<!--<div><img id="snapshot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="/></div>-->
+</details>
 
-<script src="./ksplayer.min.js"></script>
+<section>
+    <p><a href="http://dev.w3.org/html5/spec/common-dom-interfaces.html#transferable-objects" target="_blank">Transferable Objects</a> are lightning fast! The prefixed <code>[window|worker].webkitPostMessage()</code>
+        now supports sending an <code>ArrayBuffer</code> as a transferable.</p>
+    <button onclick="test(true);">Run test with transferable objects</button>
+    <button onclick="test(false);">Run test with COPY of objects</button>
 
-
-
-<script>
-    ksplayer.options.flash.swf = "ksplayer.swf";
-</script>
+    <pre id="result"></pre>
+</section>
 
 <script>
-    var $ = document.querySelectorAll.bind(document);
-
-    var player = ksplayer('example-video',{
-        language: 'zh-CN',
-//        autoHeight: true,
-//        autoWidth: true,
-        fluid: true,  //响应式
-        bigPlayButton: true,
-        autoplay:false,
-        controlBar: {
-            volumeMenuButton: {
-                inline: false,
-                vertical: true
+    // set some constants/vars
+    var SIZE = 1024 * 1024 * 320; // 32MB for our data
+    var arrayBuffer = null;
+    var uInt8View = null;
+    var originalLength = null;
+    // build our example array of 32MB numbers
+    // later in the worker we will work on them with some simple math operations
+    function setupArray() {
+        arrayBuffer = new ArrayBuffer(SIZE);
+        uInt8View = new Uint8Array(arrayBuffer);
+        originalLength = uInt8View.length;
+        for (var i = 0; i < originalLength; ++i) {
+            uInt8View[i] = i;
+        }
+        log(source() + 'filled ' + toMB(originalLength) + ' MB buffer');
+    }
+    //
+    // helper functions to measure performance
+    //
+    // return time stemp
+    function time() {
+        var now = new Date();
+        var time = /(\d+:\d+:\d+)/.exec(now)[0] + ':';
+        for (var ms = String(now.getMilliseconds()), i = ms.length - 3; i < 0; ++i) {
+            time += '0';
+        }
+        return time + ms;
+    }
+    // We are now our page (on the worker will have some nice RED color for the answers)
+    function source() {
+        return '<span style="color:green;">Our page:</span> ';
+    }
+    function seconds(since) {
+        return (new Date() - since) / 1000.0;
+    }
+    function toMB(bytes) {
+        return Math.round(bytes / 1024 / 1024);
+    }
+    //
+    // Initial
+    var worker = null;
+    var startTime = 0;
+    var supported = false;
+    // Move output panel down further if <details> isn't supported (collapsible).
+    var details = document.querySelector('details');
+    if (!('open' in details)) {
+        document.querySelector('section').classList.add('down');
+    }
+    function log(str) {
+        var elem = document.getElementById('result');
+        var log = function(s) {
+            elem.innerHTML += ''.concat(time(), ' ', s, '\n');
+        };
+        log(str);
+    }
+    function init() {
+        worker = new Worker('Example-6-1-BIG_data_worker.js');
+        // Take care of vendor prefixes.
+        worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+        worker.onmessage = function(e) {
+            console.timeEnd('actual postMessage round trip was');
+            // capture elapsed time since the original postMessage();
+            if (!e.data.type) {
+                var elapsed = seconds(startTime);
             }
-        }
-//        "playbackRates": [1, 1.5, 2]
-    });
-
-    player.ready(function() {
-        setTimeout(function() {
-            console.log('lengthOfVideo: ' + player.duration());
-        },1);
-
-        //根据url中的pullurl属性设置播放器和输入框
-        var pullUrl =  getParameterByName('pullurl');
-        if(pullUrl) {
-            $('#video-url')[0].value = pullUrl;
-            validateUrlAndPlay(pullUrl);
-        }
-
-        function validateUrlAndPlay(newUrl) {
-            if (newUrl.indexOf('rtmp') == 0) {
-                if (window.hasFlash) {
-                    player.src({"type": "rtmp/flv", "src": newUrl});
-                    player.play();
-                } else {
-                    alert('您的浏览器没有安装flash插件或flash被禁用');
+            var data = e.data;
+            if (data.type && data.type == 'debug') {
+                log(data.msg);
+            } else {
+                if (data.copy) {
+                    data.byteLength = data.ourArray.byteLength;
                 }
-            } else if (newUrl.indexOf('http') == 0 && newUrl.indexOf('.mp4') !== -1) {
-                player.src({"type": "video/mp4", "src": newUrl});
-                player.play();
-
-            } else if (newUrl.indexOf('http') == 0 && newUrl.indexOf('.m3u8') !== -1) {
-                //resizePlayer('example-video', 200);
-                player.src({"type": "application/x-mpegURL", "src": newUrl});
-                player.play();
-
-            } else if (newUrl.indexOf('http') == 0 && newUrl.indexOf('.flv') != -1) {
-                if (window.hasFlash) {
-                    player.src({"type": "video/x-flv", "src": newUrl});
-                    player.play();
-                } else {
-                    alert('您的浏览器没有安装flash插件或flash被禁用');
-                }
+                var rate = Math.round(toMB(data.byteLength) / elapsed);
+                log(source() + 'postMessage roundtrip took: ' + (elapsed * 1000) + ' ms');
+                log(source() + 'postMessage roundtrip rate: ' + rate + ' MB/s');
             }
-            else {
-                alert('请填写正确的url');
-            }
-        }
-
-        $("#change-video")[0].addEventListener('click', function(){
-            var newUrl = $('#video-url')[0].value.trim();
-            validateUrlAndPlay(newUrl);
-        });
-    });
-
-    //var player2 = ksplayer('example-video');
-    //console.log(player == player2);
-
-    player.on("ready", function(event) {
-        console.log(event);
-    });
-    player.on("ended",function(event, data) {
-        console.log(event);
-    });
-
-    player.on("pause",function(event, data) {
-        console.log(event);
-    });
-
-    player.on("play",function(event, data) {
-        console.log(event);
-    });
-
-    //var $img = document.getElementById('snapshot');
-
-    player.on("playing",function(event, data) {
-        console.log(event);
-        /* var url = player.currentSrc();
-         if(url.indexOf('http') == 0 && (url.endWith('.mp4')) || url.endWith('.m3u8'))  {
-             //视频帧截图插件初始化(设置img标签DOM节点的Id)，只对H5播放有效
-             player.Snapshot({imgDOMId: 'snapshot'});
-             setTimeout(function() {
-                 player.snapshot();
-             },2000);
-         }
- */
-    });
-
-    player.on("seeked",function(event, data) {
-        console.log(event);
-    });
-
-    player.on("seeking",function(event, data) {
-        console.log(event);
-    });
-
-    player.on("loadstart",function(event, data) {
-        console.log(event);
-    });
-
-
-    player.on("loadeddata", function(event) {
-        console.log( event );
-    });
-
-    player.on("loadedmetadata", function(event) {
-        console.log( event );
-        console.log("duration:" + player.duration());
-    });
-
-
-    player.on("useractive", function(event) {
-        //console.log( event );
-    });
-
-    player.on("userinactive", function(event) {
-        //console.log( event );
-    });
-
-    player.on("volumechange", function(event) {
-        console.log( event );
-    });
-
-    player.on("durationchange", function(event) {
-        console.log(event);
-    });
-
-    player.on("error", function(event) {
-        console.log(event);
-    });
-
-    function resizePlayer(domId, heightLimit) {
-        var sWidth = 9;
-        var sHeight = 16;
-        var width = window.innerWidth;
-        var height = width * sHeight / sWidth;
-        var $video = document.getElementById(domId);
-
-        $video.style.width = width + 'px';
-        $video.style.height = heightLimit + 'px';
-        $video.style.overflow = 'hidden';  //让高度和宽度都撑满
-
-        var $videoTag = document.getElementById(domId + '_html5_api');
-        $videoTag.style.width = width + 'px';
-        $videoTag.style.height = height + 'px';
+        };
+        log(source() + 'We are good to go!');
     }
-
-    function throttle(fn, delay) {
-        var timer = null;
-        return function () {
-            var context = this, args = arguments;
-            clearTimeout(timer);
-            timer = setTimeout(function() {
-                fn.apply(context, args);
-            }, delay);
+    function test(useIt) {
+        var useTransferrable = useIt;
+        setupArray(); // Need to do this on every run for the repeated runs with transferable arrays. They're cleared out after they're transferred.
+        startTime = new Date();
+        console.time('actual postMessage round trip was');
+        if (useTransferrable ) {
+            console.time("useTransferrable->")
+            console.log ("## Using Transferrable object method on size: " + uInt8View.length);
+            worker.postMessage(uInt8View.buffer, [uInt8View.buffer]);
+            console.timeEnd("useTransferrable->")
+        } else {
+            console.time("copy->")
+            console.log ("## Using old COPY method on size: "+ uInt8View.length);
+            worker.postMessage({'copy': 'true', 'ourArray': uInt8View.buffer}); //uInt8View.buffer
+            console.timeEnd("copy->")
         }
     }
-
-    function getParameterByName(name, url) {
-        if (!url) {
-            url = window.location.href;
-        }
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
-
+    window.addEventListener('load', function(e) {
+        init();
+    }, false);
 </script>
+
+<!--[if IE]>
+<script src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+<script>CFInstall.check({mode: 'overlay'});</script>
+<![endif]-->
 </body>
 </html>

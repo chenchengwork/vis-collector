@@ -415,3 +415,20 @@ export const testDrawTyphoon = (mapUtil) => {
         points
     };
 }
+
+// 依据地理位置获取geo
+export const testGeoCoder = (mapUtil) => {
+    const geoCoder = mapUtil.geoCoder;
+    geoCoder.getGeo({address: "北京市朝阳区阜通东大街6号"}).then((resp) => {
+        console.log("getGeo->", resp);
+    });
+
+    geoCoder.getRegeo({location: [100.923828, 39.272688].join(",")}).then((resp) => {
+        console.log("getRegeo->", resp);
+    });
+
+    geoCoder.getDistrict({keywords: "北京"}).then((resp) => {
+        console.log("getDistrict->", resp);
+       mapUtil.setGeoJSONLayer(resp.geoJSON, {}, true);
+    }).catch(e => console.error(e));
+}

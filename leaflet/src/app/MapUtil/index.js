@@ -1,7 +1,5 @@
 import LeafletUtil from './LeafletUtil';
 
-const L = LeafletUtil.G.L;
-
 /**
  *  地图工具类
  */

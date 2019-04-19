@@ -20,6 +20,9 @@ import "./extend/windyTile";
 // 加载移动Marker
 import "./extend/movingMarker";
 
+// 加载地理编码工具
+import GeoCoder from './GeoCoder';
+
 // 加载mapUtil枚举文件
 import { ZOOM, CENTER } from './constants';
 
@@ -69,7 +72,10 @@ export default class LeafletUtil {
             // renderer: L.svg()
         }, options));
 
+        // 鼠标工具
         this.mouseTool = new MouseTool(this.map, L);
+        // 地理编码工具
+        this.geoCoder = new GeoCoder();
     }
 
     /**
@@ -106,7 +112,7 @@ export default class LeafletUtil {
 	 * 解除清除地图的回调
 	 * @param cb
 	 */
-	offClearMap(cb){
+	offClearMap = (cb) =>{
 		if (cacheClearCallBack.has(cb)) {
 			cacheClearCallBack.delete(cb);
 		}
@@ -116,7 +122,7 @@ export default class LeafletUtil {
      * 清空地图
      * @param {Array} keepLayers 需要保留的layer [layerIns]
      */
-    clearMap(keepLayers = []) {
+    clearMap = (keepLayers = []) => {
         this.mouseTool.measure.clear();
 
         setTimeout(() => {
@@ -136,7 +142,7 @@ export default class LeafletUtil {
      * @param {Object} options 配置说明： http://leafletjs.com/reference-1.2.0.html#tilelayer-wms
      * @returns {*}
      */
-    addWMSLayer(url, options = {}) {
+    addWMSLayer = (url, options = {}) => {
         const wmsTileLayer = L.tileLayer.wms(url, Object.assign({
             layers: '',
             format: 'image/png',
@@ -156,7 +162,7 @@ export default class LeafletUtil {
      */
     setWMSLayer = this.getSetLayerFN(this.addWMSLayer);
 
-    addTMSLayer(url, options = {}) {
+    addTMSLayer = (url, options = {}) => {
         const tmsTileLayer = L.tileLayer(url, options || {});
 
         this.map.addLayer(tmsTileLayer);
@@ -174,22 +180,27 @@ export default class LeafletUtil {
      * 添加GeoJSON数据
      * @param {Object} data
      * @param {Object} opts
+     * @param {boolean} isFit
      */
-    addGeoJSON(data, opts = {}){
-        return L.geoJSON(data, Object.assign({
+    addGeoJSONLayer = (data, opts = {}, isFit = false) => {
+        const layer = L.geoJSON(data, Object.assign({
             style: function (feature) {
                 return {color: feature.properties.color};
             }
         }, opts)).bindPopup(function (layer) {
             return layer.feature.properties.description;
         }).addTo(this.map);
+
+        if(isFit) this.map.fitBounds(layer.getBounds());
+
+        return layer;
     }
 
     /**
      * 设置GeoJSON数据
      * @type {*}
      */
-    setGeoJSON = this.getSetLayerFN(this.addGeoJSON);
+    setGeoJSONLayer = this.getSetLayerFN(this.addGeoJSONLayer);
 
     /**
      * 依据经纬度获取距离
@@ -208,7 +219,7 @@ export default class LeafletUtil {
      * @param {Object} options  配置说明： http://leafletjs.com/reference-1.2.0.html#marker
      * @returns {*}
      */
-    addMarker(latlngs, options = {}){
+    addMarker = (latlngs, options = {}) => {
        return L.marker(latlngs, Object.assign({
             icon: L.icon({
                 iconUrl: IconMarker,
@@ -229,7 +240,7 @@ export default class LeafletUtil {
      * @param {Array} bounds [[lat, lng], [lat, lng]]
      * @param options
      */
-    addRectangle(bounds, options = {}) {
+    addRectangle = (bounds, options = {}) => {
         return L.rectangle(bounds, Object.assign({color: "#ff7800", weight: 1}, options)).addTo(this.map);
     }
 
@@ -244,7 +255,7 @@ export default class LeafletUtil {
      * @param {Array} latlngs [[lat, lng], [lat, lng]]
      * @param options
      */
-    addPolygon(latlngs, options = {}) {
+    addPolygon = (latlngs, options = {}) =>{
         return L.polygon(latlngs, Object.assign({color: "#ff7800", weight: 1}, options)).addTo(this.map);
     }
 
@@ -261,7 +272,7 @@ export default class LeafletUtil {
      * @param {Number} radius
      * @param options
      */
-    addCirCle(latlngs, radius, options = {}) {
+    addCirCle = (latlngs, radius, options = {}) => {
         return L.circle(latlngs, {radius, color: "#ff7800", weight: 1}).addTo(this.map);
     }
 
@@ -277,7 +288,7 @@ export default class LeafletUtil {
      * @param options
      * @returns {*}
      */
-    addPolyline(latlngs, options = {}) {
+    addPolyline = (latlngs, options = {}) => {
         return L.polyline(latlngs, Object.assign({
             color: '#FFFF00',
             weight: 1,
@@ -296,7 +307,7 @@ export default class LeafletUtil {
      * @param options 配置说明：http://leafletjs.com/reference-1.2.0.html#circlemarker
      * @returns {*}
      */
-    addCircleMarker(latlngs, options = {}) {
+    addCircleMarker = (latlngs, options = {}) => {
         return L.circleMarker(L.latLng(latlngs[0], latlngs[1]), Object.assign({
             radius: 1,
             color: 'green',
@@ -311,13 +322,12 @@ export default class LeafletUtil {
      */
     setCircleMarker = this.getSetLayerFN(this.addCircleMarker);
 
-
     /**
      * 添加风资源图层
      * @param {Object} windyData
      * @returns {*}
      */
-    addWindyLayer(windyData, opts = {}) {
+    addWindyLayer = (windyData, opts = {}) => {
         const windyVelocityLayer = L.windyVelocityLayer(Object.assign({
             data: windyData,
             velocityScale: 0.005,    // 调整风速大小
