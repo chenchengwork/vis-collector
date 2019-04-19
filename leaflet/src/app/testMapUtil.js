@@ -1,7 +1,7 @@
 export const drawWindyByJson = (mapUtil) => {
     // $.get('/asserts/data/windy_json/windy_20000.json').then((data) => {
-    $.get('/asserts/data/windy_json/lv1.json').then((data) => {
-    // $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
+    // $.get('/asserts/data/windy_json/lv1.json').then((data) => {
+    $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
 
         console.log("data->", data);
 
@@ -65,7 +65,6 @@ export const drawWindyByJson = (mapUtil) => {
 
     }).catch(e => console.error(e));
 };
-
 
 export const drawWindyBySplitJson = (mapUtil) => {
 
@@ -134,8 +133,6 @@ export const drawWindyBySplitJson = (mapUtil) => {
 
     });
 };
-
-
 
 export const drawWindyByImg = (mapUtil) => {
 
@@ -228,7 +225,8 @@ export const drawWindyByTif = (mapUtil) => {
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/u_v_tiled.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/tt.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/float4.tif")
-    GeoTIFF.fromUrl("/asserts/data/windy_tif/uv_4326.tif")
+    // GeoTIFF.fromUrl("/asserts/data/windy_tif/uv_4326.tif")
+    GeoTIFF.fromUrl("/asserts/data/windy_tif/5.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/01.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/test_4326_byte_d4.tif")
         .then((tif) => tif.getImage())
@@ -301,4 +299,119 @@ export const drawWindyByTif = (mapUtil) => {
         })
 
 
+}
+
+// 测试WMS
+export const setWMSLayer = (mapUtil) => {
+    mapUtil.setWMSLayer('http://10.0.5.170:8081/rasdaman/ows', {
+        crs: MapUtil.G.L.CRS.EPSG4326,
+        service: "WMS",
+        version: '1.3.0',
+        request: "GetMap",
+        layers: "radar_demo_3857",
+        width: 256,
+        height: 256,
+        tileSize: 512,
+        format:"image/png"
+    });
+};
+
+// 测试鼠标事件
+export const testMouse = (mapUtil) => {
+    const mouseTool = mapUtil.mouseTool;
+    // 开启测距
+    mouseTool.measure.start();
+
+    // 清空测距
+    // setTimeout(() => {
+    //     mouseTool.measure.clear();
+    //     console.log('measure clear');
+    // }, 5000)
+
+    // 使用鼠标绘制形状
+    // mouseTool.rectangle().then(resp => console.log(resp));
+    // mouseTool.circle().then(resp => console.log(resp));
+    // mouseTool.polygon().then(resp => console.log(resp));
+    // mouseTool.polyline().then(resp => console.log(resp));
+    // mouseTool.marker().then(resp => console.log(resp));
+
+    // 关闭鼠标
+    // setTimeout(() => {
+    //     mouseTool.close();
+    // }, 2000)
+};
+
+// 测试移动的marker
+export const testMoveMarker = (L, mapUtil) => {
+    const map = mapUtil.map;
+    // const parisKievLL = [[48.8567, 2.3508], [50.45, 30.523333]];
+    const parisKievLL = [[51.507222, -0.1275], [48.8567, 2.3508],[41.9, 12.5], [52.516667, 13.383333], [44.4166,26.1]];
+
+    /**
+     * 第二个参数使用说明：
+     * 数组： 代表每条折线移动完成所需要的时间
+     * 数字： 代表全路程所需要的时间
+     */
+    const marker1 = L.Marker.movingMarker(parisKievLL, [3000, 9000, 9000, 4000], {
+        icon: L.icon({
+            iconUrl: require('./MapUtil/LeafletUtil/img/marker.png'),
+            iconSize: [16, 16],
+            // iconAnchor: [16, 16],
+        })}).addTo(map);
+
+    L.polyline(parisKievLL).addTo(map);
+
+    marker1.once('click', function () {
+        marker1.start();
+        marker1.closePopup();
+        marker1.unbindPopup();
+        marker1.on('click', function() {
+            if (marker1.isRunning()) {
+                marker1.pause();
+            } else {
+                marker1.start();
+            }
+        });
+
+        setTimeout(function() {
+            marker1.bindPopup('<b>Click me to pause !</b>').openPopup();
+        }, 2000);
+    });
+
+    marker1.bindPopup('<b>Click me to start !</b>', {closeOnClick: false});
+    marker1.openPopup();
+
+}
+
+// 测试绘制台风
+export const testDrawTyphoon = (mapUtil) => {
+    const lines = require("./data/testData").default;
+
+    let polylines = [];
+    let points = [];
+    // 绘制单条台风
+    const drawSingleTyphoon = (line) => {
+        const points = [];
+        const polyline = mapUtil.addPolyline(line.path);
+        for (let j = 0; j < line.path.length; j++){
+            const point = mapUtil.addCircleMarker(line.path[j]);
+            points.push(point);
+        }
+
+        return {
+            polyline,
+            points
+        }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+        const typhoon = drawSingleTyphoon(lines[i]);
+        polylines.push(typhoon.polyline);
+        points.push(typhoon.points);
+    }
+
+    return {
+        polylines,
+        points
+    };
 }

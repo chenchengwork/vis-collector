@@ -10,20 +10,18 @@ import "./extend/NonTiledLayer.WCS";
 
 // 加载鼠标工具
 import MouseTool from './extend/mouseTool';
+
 // 加载风速layer
 import "./extend/windyVelocity";
 
 // 加载风速tile layer
 import "./extend/windyTile";
 
-
 // 加载移动Marker
 import "./extend/movingMarker";
 
-
 // 加载mapUtil枚举文件
 import { ZOOM, CENTER } from './constants';
-import MapUtil from "../index";
 
 /**
  * 记录清除地图回调函数
@@ -38,7 +36,7 @@ const triggerClearMapCb = () => {
 	for(let [cb, {params, context}] of cacheClearCallBack.entries()) {
 		cb.apply(context, params);
 	}
-}
+};
 
 /**
  * Leaflet 地图工具类
@@ -70,9 +68,8 @@ export default class LeafletUtil {
             renderer: L.canvas()
             // renderer: L.svg()
         }, options));
-        // console.log(this.map, L.CRS);
-        // this.mouseTool = new MouseTool(this.map, L);
 
+        this.mouseTool = new MouseTool(this.map, L);
     }
 
     /**
@@ -101,7 +98,7 @@ export default class LeafletUtil {
 	 * @param {Array} params 回调参数
 	 * @param {Object} context 上下文
 	 */
-	onClearMap(cb = () => {}, params = [], context = null) {
+	onClearMap = (cb = () => {}, params = [], context = null) => {
 		cacheClearCallBack.set(cb, { params: Array.isArray(params) ? params : [params], context });
 	}
 
@@ -313,6 +310,21 @@ export default class LeafletUtil {
      * @type {*}
      */
     setCircleMarker = this.getSetLayerFN(this.addCircleMarker);
+
+
+    /**
+     * 添加风资源图层
+     * @param {Object} windyData
+     * @returns {*}
+     */
+    addWindyLayer(windyData, opts = {}) {
+        const windyVelocityLayer = L.windyVelocityLayer(Object.assign({
+            data: windyData,
+            velocityScale: 0.005,    // 调整风速大小
+        }, opts));
+
+        return windyVelocityLayer
+    }
 
     /**
      * 依据坐标和盒子的宽高，计算position的x和y
