@@ -53,7 +53,7 @@ const Windy = function( params ){
     };
 
     // interpolation for vectors like wind (u,v,m)
-    // 插值向量数据
+    // 插值向量数据(u, v, m)
     const bilinearInterpolateVector = function(x, y, g00, g10, g01, g11) {
         const rx = (1 - x);
         const ry = (1 - y);
@@ -102,14 +102,14 @@ const Windy = function( params ){
         builder = createBuilder(data);
         const header = builder.header;
 
-        λ0 = header.lo1;
-        φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
+        λ0 = header.lo1;   // 最小经度
+        φ0 = header.la1;   // 最小维度 the grid's origin (e.g., 0.0E, 90.0N)
 
         Δλ = header.dx;
         Δφ = header.dy;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
 
-        ni = header.nx;
-        nj = header.ny;    // number of grid points W-E and N-S (e.g., 144 x 73)
+        ni = header.nx;    // u宽度
+        nj = header.ny;    // v高度 number of grid points W-E and N-S (e.g., 144 x 73)
 
         // TODO 暂时注释掉时间, 没有发现时间的作用
         // date = new Date(header.refTime);

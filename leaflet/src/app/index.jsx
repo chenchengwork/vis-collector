@@ -34,12 +34,16 @@ export default class Map extends PureComponent {
         */
 
         // 绘制风场
-        testUtil.drawWindyByJson(mapUtil);
+        // testUtil.drawWindyByJson(mapUtil);
         // testUtil.drawWindyBySplitJson(mapUtil);
         // testUtil.drawWindyByImg(mapUtil);
-        // testUtil.drawWindyByTif(mapUtil);
 
+
+        testUtil.drawWindyByTif(mapUtil);
         // mapUtil.addWindyTile()
+
+
+
 
         // testUtil.setWMSLayer();
 
@@ -50,7 +54,7 @@ export default class Map extends PureComponent {
         // testUtil.testMoveMarker(L, mapUtil)
 
         // 地理编码和逆编码
-        testUtil.testGeoCoder(mapUtil);
+        // testUtil.testGeoCoder(mapUtil);
     }
 
     render() {

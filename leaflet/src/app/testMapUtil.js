@@ -1,7 +1,7 @@
 export const drawWindyByJson = (mapUtil) => {
     // $.get('/asserts/data/windy_json/windy_20000.json').then((data) => {
-    // $.get('/asserts/data/windy_json/lv1.json').then((data) => {
-    $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
+    $.get('/asserts/data/windy_json/lv1.json').then((data) => {
+    // $.get('/asserts/data/windy_json/windy_10.json').then((data) => {
 
         console.log("data->", data);
 
@@ -226,79 +226,94 @@ export const drawWindyByTif = (mapUtil) => {
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/tt.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/float4.tif")
     // GeoTIFF.fromUrl("/asserts/data/windy_tif/uv_4326.tif")
-    GeoTIFF.fromUrl("/asserts/data/windy_tif/5.tif")
-    // GeoTIFF.fromUrl("/asserts/data/windy_tif/01.tif")
-    // GeoTIFF.fromUrl("/asserts/data/windy_tif/test_4326_byte_d4.tif")
-        .then((tif) => tif.getImage())
-        .then((image) => {
-            // console.log("image.getBoundingBox", image.getBoundingBox());
-            const [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
-
-            image.readRasters().then((imageData) => {
-                const width = imageData.width;
-                const height = imageData.height;
-                const uData = imageData[0];
-                const vData = imageData[1];
-
-                const lngLat = {
-                    // "lo2": maxLng,
-                    // "lo1": minLng,
-                    // "la2": maxLat,
-                    // "la1": minLat,
 
 
-                    "lo2": maxLng,
-                    "lo1": minLng,
-                    "la2": maxLat,
-                    "la1": minLat,
-                }
+    let windy = null;
 
-                const other = {
-                    "dx": (maxLng - minLng) / width,
-                    "dy": (minLat - maxLat) / height,
-                    // dx: "0.040544070051016054",
-                    // dy: "-0.028572421603732637",
-                    "nx": width,
-                    "ny": height,
-                };
 
-                const windData = [
-                    {
-                        data: uData,
-                        header: {
-                            ...lngLat,
-                            ...other,
-                            "parameterCategory": 2,
-                            "parameterNumber": 2
-                        }
-                    },
-                    {
-                        data: vData,
-                        header: {
-                            "lo2": 359,
-                            "lo1": 0,
-                            "dx": 1,
-                            "dy": 1,
-                            "nx": 360,
-                            "ny": 181,
-                            "la2": -90,
-                            "la1": 90,
-                            "parameterCategory": 2,
-                            "parameterNumber": 3,
-                            ...lngLat,
-                            ...other
-                        }
-                    }
-                ];
+    const draw = (tiffs) => {
+        tiffs.forEach(url => {
+            GeoTIFF.fromUrl(url)
+                .then((tif) => tif.getImage())
+                .then((image) => {
+                    // console.log("image.getBoundingBox", image.getBoundingBox());
+                    const [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
 
-                console.log('windData->', windData)
-                // const windy = mapUtil.addWindyLayer(windData, {
-                //     colorScale: ["rgb(180,0,35)"]
-                // }).addTo(mapUtil.map);
-            })
+                    image.readRasters().then((imageData) => {
+                        const width = imageData.width;
+                        const height = imageData.height;
+                        const uData = imageData[0];
+                        const vData = imageData[1];
+
+                        const lngLat = {
+                            "lo2": maxLng,
+                            "lo1": minLng,
+                            "la2": maxLat,
+                            "la1": minLat,
+                        };
+
+                        const other = {
+                            "dx": (maxLng - minLng) / width,
+                            "dy": (minLat - maxLat) / height,
+                            "nx": width,
+                            "ny": height,
+                        };
+
+                        const windData = [
+                            {
+                                data: uData,
+                                header: {
+                                    ...lngLat,
+                                    ...other,
+                                    "parameterCategory": 2,
+                                    "parameterNumber": 2
+                                }
+                            },
+                            {
+                                data: vData,
+                                header: {
+                                    "parameterCategory": 2,
+                                    "parameterNumber": 3,
+                                    ...lngLat,
+                                    ...other
+                                }
+                            }
+                        ];
+
+                        console.log('windData->', windData)
+
+                        // if(windy){
+                        //     windy.setData(windData)
+                        //     return;
+                        // }
+
+                        windy = mapUtil.addWindyLayer(windData, {
+                            colorScale: ["rgb(180,0,35)"],
+                            frameRate: 60
+                        }).addTo(mapUtil.map);
+                    })
+                })
         })
+    };
 
+    draw(["/asserts/data/windy_tif/u_v.tif"])
 
+    // draw([
+    //     "/asserts/data/windy_tif/4_11_5.tif",
+    //     "/asserts/data/windy_tif/4_12_5.tif",
+    //     "/asserts/data/windy_tif/4_13_5.tif",
+    //     "/asserts/data/windy_tif/4_14_5.tif",
+    //
+    //     "/asserts/data/windy_tif/4_11_6.tif",
+    //     "/asserts/data/windy_tif/4_12_6.tif",
+    //     "/asserts/data/windy_tif/4_13_6.tif",
+    //     "/asserts/data/windy_tif/4_14_6.tif",
+    //
+    //     "/asserts/data/windy_tif/4_11_7.tif",
+    //     "/asserts/data/windy_tif/4_12_7.tif",
+    //     "/asserts/data/windy_tif/4_13_7.tif",
+    //     "/asserts/data/windy_tif/4_14_7.tif",
+    // ])
 }
 
 // 测试WMS
