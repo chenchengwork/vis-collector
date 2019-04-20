@@ -9,6 +9,15 @@
 
 import WindyWorker from './Windy.worker';
 
+import {
+    isValue,
+    floorMod,
+    isMobile,
+    distort,
+    deg2rad,
+    invert
+} from './windyHelper';
+
 const Windy = function( params ){
 
     const MIN_VELOCITY_INTENSITY = params.minVelocity || 0;                      // velocity at which particle intensity is minimum (m/s)
@@ -62,7 +71,6 @@ const Windy = function( params ){
         const v = g00[1] * a + g10[1] * b + g01[1] * c + g11[1] * d;
         return [u, v, Math.sqrt(u * u + v * v)];
     };
-
 
     const createWindBuilder = function(uComp, vComp) {
         const uData = uComp.data, vData = vComp.data;
@@ -168,73 +176,8 @@ const Windy = function( params ){
                 }
             }
         }
+
         return null;
-    };
-
-
-    /**
-     * @returns {Boolean} true if the specified value is not null and not undefined.
-     */
-    const isValue = function(x) {
-        return x !== null && x !== undefined;
-    };
-
-    /**
-     * @returns {Number} returns remainder of floored division, i.e., floor(a / n). Useful for consistent modulo
-     *          of negative numbers. See http://en.wikipedia.org/wiki/Modulo_operation.
-     */
-    const floorMod = function(a, n) {
-        return a - n * Math.floor(a / n);
-    };
-
-    /**
-     * @returns {Number} the value x clamped to the range [low, high].
-     */
-    const clamp = function(x, range) {
-        return Math.max(range[0], Math.min(x, range[1]));
-    };
-
-    /**
-     * @returns {Boolean} true if agent is probably a mobile device. Don't really care if this is accurate.
-     */
-    const isMobile = function() {
-        return (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
-    };
-
-    /**
-     * Calculate distortion of the wind vector caused by the shape of the projection at point (x, y). The wind
-     * vector is modified in place and returned by this function.
-     */
-    const distort = function(projection, λ, φ, x, y, scale, wind, windy) {
-        const u = wind[0] * scale;
-        const v = wind[1] * scale;
-        const d = distortion(projection, λ, φ, x, y, windy);
-
-        // Scale distortion vectors by u and v, then add.
-        wind[0] = d[0] * u + d[2] * v;
-        wind[1] = d[1] * u + d[3] * v;
-        return wind;
-    };
-
-    const distortion = function(projection, λ, φ, x, y, windy) {
-        const τ = 2 * Math.PI;
-        // const H = Math.pow(10, -5.2);
-        const H = params.crs && params.crs.code === 'EPSG:4326' ? 5 : Math.pow(10, -5.2);
-        const hλ = λ < 0 ? H : -H;
-        const hφ = φ < 0 ? H : -H;
-
-        const pλ = project(φ, λ + hλ,windy);
-        const pφ = project(φ + hφ, λ, windy);
-
-        // Meridian scale factor (see Snyder, equation 4-3), where R = 1. This handles issue where length of 1º λ
-        // changes depending on φ. Without this, there is a pinching effect at the poles.
-        const k = Math.cos(φ / 360 * τ);
-        return [
-            (pλ[0] - x) / hλ / k,
-            (pλ[1] - y) / hλ / k,
-            (pφ[0] - x) / hφ,
-            (pφ[1] - y) / hφ
-        ];
     };
 
     const createField = function(columns, bounds, callback) {
@@ -279,56 +222,7 @@ const Windy = function( params ){
         return {x: x, y: y, xMax: width, yMax: yMax, width: width, height: height};
     };
 
-    const deg2rad = function( deg ){
-        return (deg / 180) * Math.PI;
-    };
-
-    const rad2deg = function( ang ){
-        return ang / (Math.PI/180.0);
-    };
-
-    let invert
-
-    if (params.crs && params.crs.code === 'EPSG:4326') {
-        invert = function (x, y, windy) {
-            const mapLonDelta = windy.east - windy.west;
-            const mapLatDelta = windy.south - windy.north;
-            const lat = rad2deg(windy.north) + y / windy.height * rad2deg(mapLatDelta);
-            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
-            return [lon, lat];
-        };
-    } else {
-        invert = function (x, y, windy) {
-            const mapLonDelta = windy.east - windy.west;
-            const worldMapRadius = windy.width / rad2deg(mapLonDelta) * 360 / (2 * Math.PI);
-            const mapOffsetY = (worldMapRadius / 2 * Math.log((1 + Math.sin(windy.south)) / (1 - Math.sin(windy.south))));
-            const equatorY = windy.height + mapOffsetY;
-            const a = (equatorY - y) / worldMapRadius;
-            const lat = 180 / Math.PI * (2 * Math.atan(Math.exp(a)) - Math.PI / 2);
-            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
-            return [lon, lat];
-        };
-    }
-
-    const mercY = function( lat ) {
-        return Math.log( Math.tan( lat / 2 + Math.PI / 4 ) );
-    };
-
-
-    const project = function( lat, lon, windy) { // both in radians, use deg2rad if neccessary
-        const ymin = mercY(windy.south);
-        const ymax = mercY(windy.north);
-        const xFactor = windy.width / ( windy.east - windy.west );
-        const yFactor = windy.height / ( ymax - ymin );
-
-        let y = mercY( deg2rad(lat) );
-        const x = (deg2rad(lon) - windy.west) * xFactor;
-        y = (ymax - y) * yFactor; // y points south
-        return [x, y];
-    };
-
     const interpolateField = function( grid, bounds, extent, callback ) {
-
         const projection = {};
         const mapArea = ((extent.south - extent.north) * (extent.west - extent.east));
         const velocityScale = VELOCITY_SCALE * Math.pow(mapArea, 0.4);
@@ -373,11 +267,9 @@ const Windy = function( params ){
     const animate = function(bounds, field) {
 
         function windIntensityColorScale(min, max) {
-
             colorScale.indexFor = function (m) {  // map velocity speed to a style
                 return Math.max(0, Math.min((colorScale.length - 1),
                     Math.round((m - min) / (max - min) * (colorScale.length - 1))));
-
             };
 
             return colorScale;
@@ -477,10 +369,10 @@ const Windy = function( params ){
     let testBounds = null;
     const start = function( bounds, width, height, extent ){
         const mapBounds = {
-            south: deg2rad(extent[0][1]),   // 转换成弧度
-            north: deg2rad(extent[1][1]),
-            east: deg2rad(extent[1][0]),
-            west: deg2rad(extent[0][0]),
+            south: deg2rad(extent[0][1]),   // 西南纬度
+            north: deg2rad(extent[1][1]),   // 东北纬度
+            east: deg2rad(extent[1][0]),    // 东北经度
+            west: deg2rad(extent[0][0]),    // 西南经度
             width: width,
             height: height
         };
@@ -540,7 +432,7 @@ const Windy = function( params ){
             console.time("interpolateField->")
 
             // interpolateField
-            interpolateField( grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
+            interpolateField(grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
                 // animate the canvas with random points
                 stop();
                 testBounds = bounds;
