@@ -53,10 +53,7 @@ const GeoTIFF = require('geotiff/src/main');
             // fetch(`http://localhost:4000/asserts/data/windy_tif/${z}_${x}_${y}.tif`)
                 .then((response) => response.arrayBuffer())
                 .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
-                .then((tif) => {
-                    // console.log(tif)
-                    return tif.getImage();
-                })
+                .then((tif) => tif.getImage())
                 .then((image) => {
                     done(null, tile);
                     // return;

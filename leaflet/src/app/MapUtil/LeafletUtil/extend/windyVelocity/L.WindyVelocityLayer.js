@@ -66,6 +66,8 @@ import Windy from './Windy';
             var bounds = this._map.getBounds();
             var size = this._map.getSize();
 
+            // getTif(this._map.getZoom(), bounds);
+
             // bounds, width, height, extent
             this._windy.start(
                 [
@@ -110,7 +112,7 @@ import Windy from './Windy';
         _clearAndRestart: function(){
             // console.log("_clearAndRestart")
             // TODO 暂时不清除
-            // if (this._context) this._context.clearRect(0, 0, 3000, 3000);
+            if (this._context) this._context.clearRect(0, 0, 3000, 3000);
             if (this._windy) this._startWindy();
         },
 
@@ -134,3 +136,122 @@ import Windy from './Windy';
         return new L.WindyVelocityLayer(options);
     };
 })(L, Windy)
+
+
+
+const getTif = (zoom, bounds) => {
+    const GeoTIFF = require('geotiff/src/main');
+    const fetch = require("../../lib/fetch").default;
+
+    const extent = [
+        bounds._southWest.lng,
+        bounds._southWest.lat,
+        bounds._northEast.lng,
+        bounds._northEast.lat
+    ];
+
+    console.log("extent->", extent)
+
+    // fetch(`http://10.0.5.39:9000/api/v1/bigdataquery?z=${zoom}&extent=${JSON.stringify(extent)}`)
+    fetch(`http://10.0.5.39:9000/api/v1/bigdataquery?z=${zoom}&extent=${extent.join(",")}`)
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
+        .then((tif) => tif.getImage())
+        .then((image) => {
+            // return;
+
+            const [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
+
+            image.readRasters().then((imageData) => {
+                const width = imageData.width;
+                const height = imageData.height;
+                const uData = imageData[0];
+                const vData = imageData[1];
+
+                const lngLat = {
+                    "lo2": maxLng,
+                    "lo1": minLng,
+                    "la2": maxLat,
+                    "la1": minLat,
+                }
+
+                const other = {
+                    "dx": (maxLng - minLng) / width,
+                    "dy": (minLat - maxLat) / height,
+                    // dx: "0.040544070051016054",
+                    // dy: "-0.028572421603732637",
+                    "nx": width,
+                    "ny": height,
+                };
+
+                const windData = [
+                    {
+                        data: uData,
+                        header: {
+                            ...lngLat,
+                            ...other,
+                            "parameterCategory": 2,
+                            "parameterNumber": 2
+                        }
+                    },
+                    {
+                        data: vData,
+                        header: {
+                            "lo2": 359,
+                            "lo1": 0,
+                            "dx": 1,
+                            "dy": 1,
+                            "nx": 360,
+                            "ny": 181,
+                            "la2": -90,
+                            "la1": 90,
+                            "parameterCategory": 2,
+                            "parameterNumber": 3,
+                            ...lngLat,
+                            ...other
+                        }
+                    }
+                ];
+
+                console.log('windData->', windData)
+
+                // return;
+
+                // const options = {
+                //     canvas: tile,
+                //     data: windData,
+                //     // colorScale: ["rgb(180,0,35)"],
+                //     // colorScale: ["rgb(0,128,0)"],
+                //     colorScale: ["rgb(0,0,0)"],
+                //     frameRate: 60
+                // };
+                // const windy = new Windy(options);
+                // const size = {x: 256, y: 256};
+                // // const size = {x: 512, y: 512};
+                // // var size = this._map.getSize();
+                //
+                // windy.start(
+                //     [
+                //         [0, 0],
+                //         [size.x, size.y]
+                //     ],
+                //     size.x,
+                //     size.y,
+                //     [
+                //         [tileBounds._southWest.lng, tileBounds._southWest.lat],
+                //         [tileBounds._northEast.lng, tileBounds._northEast.lat]
+                //     ]
+                // );
+
+
+            }).catch(e => {
+                // console.log(`报错tif-->${z}/${x}/${y}.tif`)
+                // console.log("image.readRasters报错")
+                // console.error(e)
+            })
+        })
+        .catch((e) => {
+            // console.warn(`----------获取失败:${z}/${x}/${y}.tif---------------`)
+            // done(null, tile);
+        });
+}

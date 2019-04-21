@@ -233,6 +233,7 @@ export const drawWindyByTif = (mapUtil) => {
 
     const draw = (tiffs) => {
         tiffs.forEach(url => {
+
             GeoTIFF.fromUrl(url)
                 .then((tif) => tif.getImage())
                 .then((image) => {

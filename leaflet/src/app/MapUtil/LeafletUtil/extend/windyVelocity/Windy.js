@@ -265,7 +265,6 @@ const Windy = function( params ){
 
     let animationLoop;
     const animate = function(bounds, field) {
-
         function windIntensityColorScale(min, max) {
             colorScale.indexFor = function (m) {  // map velocity speed to a style
                 return Math.max(0, Math.min((colorScale.length - 1),
@@ -294,7 +293,9 @@ const Windy = function( params ){
             buckets.forEach(function(bucket) { bucket.length = 0; });
             particles.forEach(function(particle) {
                 if (particle.age > MAX_PARTICLE_AGE) {
+                    // console.time("field.randomize->")
                     field.randomize(particle).age = 0;
+                    // console.timeEnd("field.randomize->")
                 }
                 const x = particle.x;
                 const y = particle.y;
