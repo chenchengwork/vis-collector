@@ -245,6 +245,7 @@ export const drawWindyByTif = (mapUtil) => {
                         const height = imageData.height;
                         const uData = imageData[0];
                         const vData = imageData[1];
+                        //
 
                         const lngLat = {
                             "lo2": maxLng,
@@ -298,6 +299,7 @@ export const drawWindyByTif = (mapUtil) => {
     };
 
     draw(["/asserts/data/windy_tif/u_v.tif"])
+    // draw(["/asserts/data/windy_tif/bigdataquery.tiff"])
 
     // draw([
     //     "/asserts/data/windy_tif/4_11_5.tif",
@@ -316,6 +318,17 @@ export const drawWindyByTif = (mapUtil) => {
     //     "/asserts/data/windy_tif/4_14_7.tif",
     // ])
 }
+
+
+export const drawWindyByTifLayer = (mapUtil) => {
+    // http://10.0.4.52:9000/api/v1/bigdataquery
+    // http://localhost:4000/asserts/data/windy_tif/u_v.tif
+    mapUtil.addTifWindyLayer({
+        tifUrl: "http://localhost:4000/asserts/data/windy_tif/u_v.tif",
+        colorScale: ["rgb(180,0,35)"],
+        frameRate: 60
+    });
+};
 
 // 测试WMS
 export const setWMSLayer = (mapUtil) => {

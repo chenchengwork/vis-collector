@@ -153,7 +153,7 @@ const getTif = (zoom, bounds) => {
     console.log("extent->", extent)
 
     // fetch(`http://10.0.5.39:9000/api/v1/bigdataquery?z=${zoom}&extent=${JSON.stringify(extent)}`)
-    fetch(`http://10.0.5.39:9000/api/v1/bigdataquery?z=${zoom}&extent=${extent.join(",")}`)
+    fetch(`http://10.0.4.52:9000/api/v1/bigdataquery?z=${zoom}&extent=${extent.join(",")}`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
         .then((tif) => tif.getImage())

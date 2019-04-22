@@ -14,6 +14,9 @@ import MouseTool from './extend/mouseTool';
 // 加载风速layer
 import "./extend/windyVelocity";
 
+// 加载风速tiff layer
+import "./extend/windyTiffVelocity";
+
 // 加载风速tile layer
 import "./extend/windyTile";
 
@@ -334,6 +337,19 @@ export default class LeafletUtil {
         }, opts));
 
         return windyVelocityLayer
+    }
+
+    /**
+     * 添加风资源图层 tif
+     * @returns {*}
+     */
+    addTifWindyLayer = (opts = {}) => {
+
+        const windyTiffVelocityLayer = L.windyTiffVelocityLayer(Object.assign({
+            velocityScale: 0.005,    // 调整风速大小
+        }, opts)).addTo(this.map);
+
+        return windyTiffVelocityLayer
     }
 
     /**
