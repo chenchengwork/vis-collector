@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BaseMap from '../../components/BaseMap';
 import * as testUtil from './testMapUtil';
 
 const TestWindy = () => {
     const handleMapLoaded = (mapUtil) => {
+        const map = mapUtil.map;
+        setMapUtil(mapUtil);
+        setZoom(map.getZoom());
+
         // 绘制台风到地图
         // let typhoonData = testUtil.testDrawTyphoon(mapUtil);
 
@@ -46,10 +50,25 @@ const TestWindy = () => {
     };
 
 
+    const [ mapUtil, setMapUtil ] = useState(null);
+    const [ zoom, setZoom ] = useState("");
+
+
+    const handleZoom = (e) => {
+        const zoom = e.target.value;
+        setZoom(zoom);
+        mapUtil.map.setZoom(zoom);
+    }
     return (
-        <BaseMap
-            onMapLoaded={handleMapLoaded}
-        >TestWindy</BaseMap>
+        <div style={{position: "relative"}}>
+            <div>
+                <input value={zoom} onChange={handleZoom}/>
+                {/*<input value={1} onChange={handleZoom}/>*/}
+            </div>
+            <BaseMap
+                onMapLoaded={handleMapLoaded}
+            ></BaseMap>
+        </div>
     )
 };
 

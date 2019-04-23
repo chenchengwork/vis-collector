@@ -148,7 +148,8 @@ const Windy = function( params ){
             interpolate: interpolate
         });
     };
-
+    let count = 0;
+    let fjArr = []
     /**
      * Get interpolated grid value from Lon/Lat position
      * @param λ {Float} Longitude
@@ -156,10 +157,16 @@ const Windy = function( params ){
      * @returns {Object}
      */
     const interpolate = function(λ, φ) {
-
+        // λ是lng
+        // φ是lat
+        // λ0是minLng
+        // φ0是minLat
+        // Δλ = (maxLng - minLng) / image.width
+        // Δφ = (minLat - maxLat) / image.height
         if(!grid) return null;
 
         const i = floorMod(λ - λ0, 360) / Δλ;  // calculate longitude index in wrapped range [0, 360)
+        // setTimeout(() => console.log(i), 0)
         const j = (φ0 - φ) / Δφ;                 // calculate latitude index in direction +90 to -90
 
         const fi = Math.floor(i), ci = fi + 1;
@@ -167,6 +174,7 @@ const Windy = function( params ){
 
         let row;
         if ((row = grid[fj])) {
+            // fjArr.push(fj)
             const g00 = row[fi];
             const g10 = row[ci];
             if (isValue(g00) && isValue(g10) && (row = grid[cj])) {
@@ -221,7 +229,7 @@ const Windy = function( params ){
         const y = Math.max(Math.floor(upperLeft[1], 0), 0);
         const xMax = Math.min(Math.ceil(lowerRight[0], width), width - 1);
         const yMax = Math.min(Math.ceil(lowerRight[1], height), height - 1);
-        return {x: x, y: y, xMax: width, yMax: yMax, width: width, height: height};
+        return {x: x, y: y, xMax: xMax, yMax: yMax, width: width, height: height};
     };
 
     const interpolateField = function( grid, bounds, extent, callback ) {
@@ -238,7 +246,8 @@ const Windy = function( params ){
                 const coord = invert( x, y, extent );
                 if (coord) {
                     const λ = coord[0], φ = coord[1];
-                    if (isFinite(λ)) {
+
+                    if (isFinite(λ)) {  // 是否是有限值
                         let wind = grid.interpolate(λ, φ);
                         if (wind) {
                             wind = distort(projection, λ, φ, x, y, velocityScale, wind, extent);
@@ -260,6 +269,8 @@ const Windy = function( params ){
                     return;
                 }
             }
+
+            console.log("fjArr->", fjArr.sort())
             // console.log('columns->', columns)
             createField(columns, bounds, callback);
         })();
@@ -295,13 +306,12 @@ const Windy = function( params ){
             buckets.forEach(function(bucket) { bucket.length = 0; });
             particles.forEach(function(particle) {
                 if (particle.age > MAX_PARTICLE_AGE) {
-                    // console.time("field.randomize->")
                     field.randomize(particle).age = 0;
-                    // console.timeEnd("field.randomize->")
                 }
                 const x = particle.x;
                 const y = particle.y;
                 const v = field(x, y);  // vector at current position
+                // console.log(v)
                 const m = v[2];
                 if (m === null) {
                     particle.age = MAX_PARTICLE_AGE;  // particle has escaped the grid, never to return...
@@ -438,8 +448,7 @@ const Windy = function( params ){
             interpolateField(grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
                 // animate the canvas with random points
                 stop();
-                testBounds = bounds;
-                console.log('testBounds', testBounds);
+                console.log('bounds->', bounds);
                 windy.field = field;
                 console.time("animate->");
                 animate( bounds, field );

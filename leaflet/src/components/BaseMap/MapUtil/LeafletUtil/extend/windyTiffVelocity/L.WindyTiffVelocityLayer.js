@@ -1,4 +1,5 @@
-import Windy from './Windy';
+import Windy from '../windyVelocity/Windy';
+import L from "leaflet";
 (function(L, Windy){
     L.WindyTiffVelocityLayer = (L.Layer ? L.Layer : L.Class).extend({
         options: {
@@ -67,10 +68,48 @@ import Windy from './Windy';
             var bounds = this._map.getBounds();
             var size = this._map.getSize();
 
-            const url = `http://10.0.4.226:8080/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:climate_u-v&styles=&bbox=${bounds._southWest.lng},${bounds._southWest.lat},${bounds._northEast.lng},${bounds._northEast.lat}&width=${size.x}&height=${size.y}&srs=EPSG:4326&format=img/tif`;
+            let url = formatUrlParams(
+                "http://10.0.4.226:8070/wms",
+                // "/asserts/data/windy_tif/u_5_crop.tif",
+                {
+                    service: "WMS",
+                    version: "1.1.0",
+                    request:"GetMap",
+                    layers: "cite:climate_u-v",
+                    styles:"",
+                    bbox: `${bounds._southWest.lng},${bounds._southWest.lat},${bounds._northEast.lng},${bounds._northEast.lat}`,
+                    // width: size.x,
+                    // height: size.y,
+                    width: 256,
+                    height: 256,
+                    srs: "EPSG:4326",
+                    format: "img/tif",
+                    z: this._map.getZoom()
+                }
+            );
+            // url = "/asserts/data/windy_tif/u_5_crop_x.tif";
+            // url = "/asserts/data/windy_tif/u_5_x.tif";
+            // const url = `http://10.0.4.226:8080/geoserver/cite/wms?srs=EPSG:4326&format=img/tif`;
+            // const url = `http://10.0.4.226:8080/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:climate_u-v&styles=&bbox=${bounds._southWest.lng},${bounds._southWest.lat},${bounds._northEast.lng},${bounds._northEast.lat}&width=${size.x}&height=${size.y}&srs=EPSG:4326&format=img/tif`;
             // getTif(this.options.tifUrl, this._map.getZoom(), bounds).then((windData) => {
-            getTif(url, this._map.getZoom(), bounds).then((windData) => {
+            getTif(url, this._map.getZoom(), bounds).then(({windData, image}) => {
                 this._windy.setData(windData);
+                const { la1, la2, lo1, lo2, nx, ny } = windData[0].header;
+                // this._windy.start(
+                //     [
+                //         [0, 0],
+                //         [nx, ny]
+                //     ],
+                //     nx,
+                //     ny,
+                //     [
+                //         [bounds._southWest.lng, bounds._southWest.lat],
+                //         [bounds._northEast.lng, bounds._northEast.lat]
+                //     ]);
+
+                const [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
+                L.rectangle([[minLat, minLng], [maxLat, maxLng]], {color: "#ff7800", weight: 1}).addTo(this._map);
+
                 this._windy.start(
                     [
                         [0, 0],
@@ -141,6 +180,17 @@ import Windy from './Windy';
 })(L, Windy)
 
 
+const formatUrlParams = (url, params = {}) => {
+    Object.keys(params).forEach((key, index) => {
+        if (index === 0 && url.indexOf('?') === -1) {
+            url += '?' + key + '=' + params[key];
+        } else {
+            url += '&' + key + '=' + params[key];
+        }
+    });
+
+    return url;
+}
 
 const getTif = (tifUrl, zoom, bounds) => {
     const GeoTIFF = require('geotiff/src/main');
@@ -156,7 +206,8 @@ const getTif = (tifUrl, zoom, bounds) => {
     return new Promise((resolve, reject) => {
         // fetch(`http://10.0.5.39:9000/api/v1/bigdataquery?z=${zoom}&extent=${JSON.stringify(extent)}`)
         // fetch(`http://10.0.4.52:9000/api/v1/bigdataquery?z=${zoom}&extent=${extent.join(",")}`)
-        fetch(`${tifUrl}?z=${zoom}&extent=${extent.join(",")}`)
+        // fetch(`${tifUrl}?z=${zoom}&extent=${extent.join(",")}`)
+        fetch(tifUrl)
             .then((response) => response.arrayBuffer())
             .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
             .then((tif) => tif.getImage())
@@ -218,7 +269,7 @@ const getTif = (tifUrl, zoom, bounds) => {
 
                     console.log('windData->', windData)
 
-                    resolve(windData);
+                    resolve({windData, image});
 
                     // return;
 
