@@ -7,9 +7,6 @@
  interpolation and animation process.
  */
 
-// 关于风向的u、v分量及js、c#根据uv计算风向公式(https://www.giserdqy.com/gis/opengis/algorithm/1288/)
-
-import WindyWorker from './Windy.worker';
 
 import {
     isValue,
@@ -371,6 +368,8 @@ const Windy = function( params ){
 
     let testBounds = null;
     const start = function( bounds, width, height, extent ){
+        if(!gridData) return ;
+
         const mapBounds = {
             south: deg2rad(extent[0][1]),   // 西南纬度
             north: deg2rad(extent[1][1]),   // 东北纬度
@@ -380,85 +379,18 @@ const Windy = function( params ){
             height: height
         };
 
-        // stop();
-        // if(grid) return;
-        // build grid
-
-        // const windyWorker = new WindyWorker();
-        // windyWorker.postMessage({
-        //     type: "buildGrid",
-        //     data: [
-        //         {
-        //             data: new Float32Array(gridData[0].data).buffer,
-        //             header: gridData[0].header
-        //         },
-        //         {
-        //             data: new Float32Array(gridData[1].data).buffer,
-        //             header: gridData[1].header
-        //         }
-        //     ]
-        // });
-        // // windyWorker.postMessage({type: "buildGrid", data: new Float32Array([1,2]).buffer});
-        // windyWorker.onmessage = (e) => {
-        //    // console.log(e);
-        //    const { type, data } = e.data;
-        //    return;
-        //    switch (type) {
-        //        case "buildGrid": {
-        //            console.log(data);
-        //            grid = data.grid;
-        //            λ0 = data.λ0;
-        //            φ0 = data.φ0;  // the grid's origin (e.g., 0.0E, 90.0N)
-        //
-        //            Δλ = data.Δλ;
-        //            Δφ = data.Δφ;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
-        //
-        //            ni = data.ni;
-        //            nj = data.nj;    // number of grid points W-E and N-S (e.g., 144 x 73)
-        //
-        //            builder = {
-        //                header: data.header,
-        //                interpolate: bilinearInterpolateVector
-        //            };
-        //
-        //            buildGridCallback({
-        //                date: date,
-        //                interpolate: interpolate
-        //            })
-        //            break;
-        //        }
-        //    }
-        // };
-
-
         const buildGridCallback = function(grid){
-            console.time("interpolateField->")
-
             // interpolateField
             interpolateField(grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
                 // animate the canvas with random points
                 stop();
                 testBounds = bounds;
-                console.log('testBounds', testBounds);
                 windy.field = field;
-                console.time("animate->");
                 animate( bounds, field );
-                console.timeEnd("animate->");
             });
-            console.timeEnd("interpolateField->")
         };
 
-        // if(grid){
-        //     // console.log(grid);
-        //     buildGridCallback({
-        //         interpolate: interpolate
-        //     });
-        //     return;
-        // }
-
-        console.time("buildGrid->");
         buildGrid(gridData, buildGridCallback);
-        console.timeEnd("buildGrid->")
     };
 
     const stop = function () {

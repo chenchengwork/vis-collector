@@ -7,19 +7,6 @@
  interpolation and animation process.
  */
 
-// 关于风向的u、v分量及js、c#根据uv计算风向公式(https://www.giserdqy.com/gis/opengis/algorithm/1288/)
-
-import WindyWorker from './Windy.worker';
-
-import {
-    isValue,
-    floorMod,
-    isMobile,
-    distort,
-    deg2rad,
-    invert
-} from './windyHelper';
-
 const Windy = function( params ){
 
     const MIN_VELOCITY_INTENSITY = params.minVelocity || 0;                      // velocity at which particle intensity is minimum (m/s)
@@ -64,7 +51,7 @@ const Windy = function( params ){
     };
 
     // interpolation for vectors like wind (u,v,m)
-    // 插值向量数据(u, v, m)
+    // 插值向量数据
     const bilinearInterpolateVector = function(x, y, g00, g10, g01, g11) {
         const rx = (1 - x);
         const ry = (1 - y);
@@ -73,6 +60,7 @@ const Windy = function( params ){
         const v = g00[1] * a + g10[1] * b + g01[1] * c + g11[1] * d;
         return [u, v, Math.sqrt(u * u + v * v)];
     };
+
 
     const createWindBuilder = function(uComp, vComp) {
         const uData = uComp.data, vData = vComp.data;
@@ -112,14 +100,14 @@ const Windy = function( params ){
         builder = createBuilder(data);
         const header = builder.header;
 
-        λ0 = header.lo1;   // 最小经度
-        φ0 = header.la1;   // 最小维度 the grid's origin (e.g., 0.0E, 90.0N)
+        λ0 = header.lo1;
+        φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
 
         Δλ = header.dx;
         Δφ = header.dy;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
 
-        ni = header.nx;    // u宽度
-        nj = header.ny;    // v高度 number of grid points W-E and N-S (e.g., 144 x 73)
+        ni = header.nx;
+        nj = header.ny;    // number of grid points W-E and N-S (e.g., 144 x 73)
 
         // TODO 暂时注释掉时间, 没有发现时间的作用
         // date = new Date(header.refTime);
@@ -178,8 +166,73 @@ const Windy = function( params ){
                 }
             }
         }
-
         return null;
+    };
+
+
+    /**
+     * @returns {Boolean} true if the specified value is not null and not undefined.
+     */
+    const isValue = function(x) {
+        return x !== null && x !== undefined;
+    };
+
+    /**
+     * @returns {Number} returns remainder of floored division, i.e., floor(a / n). Useful for consistent modulo
+     *          of negative numbers. See http://en.wikipedia.org/wiki/Modulo_operation.
+     */
+    const floorMod = function(a, n) {
+        return a - n * Math.floor(a / n);
+    };
+
+    /**
+     * @returns {Number} the value x clamped to the range [low, high].
+     */
+    const clamp = function(x, range) {
+        return Math.max(range[0], Math.min(x, range[1]));
+    };
+
+    /**
+     * @returns {Boolean} true if agent is probably a mobile device. Don't really care if this is accurate.
+     */
+    const isMobile = function() {
+        return (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
+    };
+
+    /**
+     * Calculate distortion of the wind vector caused by the shape of the projection at point (x, y). The wind
+     * vector is modified in place and returned by this function.
+     */
+    const distort = function(projection, λ, φ, x, y, scale, wind, windy) {
+        const u = wind[0] * scale;
+        const v = wind[1] * scale;
+        const d = distortion(projection, λ, φ, x, y, windy);
+
+        // Scale distortion vectors by u and v, then add.
+        wind[0] = d[0] * u + d[2] * v;
+        wind[1] = d[1] * u + d[3] * v;
+        return wind;
+    };
+
+    const distortion = function(projection, λ, φ, x, y, windy) {
+        const τ = 2 * Math.PI;
+        // const H = Math.pow(10, -5.2);
+        const H = params.crs && params.crs.code === 'EPSG:4326' ? 5 : Math.pow(10, -5.2);
+        const hλ = λ < 0 ? H : -H;
+        const hφ = φ < 0 ? H : -H;
+
+        const pλ = project(φ, λ + hλ,windy);
+        const pφ = project(φ + hφ, λ, windy);
+
+        // Meridian scale factor (see Snyder, equation 4-3), where R = 1. This handles issue where length of 1º λ
+        // changes depending on φ. Without this, there is a pinching effect at the poles.
+        const k = Math.cos(φ / 360 * τ);
+        return [
+            (pλ[0] - x) / hλ / k,
+            (pλ[1] - y) / hλ / k,
+            (pφ[0] - x) / hφ,
+            (pφ[1] - y) / hφ
+        ];
     };
 
     const createField = function(columns, bounds, callback) {
@@ -224,7 +277,56 @@ const Windy = function( params ){
         return {x: x, y: y, xMax: width, yMax: yMax, width: width, height: height};
     };
 
+    const deg2rad = function( deg ){
+        return (deg / 180) * Math.PI;
+    };
+
+    const rad2deg = function( ang ){
+        return ang / (Math.PI/180.0);
+    };
+
+    let invert
+
+    if (params.crs && params.crs.code === 'EPSG:4326') {
+        invert = function (x, y, windy) {
+            const mapLonDelta = windy.east - windy.west;
+            const mapLatDelta = windy.south - windy.north;
+            const lat = rad2deg(windy.north) + y / windy.height * rad2deg(mapLatDelta);
+            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
+            return [lon, lat];
+        };
+    } else {
+        invert = function (x, y, windy) {
+            const mapLonDelta = windy.east - windy.west;
+            const worldMapRadius = windy.width / rad2deg(mapLonDelta) * 360 / (2 * Math.PI);
+            const mapOffsetY = (worldMapRadius / 2 * Math.log((1 + Math.sin(windy.south)) / (1 - Math.sin(windy.south))));
+            const equatorY = windy.height + mapOffsetY;
+            const a = (equatorY - y) / worldMapRadius;
+            const lat = 180 / Math.PI * (2 * Math.atan(Math.exp(a)) - Math.PI / 2);
+            const lon = rad2deg(windy.west) + x / windy.width * rad2deg(mapLonDelta);
+            return [lon, lat];
+        };
+    }
+
+    const mercY = function( lat ) {
+        return Math.log( Math.tan( lat / 2 + Math.PI / 4 ) );
+    };
+
+
+    const project = function( lat, lon, windy) { // both in radians, use deg2rad if neccessary
+        const ymin = mercY(windy.south);
+        const ymax = mercY(windy.north);
+        const xFactor = windy.width / ( windy.east - windy.west );
+        const yFactor = windy.height / ( ymax - ymin );
+
+        let y = mercY( deg2rad(lat) );
+        const x = (deg2rad(lon) - windy.west) * xFactor;
+        y = (ymax - y) * yFactor; // y points south
+        return [x, y];
+    };
+
     const interpolateField = function( grid, bounds, extent, callback ) {
+
         const projection = {};
         const mapArea = ((extent.south - extent.north) * (extent.west - extent.east));
         const velocityScale = VELOCITY_SCALE * Math.pow(mapArea, 0.4);
@@ -260,17 +362,19 @@ const Windy = function( params ){
                     return;
                 }
             }
-            // console.log('columns->', columns)
             createField(columns, bounds, callback);
         })();
     };
 
     let animationLoop;
     const animate = function(bounds, field) {
+
         function windIntensityColorScale(min, max) {
+
             colorScale.indexFor = function (m) {  // map velocity speed to a style
                 return Math.max(0, Math.min((colorScale.length - 1),
                     Math.round((m - min) / (max - min) * (colorScale.length - 1))));
+
             };
 
             return colorScale;
@@ -295,9 +399,7 @@ const Windy = function( params ){
             buckets.forEach(function(bucket) { bucket.length = 0; });
             particles.forEach(function(particle) {
                 if (particle.age > MAX_PARTICLE_AGE) {
-                    // console.time("field.randomize->")
                     field.randomize(particle).age = 0;
-                    // console.timeEnd("field.randomize->")
                 }
                 const x = particle.x;
                 const y = particle.y;
@@ -331,7 +433,6 @@ const Windy = function( params ){
         g.globalAlpha = 0.6;
 
         function draw() {
-            // console.log('buckets->', buckets)
             // Fade existing particle trails.
             const prev = "lighter";
             g.globalCompositeOperation = "destination-in";
@@ -356,7 +457,6 @@ const Windy = function( params ){
 
         let then = Date.now();
         (function frame() {
-            // console.time("frame->")
             animationLoop = requestAnimationFrame(frame);
             const now = Date.now();
             const delta = now - then;
@@ -365,100 +465,32 @@ const Windy = function( params ){
                 evolve();
                 draw();
             }
-            // console.timeEnd("frame->")
         })();
     };
 
-    let testBounds = null;
     const start = function( bounds, width, height, extent ){
+
         const mapBounds = {
-            south: deg2rad(extent[0][1]),   // 西南纬度
-            north: deg2rad(extent[1][1]),   // 东北纬度
-            east: deg2rad(extent[1][0]),    // 东北经度
-            west: deg2rad(extent[0][0]),    // 西南经度
+            south: deg2rad(extent[0][1]),   // 转换成弧度
+            north: deg2rad(extent[1][1]),
+            east: deg2rad(extent[1][0]),
+            west: deg2rad(extent[0][0]),
             width: width,
             height: height
         };
 
-        // stop();
-        // if(grid) return;
+        stop();
+
         // build grid
-
-        // const windyWorker = new WindyWorker();
-        // windyWorker.postMessage({
-        //     type: "buildGrid",
-        //     data: [
-        //         {
-        //             data: new Float32Array(gridData[0].data).buffer,
-        //             header: gridData[0].header
-        //         },
-        //         {
-        //             data: new Float32Array(gridData[1].data).buffer,
-        //             header: gridData[1].header
-        //         }
-        //     ]
-        // });
-        // // windyWorker.postMessage({type: "buildGrid", data: new Float32Array([1,2]).buffer});
-        // windyWorker.onmessage = (e) => {
-        //    // console.log(e);
-        //    const { type, data } = e.data;
-        //    return;
-        //    switch (type) {
-        //        case "buildGrid": {
-        //            console.log(data);
-        //            grid = data.grid;
-        //            λ0 = data.λ0;
-        //            φ0 = data.φ0;  // the grid's origin (e.g., 0.0E, 90.0N)
-        //
-        //            Δλ = data.Δλ;
-        //            Δφ = data.Δφ;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
-        //
-        //            ni = data.ni;
-        //            nj = data.nj;    // number of grid points W-E and N-S (e.g., 144 x 73)
-        //
-        //            builder = {
-        //                header: data.header,
-        //                interpolate: bilinearInterpolateVector
-        //            };
-        //
-        //            buildGridCallback({
-        //                date: date,
-        //                interpolate: interpolate
-        //            })
-        //            break;
-        //        }
-        //    }
-        // };
-
-
-        const buildGridCallback = function(grid){
-            console.time("interpolateField->")
-
+        buildGrid(gridData, function(grid){
             // interpolateField
-            interpolateField(grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
+            interpolateField( grid, buildBounds( bounds, width, height), mapBounds, function( bounds, field ){
                 // animate the canvas with random points
-                stop();
-                testBounds = bounds;
-                console.log('testBounds', testBounds);
                 windy.field = field;
-                console.time("animate->");
                 animate( bounds, field );
-                console.timeEnd("animate->");
             });
-            console.timeEnd("interpolateField->")
-        };
 
-        // if(grid){
-        //     // console.log(grid);
-        //     buildGridCallback({
-        //         interpolate: interpolate
-        //     });
-        //     return;
-        // }
-
-        console.time("buildGrid->");
-        buildGrid(gridData, buildGridCallback);
-        console.timeEnd("buildGrid->")
+        });
     };
 
     const stop = function () {

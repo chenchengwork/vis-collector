@@ -39,8 +39,8 @@ export default class Map extends PureComponent {
         // testUtil.drawWindyByImg(mapUtil);
 
 
-        // testUtil.drawWindyByTif(mapUtil);
-        testUtil.drawWindyByTifLayer(mapUtil);
+        testUtil.drawWindyByTif(mapUtil);
+        // testUtil.drawWindyByTifLayer(mapUtil);
         // mapUtil.addWindyTile()
 
 

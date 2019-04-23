@@ -385,7 +385,7 @@ export const testMoveMarker = (L, mapUtil) => {
      */
     const marker1 = L.Marker.movingMarker(parisKievLL, [3000, 9000, 9000, 4000], {
         icon: L.icon({
-            iconUrl: require('./MapUtil/LeafletUtil/img/marker.png'),
+            iconUrl: require('./img/marker.png'),
             iconSize: [16, 16],
             // iconAnchor: [16, 16],
         })}).addTo(map);
