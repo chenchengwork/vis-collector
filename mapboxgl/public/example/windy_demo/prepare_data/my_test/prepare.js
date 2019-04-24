@@ -16,7 +16,7 @@ const name = process.argv[3] || path.basename(srcFile, ".json");
 const data = JSON.parse(fs.readFileSync(srcFile));
 // const data = JSON.parse(fs.readFileSync('windy_10.json'));
 // const data = JSON.parse(fs.readFileSync('creat_big.json'));
-
+console.log(data)
 const getMin = (data) => {
     let value = 0;
     data.forEach(item => value = Math.min(value, item));
@@ -60,43 +60,43 @@ if(true) {
         height: height * 2
     });
 
-    // for (let y = 0; y < height; y++) {
-    //     for (let x = 0; x < width; x++) {
-    //         const i = (y * width + x) * 4;
-    //         // const k = y * width + (x + width / 2) % width;
-    //         const k = y * width + x;
-    //         png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
-    //         png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
-    //         png.data[i + 2] = 0;
-    //         png.data[i + 3] = 255;
-    //     }
-    // }
-
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            const i = (y * width + x) * 8;
+            const i = (y * width + x) * 4;
+            // const k = y * width + (x + width / 2) % width;
             const k = y * width + x;
-            const uArr = u.values[k].toString().split(".");
-            const uInt = parseInt(uArr[0]);
-            const uDecimal = parseInt(uArr[1]);
-
-            const vArr = v.values[k].toString().split(".");
-            const vInt = parseInt(vArr[0]);
-            const vDecimal = parseInt(vArr[1]);
-
-            // png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
-            // png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
-            png.data[i + 0] = Math.abs(uInt);
-            png.data[i + 1] = Math.abs(vInt);
-            png.data[i + 2] = parseInt(`${uInt > 0 ? 1 : 2}${vInt > 0 ? 1 : 2}`);
+            png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+            png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+            png.data[i + 2] = 0;
             png.data[i + 3] = 255;
-
-            png.data[i + 4] = uDecimal;
-            png.data[i + 5] = vDecimal;
-            png.data[i + 6] = 0;
-            png.data[i + 7] = 255;
         }
     }
+
+    // for (let y = 0; y < height; y++) {
+    //     for (let x = 0; x < width; x++) {
+    //         const i = (y * width + x) * 8;
+    //         const k = y * width + x;
+    //         const uArr = u.values[k].toString().split(".");
+    //         const uInt = parseInt(uArr[0]);
+    //         const uDecimal = parseInt(uArr[1]);
+    //
+    //         const vArr = v.values[k].toString().split(".");
+    //         const vInt = parseInt(vArr[0]);
+    //         const vDecimal = parseInt(vArr[1]);
+    //
+    //         // png.data[i + 0] = Math.floor(255 * (u.values[k] - u.minimum) / (u.maximum - u.minimum));
+    //         // png.data[i + 1] = Math.floor(255 * (v.values[k] - v.minimum) / (v.maximum - v.minimum));
+    //         png.data[i + 0] = Math.abs(uInt);
+    //         png.data[i + 1] = Math.abs(vInt);
+    //         png.data[i + 2] = parseInt(`${uInt > 0 ? 1 : 2}${vInt > 0 ? 1 : 2}`);
+    //         png.data[i + 3] = 255;
+    //
+    //         png.data[i + 4] = uDecimal;
+    //         png.data[i + 5] = vDecimal;
+    //         png.data[i + 6] = 0;
+    //         png.data[i + 7] = 255;
+    //     }
+    // }
 
     png.pack().pipe(fs.createWriteStream(`output/${name}.png`));
 
