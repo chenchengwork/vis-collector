@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "geotiff": "^1.0.0-beta.6",
-    "leaflet": "^1.4.0"
+    "leaflet": "^1.4.0",
+    "tiff.js": "^1.0.0",
+    "utif": "^3.0.0"
   },
   "devDependencies": {},
   "author": "chencheng",

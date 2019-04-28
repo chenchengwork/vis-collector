@@ -35,119 +35,112 @@ export default TestWindy;
 
 const drawWindyByTif = (mapUtil) => {
     const GeoTIFF = require('geotiff/src/main');
-    // const GeoTIFF = require('./geotiff/main');
+    const GeoTIFFCustom = require('./geotiff/main');
     let windy = null;
 
-    const draw = (tiffs, opts = {}, opts1= {}, minLatStep = 0, maxLatStep = 0) => {
-        tiffs.forEach(url => {
+    const draw = (GeoTIFF, url, opts = {}, opts1= {}) => new Promise((resolve, reject) =>{
 
-            fetch(url)
-                .then((response) => response.arrayBuffer())
-                .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
-                .then((tif) => tif.getImage())
-                .then((image) => {
-                    // console.log("image.getBoundingBox", image.getBoundingBox());
-                    let [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
-                    minLat -= minLatStep;
-                    maxLat -= maxLatStep;
-                    image.readRasters({
-                        // interleave: true
-                    }).then((imageData) => {
-                        const width = imageData.width;
-                        const height = imageData.height;
-                        const uData = imageData[0];
-                        const vData = imageData[1];
-                        //
+        fetch(url)
+            .then((response) => response.arrayBuffer())
+            .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
+            .then((tif) => tif.getImage())
+            .then((image) => {
+                // console.log("image.getBoundingBox", image.getBoundingBox());
+                let [minLng, minLat, maxLng, maxLat] = image.getBoundingBox();
+                image.readRasters({
+                    // interleave: true
+                }).then((imageData) => {
+                    const width = imageData.width;
+                    const height = imageData.height;
+                    const uData = imageData[0];
+                    const vData = imageData[1];
+                    //
 
-                        const lngLat = {
-                            "lo2": maxLng,
-                            "lo1": minLng,
-                            "la2": maxLat,
-                            "la1": minLat,
-                        };
+                    const lngLat = {
+                        "lo2": maxLng,
+                        "lo1": minLng,
+                        "la2": maxLat,
+                        "la1": minLat,
+                    };
 
-                        const other = {
-                            "dx": (maxLng - minLng) / width,
-                            "dy": (minLat - maxLat) / height,
-                            "nx": width,
-                            "ny": height,
-                        };
+                    const other = {
+                        "dx": (maxLng - minLng) / width,
+                        "dy": (minLat - maxLat) / height,
+                        "nx": width,
+                        "ny": height,
+                    };
 
-                        const windData = [
-                            {
-                                data: uData,
-                                header: {
-                                    ...lngLat,
-                                    ...other,
-                                    "parameterCategory": 2,
-                                    "parameterNumber": 2
-                                }
-                            },
-                            {
-                                data: vData,
-                                header: {
-                                    "parameterCategory": 2,
-                                    "parameterNumber": 3,
-                                    ...lngLat,
-                                    ...other
-                                }
+                    const windData = [
+                        {
+                            data: uData,
+                            header: {
+                                ...lngLat,
+                                ...other,
+                                "parameterCategory": 2,
+                                "parameterNumber": 2
                             }
-                        ];
+                        },
+                        {
+                            data: vData,
+                            header: {
+                                "parameterCategory": 2,
+                                "parameterNumber": 3,
+                                ...lngLat,
+                                ...other
+                            }
+                        }
+                    ];
 
-                        console.log('windData->', windData)
-                        // if(windy){
-                        //     windy.setData(windData)
-                        //     return;
-                        // }
-
-                        windy = mapUtil.addWindyLayer(windData, Object.assign({
-                            colorScale: ["rgb(180,0,35)"],
-                            frameRate: 60
-                        }, opts)).addTo(mapUtil.map);
-                        console.log(JSON.stringify([[minLat, minLng], [maxLat, maxLng]]));
-
-                        mapUtil.addRectangle([[minLat, minLng], [maxLat, maxLng]], Object.assign({color: "#ff7800", weight: 1}, opts1));
-                    })
+                    resolve({windData, bounds: [[minLat, minLng], [maxLat, maxLng]]})
                 })
-        })
-    };
+            })
+    });
 
-    // draw(["/asserts/data/windy_tif/u_v.tif"])
-    // draw(["/asserts/data/windy_tif/u_5.tif"],
-    draw(["/asserts/data/windy_tif/u_5_x_1.tif"],
+    draw(
+        GeoTIFF,
+        "/asserts/data/windy_tif/u_v_gdal.tif",
         {colorScale: ["rgb(180,0,35)"]},
         {color: "rgb(180,0,35)"},
-        0,
-        0
-    );
+    ).then(({windData, bounds}) => {
+        console.log("windData gdal->", windData)
+        windy = mapUtil.addWindyLayer(windData, {
+            colorScale: ["rgb(180,0,35)"],
+            frameRate: 60
+        }).addTo(mapUtil.map);
+
+        mapUtil.addRectangle(bounds, {color: "rgb(180,0,35)", weight: 1});
+    });
 
 
-    // draw(["/asserts/data/windy_tif/u_5_crop.tif"],
-    draw(["/asserts/data/windy_tif/u_5_crop_x_1.tif"],
+
+    draw(
+        GeoTIFFCustom,
+        "/asserts/data/windy_tif/u_v_geotrellis.tif",
+        // "/asserts/data/windy_tif/u_5_x.tif",
+        // "/asserts/data/windy_tif/u_5_mask_x.tif",
         {colorScale: ["rgb(36,104, 180)"]},
         {color: "rgb(36,104, 180)"},
-        // 6,
-        // 6
-    )
-    // draw(["http://10.0.4.226:8070/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:climate_u-v&styles=&bbox=39.90234375000001,33.797408767572485,161.98242187500003,44.402391829093915&width=256&height=256&srs=EPSG:4326&format=img/tif&z=4"])
-    // draw(["/asserts/data/windy_tif/u_5_x.tif"])
+    ).then(({windData, bounds}) => {
+        console.log("windData geotrellis->", windData)
+        windy = mapUtil.addWindyLayer(windData, {
+            colorScale: ["rgb(36,104, 180)"],
+            frameRate: 60
+        }).addTo(mapUtil.map);
 
-    // draw([
-    //     "/asserts/data/windy_tif/4_11_5.tif",
-    //     "/asserts/data/windy_tif/4_12_5.tif",
-    //     "/asserts/data/windy_tif/4_13_5.tif",
-    //     "/asserts/data/windy_tif/4_14_5.tif",
-    //
-    //     "/asserts/data/windy_tif/4_11_6.tif",
-    //     "/asserts/data/windy_tif/4_12_6.tif",
-    //     "/asserts/data/windy_tif/4_13_6.tif",
-    //     "/asserts/data/windy_tif/4_14_6.tif",
-    //
-    //     "/asserts/data/windy_tif/4_11_7.tif",
-    //     "/asserts/data/windy_tif/4_12_7.tif",
-    //     "/asserts/data/windy_tif/4_13_7.tif",
-    //     "/asserts/data/windy_tif/4_14_7.tif",
-    // ])
+        mapUtil.addRectangle(bounds, {color: "rgb(36,104, 180)", weight: 1});
+    });
+
+
+
+    // fetch("/asserts/data/windy_tif/uv_gdal.json")
+    //     .then((resp) => resp.json())
+    //     .then((windData) => {
+    //         console.log('windData json ->', windData);
+    //         const windy = mapUtil.addWindyLayer(windData, {
+    //             colorScale: ["rgb(36,104, 180)"],
+    //             frameRate: 60
+    //         }).addTo(mapUtil.map);
+    //     })
 
 
     function createAndDownloadFile(fileName, content) {
@@ -158,4 +151,4 @@ const drawWindyByTif = (mapUtil) => {
         aTag.click();
         URL.revokeObjectURL(blob);
     }
-}
+};

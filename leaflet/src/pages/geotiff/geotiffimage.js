@@ -165,9 +165,11 @@ class GeoTIFFImage {
   }
 
   getReaderForSample(sampleIndex) {
+    console.log('this.fileDirectory->', this.fileDirectory)
     // const format = this.fileDirectory.SampleFormat ?
     //   this.fileDirectory.SampleFormat[sampleIndex] : 1;
     // const bitsPerSample = this.fileDirectory.BitsPerSample[sampleIndex];
+
     // TODO 暂时处理报错问题
     const format = 3;
     const bitsPerSample = 32;
@@ -214,7 +216,6 @@ class GeoTIFFImage {
   }
 
   getArrayForSample(sampleIndex, size) {
-    // console.log('this.fileDirectory->', this.fileDirectory)
     // const format = this.fileDirectory.SampleFormat ?
     //   this.fileDirectory.SampleFormat[sampleIndex] : 1;
     // const bitsPerSample = this.fileDirectory.BitsPerSample[sampleIndex];
@@ -222,6 +223,7 @@ class GeoTIFFImage {
     // TODO 暂时处理报错问题
     const format = 3;
     const bitsPerSample = 32;
+
     return arrayForType(format, bitsPerSample, size);
   }
 
@@ -458,8 +460,10 @@ class GeoTIFFImage {
         } else if (fillValue && !Array.isArray(fillValue)) {
           valueArray.fill(fillValue);
         }
+
         valueArrays.push(valueArray);
       }
+
     }
 
     const poolOrDecoder = pool || getDecoder(this.fileDirectory);

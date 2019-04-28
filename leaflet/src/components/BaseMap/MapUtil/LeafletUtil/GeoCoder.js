@@ -77,7 +77,7 @@ export default class GeoCoder {
         ).then((resp) => resp.json())
         .then((resp) => {
             const { districts } = resp;
-            if(!districts || districts.length < 0){
+            if(!districts || districts.length <= 0){
                 throw new Error("未找到行政区");
             }
 
