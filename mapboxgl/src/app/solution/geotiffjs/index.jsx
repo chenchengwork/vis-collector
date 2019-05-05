@@ -5,8 +5,8 @@ import DrawByMapbox from './DrawByMapbox';
 export default class GeoTiff extends PureComponent{
 
     render(){
-        // return (<DrawByPlotty />)
-        return ( <DrawByMapbox />)
+        return (<DrawByPlotty />)
+        // return ( <DrawByMapbox />)
     }
 }
 

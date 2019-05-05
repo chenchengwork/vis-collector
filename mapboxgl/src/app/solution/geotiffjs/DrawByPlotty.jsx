@@ -1,5 +1,6 @@
 import { PureComponent } from 'react';
-import * as plotty from 'plotty';
+// import * as plotty from 'plotty';
+import * as plotty from './myPlotty/plotty';
 import * as GeoTIFF from 'geotiff';
 
 export default class DrawByPlotty extends PureComponent{
@@ -40,8 +41,7 @@ export default class DrawByPlotty extends PureComponent{
     }
 
     drawTiff = () => {
-        var imageWindow = [0, 0, 500, 500];
-        var tiffs = [
+        const tiffs = [
             "stripped.tiff",
             // "nat_color.tif",
             // "tiled.tiff",
@@ -61,7 +61,7 @@ export default class DrawByPlotty extends PureComponent{
         ];
 
 
-        var rgbtiffs = [
+        const rgbtiffs = [
             // "stripped.tiff",
             // "rgb.tiff",
 
@@ -74,114 +74,75 @@ export default class DrawByPlotty extends PureComponent{
             // "jpeg.tiff",
             // "jpeg_ycbcr.tiff",
         ];
+
         const pool = new GeoTIFF.Pool();
-        var bandsSelect = document.getElementById("bands");
-        for (var i = 0; i < 15; ++i) {
-            var option = document.createElement("option");
-            option.value = i;
-            option.text = i+1;
-            bandsSelect.appendChild(option);
-        }
+        // const bandsSelect = document.getElementById("bands");
+        // for (let i = 0; i < 15; ++i) {
+        //     const option = document.createElement("option");
+        //     option.value = i;
+        //     option.text = i+1;
+        //     bandsSelect.appendChild(option);
+        // }
 
 
         tiffs.forEach(function(filename) {
-            var xhr = new XMLHttpRequest();
-            // xhr.open('GET', 'data/' + filename, true);
-            xhr.open('GET', 'tiff/' + filename, true);
+            const tifUrl = 'tiff/' + filename;
 
-            xhr.responseType = 'arraybuffer';
             var div = document.createElement("div");
             div.style.float = "left";
             var header = document.createElement("p");
             header.innerHTML = filename;
             var canvas = document.createElement("canvas");
             canvas.id = filename;
-            canvas.width = 500;
+            canvas.width = 700;
             canvas.height = 500;
             div.appendChild(header);
             div.appendChild(canvas);
             document.getElementById("canvases").appendChild(div);
 
 
+            fetch(tifUrl)
+                .then((response) => response.arrayBuffer())
+                .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
+                .then(tif => tif.getImage())
+                .then((image) => {
+                    console.log(image);
+                    console.log("getGDALMetadata",image.getGDALMetadata());
+                    console.log("getOrigin",image.getOrigin());
+                    console.log("getResolution",image.getResolution());
+                    console.log("getBoundingBox", image.getBoundingBox());
+                    // console.log(image.getTiePoints());
+                    // var imageWindow = null;
 
-
-            xhr.onload = function(e) {
-                console.time("readRasters " + filename);
-                GeoTIFF.fromArrayBuffer(this.response)
-                    .then(parser => parser.getImage())
-                    .then((image) => {
-                        console.log(image);
-                        console.log("getGDALMetadata",image.getGDALMetadata());
-                        console.log("getOrigin",image.getOrigin());
-                        console.log("getResolution",image.getResolution());
-                        console.log("getBoundingBox", image.getBoundingBox());
-                        // console.log(image.getTiePoints());
-                        // var imageWindow = null;
-                        var width = image.getWidth();
-                        var height = image.getHeight();
-
-                        // if (imageWindow) {
-                        //     width = imageWindow[2] - imageWindow[0];
-                        //     height = imageWindow[3] - imageWindow[1];
-                        // }
-
-                        var plot;
-                        bandsSelect.addEventListener("change", function (e) {
-                            image.readRasters({ samples: [parseInt(bandsSelect.options[bandsSelect.selectedIndex].value)], poolSize: 8 })
-                                .then(function (rasters) {
-                                    var canvas = document.getElementById(filename);
-                                    // plot = new plotty.plot(canvas, rasters[0], width, height, [10, 65000], "viridis", false);
-                                    plot = new plotty.plot({
-                                        canvas,
-                                        data: rasters[0],
-                                        width,
-                                        height,
-                                        // domain:[10, 65000],
-                                        domain:[-1,1],
-                                        colorScale: "greens",
-                                        clampLow: false,
-                                        clampHigh: true,
-                                    });
-                                    plot.render();
-                                });
-                        });
-
-
-                        image.readRasters({
-                            samples: [0],
-                            // window: imageWindow,
-                            window: [0, 0, width, height],
-                            fillValue: 0,
-                            pool,
-                        })
-                            .then(function (rasters) {
-                                console.timeEnd("readRasters " + filename);
-                                var canvas = document.getElementById(filename);
-
-                                plot = new plotty.plot({
-                                    canvas,
-                                    data: rasters[0],
-                                    width,
-                                    height,
-                                    domain:[10, 65000],
-                                    colorScale: "viridis",
-                                    clampLow: false,
-                                    // clampHigh: true,
-                                });
-                                plot.render();
+                    let plot = null;
+                    image.readRasters({
+                        samples: [0],
+                        window: [0, 0, image.getWidth(), image.getHeight()],
+                        fillValue: 0,
+                        pool,
+                    })
+                        .then(function (rasters) {
+                            console.timeEnd("readRasters " + filename);
+                            var canvas = document.getElementById(filename);
+                            console.log('rasters[0]->', rasters[0])
+                            plot = new plotty.plot({
+                                canvas,
+                                data: rasters[0],
+                                width: image.getWidth(),
+                                height: image.getHeight(),
+                                domain:[10, 65000],
+                                colorScale: "viridis",
+                                clampLow: false,
+                                // clampHigh: true,
                             });
-                    });
-            };
-            xhr.send();
+                            plot.render();
+                        });
+                });
         });
 
 
-
         rgbtiffs.forEach(function(filename) {
-            var xhr = new XMLHttpRequest();
-            // xhr.open('GET', 'data/' + filename, true);
-            xhr.open('GET', 'tiff/' + filename, true);
-            xhr.responseType = 'arraybuffer';
+            const tifUrl = 'tiff/' + filename;
             var div = document.createElement("div");
             div.style.float = "left";
             var header = document.createElement("p");
@@ -192,36 +153,34 @@ export default class DrawByPlotty extends PureComponent{
             div.appendChild(canvas);
             document.getElementById("canvases").appendChild(div);
 
+            fetch(tifUrl)
+                .then((response) => response.arrayBuffer())
+                .then((arrayBuffer) => GeoTIFF.fromArrayBuffer(arrayBuffer))
+                .then(tif => tif.getImage())
+                .then((image) => {
+                    var plot;
+                    console.time("readRGB " + filename);
+                    console.log('image', image);
 
-            xhr.onload = function(e) {
-                GeoTIFF.fromArrayBuffer(this.response)
-                    .then(parser => parser.getImage())
-                    .then((image) => {
-                        var plot;
-                        console.time("readRGB " + filename);
-                        console.log('image', image);
-
-                        image.readRGB({ pool }).then(function(raster) {
-                            console.log("raster", raster.length)
-                            console.timeEnd("readRGB " + filename);
-                            canvas.width = image.getWidth();
-                            canvas.height = image.getHeight();
-                            var ctx = canvas.getContext("2d");
-                            var imageData = ctx.createImageData(image.getWidth(), image.getHeight());
-                            var data = imageData.data;
-                            var o = 0;
-                            for (var i = 0; i < raster.length; i+=3) {
-                                data[o] = raster[i];
-                                data[o+1] = raster[i+1];
-                                data[o+2] = raster[i+2];
-                                data[o+3] = 255;
-                                o += 4;
-                            }
-                            ctx.putImageData(imageData, 0, 0);
-                        });
+                    image.readRGB({ pool }).then(function(raster) {
+                        console.log("raster", raster.length)
+                        console.timeEnd("readRGB " + filename);
+                        canvas.width = image.getWidth();
+                        canvas.height = image.getHeight();
+                        var ctx = canvas.getContext("2d");
+                        var imageData = ctx.createImageData(image.getWidth(), image.getHeight());
+                        var data = imageData.data;
+                        var o = 0;
+                        for (var i = 0; i < raster.length; i+=3) {
+                            data[o] = raster[i];
+                            data[o+1] = raster[i+1];
+                            data[o+2] = raster[i+2];
+                            data[o+3] = 255;
+                            o += 4;
+                        }
+                        ctx.putImageData(imageData, 0, 0);
                     });
-            };
-            xhr.send();
+                });
         });
     }
 
