@@ -101,7 +101,7 @@ class Marker{
 //         }
 //     }
 //
-//     getPointList = function (from, to) {
+//     getPointList(from, to) {
 //         var points = [[from.x, from.y], [to.x, to.y]];
 //         var ex = points[1][0];
 //         var ey = points[1][1];
@@ -114,7 +114,7 @@ class Marker{
 //         return points;
 //     };
 //
-//     getOffsetPoint = function (start, end) {
+//     getOffsetPoint(start, end) {
 //         var distance = this.getDistance(start, end) / 3; //除以3？
 //         var angle, dX, dY;
 //         var mp = [start[0], start[1]];
@@ -146,7 +146,7 @@ class Marker{
 //         return mp;
 //     };
 //
-//     smoothSpline = function (points, isLoop) {
+//     smoothSpline(points, isLoop) {
 //         var len = points.length;
 //         var ret = [];
 //         var distance = 0;
@@ -180,22 +180,22 @@ class Marker{
 //         return ret;
 //     };
 //
-//     interpolate = function (p0, p1, p2, p3, t, t2, t3) {
+//     interpolate(p0, p1, p2, p3, t, t2, t3) {
 //         var v0 = (p2 - p0) * 0.5;
 //         var v1 = (p3 - p1) * 0.5;
 //         return (2 * (p1 - p2) + v0 + v1) * t3 + (-3 * (p1 - p2) - 2 * v0 - v1) * t2 + v0 * t + p1;
 //     };
 //
-//     getDistance = function (p1, p2) {
+//     getDistance(p1, p2) {
 //         return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
 //     };
 //
-//     drawMarker = function (context) {
+//     drawMarker(context) {
 //         this.from.draw(context);
 //         this.to.draw(context);
 //     };
 //
-//     drawLinePath = function (context) {
+//     drawLinePath(context) {
 //         var pointList = [];
 //         // var pointList = this.path = this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location));
 //
@@ -230,13 +230,9 @@ class Marker{
 //         this.step = 0; //缩放地图时重新绘制动画
 //     };
 //
-//     drawMoveCircle = function (context) {
-//         var pointList = []
-//         // var pointList = this.path || this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location));
-//
-//         if(this.from.locationPixel && this.to.locationPixel){
-//             pointList = this.path = this.getPointList(this.from.locationPixel, this.to.locationPixel);
-//         }
+//     drawMoveCircle(context) {
+//         // console.log('this.opts', this.opts)
+//         var pointList = this.path = this.getPointList(this.from.locationPixel, this.to.locationPixel)
 //
 //         context.save();
 //         // context.fillStyle = options.fillColor;
