@@ -48,8 +48,7 @@ export default class Tip{
             reactToDom: reactToDOM(Tip, {data}),
             position: position
         },{
-            // offset: [-ui.breathe.width / 2, -ui.bar.height * (92/270)]
-            offset: [( 100)/ 2, -(100) / 2]
+            offset: [80/ 2, 0]
         });
     }
 }

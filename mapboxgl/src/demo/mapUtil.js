@@ -145,7 +145,7 @@ export const addCustomImgToMap = (map, containerDom, imgUrl, mkImgForMapEnvParam
     const southEast = bounds.getSouthEast();
     const southWest = bounds.getSouthWest();
 
-    map.addLayer({
+    const layer = map.addLayer({
         id: "texture-img",
         "type": "raster",
         "source": {
@@ -173,6 +173,8 @@ export const addCustomImgToMap = (map, containerDom, imgUrl, mkImgForMapEnvParam
     map.setPitch(currentMapEnvParams.mapParams.pitch);
     map.setBearing(currentMapEnvParams.mapParams.bearing);
     map.resize();
+
+    return layer;
 }
 
 /**

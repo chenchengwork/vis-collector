@@ -2,7 +2,6 @@ import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import "mapbox-gl/dist/mapbox-gl.css";
 
-
 import * as mapUtil from './mapUtil';
 import BLN from './markers/BLN';
 import Arrow from './markers/Arrow';
@@ -79,7 +78,7 @@ export default () => {
         },
         {
             "type":"loan",
-            "name":"宁夏",
+            "name":"上海",
             "value":92
         },
         {
@@ -97,11 +96,7 @@ export default () => {
             "name":"四川",
             "value":22
         },
-        {
-            "type":"loan",
-            "name":"青海",
-            "value":41
-        },
+
         {
             "type":"loan",
             "name":"陕西",
@@ -173,7 +168,6 @@ class Chart extends React.PureComponent {
         // const chinaGeoJSON = require("./geojson/shanghai.json");
 
         return {
-            chinaGeoJSON,
             // 省名称对应的坐标
             provinceToLngLat: (() => {
                 const provinceToLngLat = {};
@@ -207,101 +201,142 @@ class Chart extends React.PureComponent {
         this.map = mapUtil.createMap(mapboxgl, this.containerRef, options.map, (map) => {
             mapUtil.addOsmTileLayer(map, "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}");
 
-            const tipEvent = new TipEvent(mapboxgl, map)
-
+            const tipEvent = new TipEvent(mapboxgl, map);
             this._drawUiMarkerToMap = this.mkDrawUiMarkerToMapFn(map, tipEvent);
-            this._drawProvinceNames = this.mkDrawProvinceNamesFn(map);
+            this._drawMap = this.mkDrawMap(map, this.containerRef, tipEvent);
 
             // 添加中国地图
-            this._drawChinaMap(map, this.containerRef, tipEvent);
-
-            // 绘制省份名称
-            // this._drawProvinceNames(map);
+            this._drawMap("中国");
 
             // 添加uiMarker
             this._drawUiMarkerToMap(map, this.resource);
-
-            // this._startAnimation();
 
             map.resize();
         });
     }
 
-    _drawProvinceMap = (name) => {
-        const nameToGeoJSONMap = {
-            "上海": require("./geojson/shanghai.json")
-        }
-
-        if(Reflect.has(nameToGeoJSONMap, name)){
-
-        }
-
-    }
-
-
     // 绘制中国地图
-    _drawChinaMap = (map, containerDom, tipEvent) => {
-        const resource = this.resource;
-        const {event} = this.props.options;
+    mkDrawMap = (map, containerDom, tipEvent) => {
+        const nameToGeoJson = {
+            "中国": require("./geojson/china.json"),
+            "上海": require("./geojson/shanghai.json"),
+        }
 
-        // 绘制各个省份并且绑定事件
-        resource.chinaGeoJSON.features.forEach((data, idx) => {
-            const layerId = `province_${idx}`;
-            const { name } = data.properties;
+        const drawImg = (imgUrl) => {
+            const layer = mapUtil.addCustomImgToMap(
+                map,
+                containerDom,
+                imgUrl,
+                {
+                    containerWH: {
+                        width: 740,
+                        height: 540,
+                    },
+                    mapParams: {
+                        zoom: 3,
+                        center: [104.223828, 37.972688],
+                        pitch: 0,
+                        bearing: 0
+                    }
+                }
+            );
 
-            map.addLayer({
-                'id': layerId,
-                'type': 'fill',
+            return layer;
+        }
+
+        const drawFill  = (geoJSON, event) => {
+            layers = geoJSON.features.map((data, idx) => {
+                const layerId = `province_${idx}`;
+                const {name} = data.properties;
+
+                return map.addLayer({
+                    'id': layerId,
+                    'type': 'fill',
+                    'source': {
+                        'type': 'geojson',
+                        'data': data
+                    },
+                    'layout': {},
+                    'paint': {
+                        'fill-color': '#005FB1',
+                        'fill-opacity': 1
+                    }
+                })
+                    .on("mouseover", layerId, (e) => tipEvent.enter(e, layerId, name, event))
+                    .on("mouseout", layerId, () => tipEvent.leave(layerId))
+                    .on("click", layerId, (e) => {
+                        console.log('e->', e)
+                    })
+            });
+
+            return layers;
+        }
+
+        const drawLine = (geoJSON) => {
+            const lineLayer = map.addLayer({
+                'id': 'china-line',
+                'type': 'line',
                 'source': {
                     'type': 'geojson',
-                    'data': data
+                    'data': geoJSON
                 },
                 'layout': {},
                 'paint': {
-                    'fill-color': '#005FB1',
-                    'fill-opacity': 1
+                    'line-color': 'rgba(0,0,0, 1)',
+                    'line-width': 1
                 }
-            })
-                .on("mouseover", layerId, (e) => tipEvent.enter(e, layerId, name, event))
-                .on("mouseout", layerId, () => tipEvent.leave(layerId))
-                .on("click", layerId, (e) => {
-                    console.log('e->', e)
-                })
-        });
+            });
 
-        // 添加地图底图
-        // mapUtil.addCustomImgToMap(
-        //     map,
-        //     containerDom,
-        //     resource.chinaMap,
-        //     {
-        //         containerWH: {
-        //             width: 740,
-        //             height: 540,
-        //         },
-        //         mapParams: {
-        //             zoom: 3,
-        //             center: [104.223828, 37.972688],
-        //             pitch: 0,
-        //             bearing: 0
-        //         }
-        //     }
-        // );
+            return lineLayer;
+        }
 
-        // 绘制地图线
-        map.addLayer({
-            'id': 'china-line',
-            'type': 'line',
-            'source': {
-                'type': 'geojson',
-                'data': resource.chinaGeoJSON
-            },
-            'layout': {},
-            'paint': {
-                'line-color': 'rgba(0,0,0, 1)',
-                'line-width': 1
+        const drawName = (geoJSON) => {
+            const Text = ({name}) => (<div style={{color: "#ffffff", fontSize: 13, fontWeight: 800}}>{name}</div>);
+            const provinceNameMarker = geoJSON.features.map(item => {
+                const {name, cp} = item.properties;
+
+                return mapUtil.addUiMarkerToMap(mapboxgl, map, {
+                    reactToDom: mapUtil.reactToDOM(Text, {name}),
+                    position: cp
+                }, {
+                    // offset: [width / 2, 0]  // left
+                });
+            });
+
+            return provinceNameMarker;
+        }
+
+
+        let layers = [];
+        return (name) => {
+            const {event} = this.props.options;
+
+            layers.forEach(layer => {
+                if(Array.isArray(layer)){
+                    layer.forEach(item => item.remove());
+                }else{
+                    layer.remove()
+                }
+            });
+
+
+            if(nameToGeoJson[name]){
+                const geoJSON = nameToGeoJson[name];
+
+                // 绘制各个省份并且绑定事件
+                layers.push(drawFill(geoJSON, event));
+
+                // 添加地图底图
+                // layers.push(drawImg(require("./img/china_map.png")));
+
+                // 绘制地图线
+                layers.push(drawLine(geoJSON));
+
+                // 绘制省份名称
+                // layers.push(drawName(geoJSON));
             }
-        });
+        }
+
     }
 
     // ui marker
@@ -318,111 +353,62 @@ class Chart extends React.PureComponent {
             Object.values(arrows).forEach(arrow => arrow.remove())
             arrows = {};
 
-            const provinceToData = {
-                repayment: {},
-                loan: {}
-            };
+            const provinceToData = {};
 
-            const loanArr = [];
-            const repaymentArr = [];
+            const maxVal = Math.max(...data.map(item => item.value));
 
             data.forEach(item => {
-                if (item.type == EnumTypes.loan.type) loanArr.push(item);
-                if (item.type == EnumTypes.repayment.type) repaymentArr.push(item);
-            });
+                const position = this.resource.provinceToLngLat[item.name];
+                if (position) {
+                    item.position = position;
+                    provinceToData[item.name] = item;
 
-            const maxLoanVal = Math.max(...loanArr.map(item => item.value));
-            const maxRepaymentVal = Math.max(...repaymentArr.map(item => item.value));
-
-            [
-                {
-                    type: EnumTypes.loan.type,
-                    maxVal: maxLoanVal,
-                    data: loanArr
-                },
-                {
-                    type: EnumTypes.repayment.type,
-                    maxVal: maxRepaymentVal,
-                    data: repaymentArr
-                }
-            ].forEach(firstItem => {
-                const {maxVal, data, type} = firstItem;
-
-                data.forEach(item => {
-                    const position = this.resource.provinceToLngLat[item.name];
-                    if (position) {
-                        item.position = position;
-                        provinceToData[type][item.name] = item;
-
-                        // 箭头省份名称
-                        if (!arrows[item.name]) {
-                            const arrow = new Arrow(mapboxgl, map, {
-                                leftArrowNames: ["北京"],
-                                name: item.name,
-                                position
-                            });
-
-                            arrow.render();
-                            arrows[item.name] = arrow;
-                        }
-
-
-                        // ui效果到组件中
-                        const bln = new BLN(mapboxgl, map);
-                        blns.push(bln);
-                        const color = EnumTypes.loan.type === item.type ? options.legend.loanColor : options.legend.repaymentColor;
-                        const barImg = EnumTypes.loan.type === item.type ? this.resource.barLoanImg : this.resource.barRepaymentImg;
-                        bln.render(this.resource, {
-                            ui: {
-                                breathe: {
-                                    width: options.ui.breatheDiameter * item.value / maxVal,
-                                    height: options.ui.breatheDiameter * item.value / maxVal,
-                                    color
-                                },
-                                bar: {
-                                    width: options.ui.barBaseW * item.value / maxVal,
-                                    height: options.ui.barBaseH * item.value / maxVal,
-                                    color,
-                                    barImg
-                                },
-                            },
-                            data: item
+                    // 箭头省份名称
+                    if (!arrows[item.name]) {
+                        const arrow = new Arrow(mapboxgl, map, {
+                            leftArrowNames: ["北京"],
+                            name: item.name,
+                            position
                         });
 
-                    } else {
-                        console.error("未找到对应的省份坐标:", item.name)
+                        arrow.render();
+                        arrows[item.name] = arrow;
                     }
-                });
-            })
+
+
+                    // ui效果到组件中
+                    const bln = new BLN(mapboxgl, map);
+                    blns.push(bln);
+                    const color = EnumTypes.loan.type === item.type ? options.legend.loanColor : options.legend.repaymentColor;
+                    const barImg = EnumTypes.loan.type === item.type ? this.resource.barLoanImg : this.resource.barRepaymentImg;
+                    bln.render(this.resource, {
+                        ui: {
+                            breathe: {
+                                width: options.ui.breatheDiameter * item.value / maxVal,
+                                height: options.ui.breatheDiameter * item.value / maxVal,
+                                color
+                            },
+                            bar: {
+                                width: options.ui.barBaseW * item.value / maxVal,
+                                height: options.ui.barBaseH * item.value / maxVal,
+                                color,
+                                barImg
+                            },
+                        },
+                        data: item
+                    });
+
+                } else {
+                    console.error("未找到对应的省份坐标:", item.name)
+                }
+            });
 
             tipEvent.setOptions({provinceToData, event: this.props.options.event})
         }
     };
 
-    // 绘制省份名称
-    mkDrawProvinceNamesFn = (map) => {
-        let provinceNameMarker = [];
-
-        return () => {
-            const Text = ({name}) => (<div style={{color: "#ffffff", fontSize: 13, fontWeight: 800}}>{name}</div>);
-            provinceNameMarker.forEach(marker => marker.remove());
-
-            provinceNameMarker = this.resource.chinaGeoJSON.features.map(item => {
-                const {name, cp} = item.properties;
-
-                return mapUtil.addUiMarkerToMap(mapboxgl, map, {
-                    reactToDom: mapUtil.reactToDOM(Text, {name}),
-                    position: cp
-                }, {
-                    // offset: [width / 2, 0]  // left
-                });
-            });
-        }
-    }
 
     render() {
-        const {width, height, options, data, fields, getResourcePath} = this.props;
-
         return (
             <div
                 ref={(ref) => this.containerRef = ref}
@@ -474,20 +460,20 @@ class TipEvent {
         const {provinceToData, event} = options;
 
         if (!this.layerIdToMarker[layerId]) {
-            map.addLayer({
-                'id': `${layerId}_fill-extrusion`,
-                'type': 'fill-extrusion',
-                'source': layerId,
-                'layout': {},
-                'paint': {
-                    // 'fill-extrusion-color': "rgba(40, 64, 123, 0.8)",
-                    'fill-extrusion-color': event.supernatantColor,
-                    'fill-extrusion-height': 40000 * 2,     // 挤压高度, 单位值"米"
-                    'fill-extrusion-base': 0,           //
-                    'fill-extrusion-opacity': event.supernatantOpacity,
-                    // 'fill-extrusion-pattern': "in-national-4",
-                }
-            });
+            // map.addLayer({
+            //     'id': `${layerId}_fill-extrusion`,
+            //     'type': 'fill-extrusion',
+            //     'source': layerId,
+            //     'layout': {},
+            //     'paint': {
+            //         // 'fill-extrusion-color': "rgba(40, 64, 123, 0.8)",
+            //         'fill-extrusion-color': event.supernatantColor,
+            //         'fill-extrusion-height': 40000 * 2,     // 挤压高度, 单位值"米"
+            //         'fill-extrusion-base': 0,           //
+            //         'fill-extrusion-opacity': event.supernatantOpacity,
+            //         // 'fill-extrusion-pattern': "in-national-4",
+            //     }
+            // });
 
             this.layerIdToMarker[layerId] = new Tip(mapboxgl, map, {
                 position: [e.lngLat.lng, e.lngLat.lat],
@@ -498,15 +484,10 @@ class TipEvent {
                         unit: ""
                     },
                     {
-                        name: "还款",
-                        value: defaultTo((provinceToData.repayment[name] || {}).value, "-"),
-                        unit: "亿元",
+                        name: "数量",
+                        value: defaultTo((provinceToData[name] || {}).value, "-"),
+                        unit: "",
                     },
-                    {
-                        name: "贷款",
-                        value: defaultTo((provinceToData.loan[name] || {}).value, "-"),
-                        unit: "亿元",
-                    }
                 ]
             }).render();
         }
@@ -514,7 +495,6 @@ class TipEvent {
 
     leave = (layerId) => {
         const {map} = this.initParams;
-
         map.getLayer(`${layerId}_fill-extrusion`) && map.removeLayer(`${layerId}_fill-extrusion`);
         this.layerIdToMarker[layerId] && this.layerIdToMarker[layerId].remove();
         this.layerIdToMarker[layerId] = null;
