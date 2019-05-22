@@ -33,7 +33,11 @@ export const objToUrlParams = obj => {
  */
 export const getGeoJSONFirstCoord = (geoJson) => {
     let oneFeature = geoJson;
-    if (geoJson.hasOwnProperty('features')) oneFeature = geoJson.features[0];
+    if (geoJson.hasOwnProperty('features')) {
+        let coordinates = [];
+        geoJson.features.map(item => coordinates = [...coordinates, ...item.geometry.coordinates[0]]);
+        return coordinates;
+    }
     return oneFeature.geometry.coordinates[0];
 };
 

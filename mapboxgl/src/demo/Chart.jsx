@@ -27,7 +27,7 @@ export default () => {
         "map": {
             "center": [104.223828, 37.972688],
             "zoom": 3,
-            "pitch": 30,
+            "pitch": 0,
             "bearing": 0,
             "isInteractive": true
         },
@@ -41,9 +41,9 @@ export default () => {
             "fontColor": "#ffffff"
         },
         "ui": {
-            "breatheDiameter": 45,
+            "breatheDiameter": 15,
             "barBaseW": 35,
-            "barBaseH": 270,
+            "barBaseH": 35,
             "isStartAnimation": true,
             "animationTime": 15000
         },
@@ -66,106 +66,106 @@ export default () => {
             "name":"新疆",
             "value":102
         },
-        {
-            "type":"loan",
-            "name":"云南",
-            "value":61
-        },
-        {
-            "type":"repayment",
-            "name":"宁夏",
-            "value":47
-        },
+        // {
+        //     "type":"loan",
+        //     "name":"云南",
+        //     "value":61
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"宁夏",
+        //     "value":47
+        // },
         {
             "type":"loan",
             "name":"上海",
             "value":92
         },
-        {
-            "type":"repayment",
-            "name":"山东",
-            "value":102
-        },
-        {
-            "type":"loan",
-            "name":"河南",
-            "value":61
-        },
-        {
-            "type":"repayment",
-            "name":"四川",
-            "value":22
-        },
-
-        {
-            "type":"loan",
-            "name":"陕西",
-            "value":51
-        },
-        {
-            "type":"loan",
-            "name":"湖北",
-            "value":66
-        },
-        {
-            "type":"loan",
-            "name":"贵州",
-            "value":72
-        },
-        {
-            "type":"loan",
-            "name":"河北",
-            "value":88
-        },
-        {
-            "type":"loan",
-            "name":"江西",
-            "value":104
-        },
-        {
-            "type":"loan",
-            "name":"吉林",
-            "value":32
-        },
-        {
-            "type":"repayment",
-            "name":"甘肃",
-            "value":52
-        },
-        {
-            "type":"repayment",
-            "name":"湖南",
-            "value":63
-        },
-        {
-            "type":"repayment",
-            "name":"青海",
-            "value":36
-        },
-        {
-            "type":"repayment",
-            "name":"黑龙江",
-            "value":75
-        },
-        {
-            "type":"repayment",
-            "name":"香港",
-            "value":109
-        }
+        // {
+        //     "type":"repayment",
+        //     "name":"山东",
+        //     "value":102
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"河南",
+        //     "value":61
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"四川",
+        //     "value":22
+        // },
+        //
+        // {
+        //     "type":"loan",
+        //     "name":"陕西",
+        //     "value":51
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"湖北",
+        //     "value":66
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"贵州",
+        //     "value":72
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"河北",
+        //     "value":88
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"江西",
+        //     "value":104
+        // },
+        // {
+        //     "type":"loan",
+        //     "name":"吉林",
+        //     "value":32
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"甘肃",
+        //     "value":52
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"湖南",
+        //     "value":63
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"青海",
+        //     "value":36
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"黑龙江",
+        //     "value":75
+        // },
+        // {
+        //     "type":"repayment",
+        //     "name":"香港",
+        //     "value":109
+        // }
     ];
 
     return <Chart options={options} data={data} />
 }
 
 class Chart extends React.PureComponent {
+    state = {
+        mapName: "中国"
+    };
+
 
     // 存放地图中用到的资源
     resource = (() => {
-        const {getResourcePath, options} = this.props;
-        const {comResource} = options;
-        const resourceDefaultTo = (value, defaultVal) => value ? getResourcePath(value) : defaultVal;
         const chinaGeoJSON = require("./geojson/china.json");
-        // const chinaGeoJSON = require("./geojson/shanghai.json");
 
         return {
             // 省名称对应的坐标
@@ -178,11 +178,6 @@ class Chart extends React.PureComponent {
 
                 return provinceToLngLat;
             })(),
-            // chinaMap: resourceDefaultTo(comResource.chinaMap, require("./img/china_map.png")),
-            // 还款
-            barRepaymentImg: resourceDefaultTo(comResource.barRepaymentImg, require("./img/bar_repayment.png")),
-            // 贷款；借款
-            barLoanImg: resourceDefaultTo(comResource.barLoanImg, require("./img/bar_loan.png")),
         }
     })();
 
@@ -203,10 +198,11 @@ class Chart extends React.PureComponent {
 
             const tipEvent = new TipEvent(mapboxgl, map);
             this._drawUiMarkerToMap = this.mkDrawUiMarkerToMapFn(map, tipEvent);
-            this._drawMap = this.mkDrawMap(map, this.containerRef, tipEvent);
+            this._drawMap = this.mkDrawMap(tipEvent);
 
             // 添加中国地图
             this._drawMap("中国");
+
 
             // 添加uiMarker
             this._drawUiMarkerToMap(map, this.resource);
@@ -216,14 +212,14 @@ class Chart extends React.PureComponent {
     }
 
     // 绘制中国地图
-    mkDrawMap = (map, containerDom, tipEvent) => {
+    mkDrawMap = (tipEvent) => {
         const nameToGeoJson = {
             "中国": require("./geojson/china.json"),
             "上海": require("./geojson/shanghai.json"),
         }
 
-        const drawImg = (imgUrl) => {
-            const layer = mapUtil.addCustomImgToMap(
+        const drawImg = (map, containerDom, imgUrl) => {
+            const layerId = mapUtil.addCustomImgToMap(
                 map,
                 containerDom,
                 imgUrl,
@@ -241,18 +237,26 @@ class Chart extends React.PureComponent {
                 }
             );
 
-            return layer;
+            return {
+                remove: () => {
+                    map.getLayer(layerId) && map.removeLayer(layerId);
+                    map.getSource(layerId) && map.removeSource(layerId);
+                }
+            };
         }
 
-        const drawFill  = (geoJSON, event) => {
-            layers = geoJSON.features.map((data, idx) => {
-                const layerId = `province_${idx}`;
+        const drawFill  = (map, geoJSON, event) => {
+            const layerIds = [];
+
+            geoJSON.features.map((data) => {
+                const layerId = mapUtil.generateUUID();
                 const {name} = data.properties;
+                layerIds.push(layerId);
 
                 return map.addLayer({
                     'id': layerId,
                     'type': 'fill',
-                    'source': {
+                    source: {
                         'type': 'geojson',
                         'data': data
                     },
@@ -265,18 +269,25 @@ class Chart extends React.PureComponent {
                     .on("mouseover", layerId, (e) => tipEvent.enter(e, layerId, name, event))
                     .on("mouseout", layerId, () => tipEvent.leave(layerId))
                     .on("click", layerId, (e) => {
-                        console.log('e->', e)
+                        this._drawMap && this._drawMap(name);
                     })
             });
 
-            return layers;
+            return {
+                remove: () => layerIds.forEach(layerId => {
+                    map.getLayer(layerId) && map.removeLayer(layerId);
+                    map.getSource(layerId) && map.removeSource(layerId);
+                })
+            };
         }
 
-        const drawLine = (geoJSON) => {
-            const lineLayer = map.addLayer({
-                'id': 'china-line',
+        const drawLine = (map, geoJSON) => {
+            const layerId = mapUtil.generateUUID();
+
+            map.addLayer({
+                'id': layerId,
                 'type': 'line',
-                'source': {
+                source: {
                     'type': 'geojson',
                     'data': geoJSON
                 },
@@ -287,10 +298,15 @@ class Chart extends React.PureComponent {
                 }
             });
 
-            return lineLayer;
+            return {
+                remove: () => {
+                    map.getLayer(layerId) && map.removeLayer(layerId);
+                    map.getSource(layerId) && map.removeSource(layerId);
+                }
+            };
         }
 
-        const drawName = (geoJSON) => {
+        const drawName = (map, geoJSON) => {
             const Text = ({name}) => (<div style={{color: "#ffffff", fontSize: 13, fontWeight: 800}}>{name}</div>);
             const provinceNameMarker = geoJSON.features.map(item => {
                 const {name, cp} = item.properties;
@@ -303,40 +319,38 @@ class Chart extends React.PureComponent {
                 });
             });
 
-            return provinceNameMarker;
+            return {
+                remove: () => provinceNameMarker.forEach(marker => marker.remove())
+            };
         }
 
 
         let layers = [];
         return (name) => {
+            const map = this.map;
+            const containerDom = this.containerDom;
             const {event} = this.props.options;
 
-            layers.forEach(layer => {
-                if(Array.isArray(layer)){
-                    layer.forEach(item => item.remove());
-                }else{
-                    layer.remove()
-                }
-            });
-
-
             if(nameToGeoJson[name]){
+                layers.forEach(layer => layer.remove());
                 const geoJSON = nameToGeoJson[name];
 
                 // 绘制各个省份并且绑定事件
-                layers.push(drawFill(geoJSON, event));
+                layers.push(drawFill(map, geoJSON, event));
 
                 // 添加地图底图
-                // layers.push(drawImg(require("./img/china_map.png")));
+                // layers.push(drawImg(map, containerDom, require("./img/china_map.png")));
 
                 // 绘制地图线
-                layers.push(drawLine(geoJSON));
+                layers.push(drawLine(map, geoJSON));
 
                 // 绘制省份名称
-                // layers.push(drawName(geoJSON));
+                layers.push(drawName(map, geoJSON));
+
+                // 飞入指定的geojson位置
+                mapUtil.fitBounds(mapboxgl, map, mapUtil.getGeoJSONFirstCoord(geoJSON));
             }
         }
-
     }
 
     // ui marker
@@ -368,6 +382,7 @@ class Chart extends React.PureComponent {
                         const arrow = new Arrow(mapboxgl, map, {
                             leftArrowNames: ["北京"],
                             name: item.name,
+                            value: item.value,
                             position
                         });
 
@@ -379,18 +394,27 @@ class Chart extends React.PureComponent {
                     // ui效果到组件中
                     const bln = new BLN(mapboxgl, map);
                     blns.push(bln);
-                    const color = EnumTypes.loan.type === item.type ? options.legend.loanColor : options.legend.repaymentColor;
-                    const barImg = EnumTypes.loan.type === item.type ? this.resource.barLoanImg : this.resource.barRepaymentImg;
+
+                    let color = "#68D33C";
+                    let barImg = require("./img/green.svg");
+                    if(item.value > 90){
+                        color = "#FF4A36";
+                        barImg = require("./img/red.svg");
+                    }else if(item.value <=90 && item.value > 60){
+                        color = "#F9BA2B";
+                        barImg = require("./img/yellow.svg");
+                    }
+
                     bln.render(this.resource, {
                         ui: {
                             breathe: {
-                                width: options.ui.breatheDiameter * item.value / maxVal,
-                                height: options.ui.breatheDiameter * item.value / maxVal,
+                                width: options.ui.breatheDiameter,
+                                height: options.ui.breatheDiameter,
                                 color
                             },
                             bar: {
-                                width: options.ui.barBaseW * item.value / maxVal,
-                                height: options.ui.barBaseH * item.value / maxVal,
+                                width: options.ui.barBaseW,
+                                height: options.ui.barBaseH,
                                 color,
                                 barImg
                             },
@@ -410,16 +434,31 @@ class Chart extends React.PureComponent {
 
     render() {
         return (
-            <div
-                ref={(ref) => this.containerRef = ref}
-                style={{
-                    position: "fixed",
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                }}
-            >
-
+            <div className="map">
+                <div
+                    ref={(ref) => this.containerRef = ref}
+                    style={{
+                        position: "fixed",
+                        width: "100%",
+                        height: "100%",
+                        border: "none",
+                    }}
+                />
+                <div className="operator">
+                    <button onClick={() => this._drawMap("中国")}>全国</button>
+                </div>
+                {/*language=SCSS*/}
+                <style jsx>{`
+                    .map{
+                        position: relative;
+                        
+                        .operator{
+                            position: absolute;
+                            top: 10px;
+                            left: 10px;
+                        }
+                    }
+                `}</style>
             </div>
         );
     }
@@ -468,7 +507,7 @@ class TipEvent {
             //     'paint': {
             //         // 'fill-extrusion-color': "rgba(40, 64, 123, 0.8)",
             //         'fill-extrusion-color': event.supernatantColor,
-            //         'fill-extrusion-height': 40000 * 2,     // 挤压高度, 单位值"米"
+            //         // 'fill-extrusion-height': 40000 * 2,     // 挤压高度, 单位值"米"
             //         'fill-extrusion-base': 0,           //
             //         'fill-extrusion-opacity': event.supernatantOpacity,
             //         // 'fill-extrusion-pattern': "in-national-4",

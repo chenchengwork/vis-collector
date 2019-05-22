@@ -19,7 +19,7 @@ export default class Arrow{
 
     render = () => {
         const { mapboxgl, map, options } = this.initParams;
-        const { name, position, leftArrowNames } = options;
+        const { name, position, value, leftArrowNames } = options;
 
         const { containerClassName, containerStyle, contentStyle, markerParams } = getTextParams(name, leftArrowNames);
 
@@ -27,7 +27,7 @@ export default class Arrow{
             className={containerClassName}
             style={containerStyle}
         >
-            <span style={contentStyle}>{name}</span>
+            <span style={contentStyle}>({value}){name}</span>
 
             { /*language=SCSS*/ }
             <style jsx>{`

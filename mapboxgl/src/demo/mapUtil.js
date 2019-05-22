@@ -1,4 +1,21 @@
 import ReactDOM from 'react-dom';
+import mapboxgl from "mapbox-gl";
+
+/**
+ * 生成uuid
+ * @param prefix
+ * @return {string}
+ */
+export const generateUUID = (prefix = null) => {
+    let d = new Date().getTime();
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+    });
+
+    return prefix ? prefix + "-" + uuid : uuid;
+};
 
 /**
  * 将react添加到dom中
@@ -144,9 +161,10 @@ export const addCustomImgToMap = (map, containerDom, imgUrl, mkImgForMapEnvParam
     const northEast = bounds.getNorthEast();
     const southEast = bounds.getSouthEast();
     const southWest = bounds.getSouthWest();
+    const layerId = generateUUID("texture-img");
 
-    const layer = map.addLayer({
-        id: "texture-img",
+    map.addLayer({
+        id: layerId,
         "type": "raster",
         "source": {
             type: "image",
@@ -174,7 +192,7 @@ export const addCustomImgToMap = (map, containerDom, imgUrl, mkImgForMapEnvParam
     map.setBearing(currentMapEnvParams.mapParams.bearing);
     map.resize();
 
-    return layer;
+    return layerId;
 }
 
 /**
@@ -216,6 +234,51 @@ export const redrawMap = (map, prevProps, props) => {
     }
 
     if(prevOptions.width !== width || prevProps.height !== height) map.resize();
+}
+
+
+
+/**
+ * 获取GeoJSON第一个coord
+ * @param geoJson
+ * @return {*} [[lng, lat], ...]
+ */
+export const getGeoJSONFirstCoord = (geoJson) => {
+    let oneFeature = geoJson;
+    if (geoJson.hasOwnProperty('features')) {
+        let coordinates = [];
+        geoJson.features.map(item => coordinates = [...coordinates, ...item.geometry.coordinates[0]]);
+        return coordinates;
+    }
+    return oneFeature.geometry.coordinates[0];
+};
+
+/**
+ * 获取bounds
+ * @param [Array] coordinates [[lng, lat], ...]
+ * @return {*}
+ */
+export const getBounds = (mapboxgl, coordinates) => {
+    const bounds = coordinates.reduce(function (bounds, coord) {
+        return bounds.extend(coord);
+    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+    return bounds;
+}
+
+
+/**
+ * 依据绘制坐标，移动到地图可视化位置
+ * @param {Array} coordinates [[lng, lat], ...]
+ * @param {Object} opts https://www.mapbox.com/mapbox-gl-js/api#map#fitbounds
+ */
+export const fitBounds = (mapboxgl, map, coordinates, opts = {}) => {
+    if (!Array.isArray(coordinates)) throw new Error('fitBounds参数必须传入数组');
+    if (Array.isArray(coordinates[0])) {
+        return map.fitBounds(getBounds(mapboxgl, coordinates), Object.assign({
+            padding: 20,
+        }, opts));
+    }
 }
 
 

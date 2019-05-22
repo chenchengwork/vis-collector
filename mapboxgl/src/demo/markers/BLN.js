@@ -22,7 +22,7 @@ export default class BLN{
             return (
                 <div style={{
                     position: "relative",
-                    transform:"rotateX(70deg)",
+                    // transform:"rotateX(70deg)",
                 }}>
                     <div
                         className="breathe"
@@ -30,7 +30,8 @@ export default class BLN{
                             position: "absolute",
                             width: ui.breathe.width,
                             height: ui.breathe.height,
-                            top: ui.bar.height - ui.breathe.height
+                            top: ui.bar.height - ui.breathe.height,
+                            transform:"rotateX(70deg)",
                         }}
                     />
 
@@ -40,8 +41,8 @@ export default class BLN{
                             position: "absolute",
                             width: ui.bar.width,
                             height: ui.bar.height,
-                            top: 15,
-                            left: Math.abs(ui.bar.width - ui.breathe.width) / 2
+                            // top: 15,
+                            // left: Math.abs(ui.bar.width - ui.breathe.width) / 2
                         }}
                     />
 
@@ -92,7 +93,8 @@ export default class BLN{
             reactToDom: reactToDOM(Widget, {data}),
             position: data.position
         },{
-            offset: [-ui.breathe.width / 2, -ui.bar.height * (92/270)]
+            // offset: [-ui.breathe.width / 2, -ui.bar.height * (92/270)]
+            offset: [-ui.breathe.width / 2, -ui.bar.height ]
         });
     }
 }
