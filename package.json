@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "antd": "^3.16.3",
-    "mapbox-gl": "^0.52.0",
+    "mapbox-gl": "^0.54.0",
     "three": "^0.99.0",
     "vtk.js": "^8.3.2",
     "axios": "^0.18.0",

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="cvs"  width="1024" height="768" style="border:1px solid red;margin:20px auto;display: block;">
+    当前浏览器不支持canvas
+    <!-- 如果浏览器支持canvas，则canvas标签里的内容不会显示出来 -->
+</canvas>
+
+<script>
+    // 常用的图像处理库, https://juejin.im/post/58c0edac0ce4630054592a78
+
+    //获取canvas元素
+    var cvs = document.getElementById("cvs");
+    //创建image对象
+    var imgObj = new Image();
+    // imgObj.src = "http://images.cnblogs.com/cnblogs_com/html5test/359114/r_test.jpg";
+    imgObj.src = "test.png";
+    // imgObj.src = "mm.png";
+    // imgObj.scale(0.3, 0.3);
+    //待图片加载完后，将其显示在canvas上
+    imgObj.onload = function(){
+        // console.log(this.imgData)
+
+        var ctx = cvs.getContext('2d');
+        // ctx.filter = 'blur(5px)';   // 高斯模糊
+        ctx.drawImage(this, 0, 0);//this即是imgObj,保持图片的原始大小：470*480
+        // ctx.drawImage(this, 0, 0, imgObj.width * 0.3, imgObj.height * 0.3); // 按指定比例缩放图片
+        // ctx.drawImage(this, 0, 0, 50, 50); // 按指定大小缩放图片
+        ctx.drawImage(this, 0, 0,1024,768);//改变图片的大小到1024*768
+
+
+        // var imgData = ctx.getImageData(0, 0,1024,768);
+        // imgData = contrastImage(imgData, 20);
+        // // imgData = luminanceImage(imgData);
+        // // ctx.clearRect(0, 0, 1024,768)
+        // ctx.putImageData(imgData, 0, 0)
+    }
+
+    // 增强图像对比度算法
+    function contrastImage(imgData, contrast){  //input range [-100..100]
+        var d = imgData.data;
+        contrast = (contrast/100) + 1;  //convert to decimal & shift range: [0..2]
+        var intercept = 128 * (1 - contrast);
+        for(var i=0;i<d.length;i+=4){   //r,g,b,a
+            d[i] = d[i]*contrast + intercept;
+            d[i+1] = d[i+1]*contrast + intercept;
+            d[i+2] = d[i+2]*contrast + intercept;
+        }
+        return imgData;
+    }
+
+    // 增强亮度
+    function luminanceImage(imgData){
+        const data = imgData.data;
+        for( var i = 0; i < data.length; i += 4 ) {
+            data[i] += 30;
+            data[i+1] += 50;
+            data[i+2] += 50;
+        }
+
+        return imgData;
+    }
+</script>
+</body>
+</html>
