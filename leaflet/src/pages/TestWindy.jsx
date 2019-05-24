@@ -116,6 +116,7 @@ const drawWindyByTif = (mapUtil) => {
     draw(
         GeoTIFFCustom,
         "/asserts/data/windy_tif/u_v_geotrellis.tif",
+        // "/asserts/data/windy_tif/auxhist3_d02_2018-01-01_12_00_00.tif",
         // "/asserts/data/windy_tif/u_5_x.tif",
         // "/asserts/data/windy_tif/u_5_mask_x.tif",
         {colorScale: ["rgb(36,104, 180)"]},
