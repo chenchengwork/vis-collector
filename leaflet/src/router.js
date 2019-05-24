@@ -13,13 +13,17 @@ import transformRouter from './transformRouter';
      }
  */
 const routes = [
+    // {
+    //     uri: "/main",
+    //     component: import("./pages/Main"),
+    // },
+    // {
+    //     uri: "/testWindy",
+    //     component: import("./pages/TestWindy"),
+    // },
     {
-        uri: "/main",
-        component: import("./pages/Main"),
-    },
-    {
-        uri: "/testWindy",
-        component: import("./pages/TestWindy"),
+        uri: "/testEchartFlowGL",
+        component: import("./pages/TestEchartFlowGL"),
     },
 ];
 
