@@ -47,7 +47,10 @@ echarts.extendChartView({
         particleSurface.setSupersampling(seriesModel.get('supersampling'));
 
         this._updateData(seriesModel, api);
-        this._updateCamera(api.getWidth(), api.getHeight(), api.getDevicePixelRatio());
+
+        // api.getWidth()   // canvasW
+        // api.getHeight()   // canvasH
+        this._updateCamera(api.getWidth(), api.getHeight(), window.devicePixelRatio);
 
         var particleDensity = retrieve.firstNotNull(seriesModel.get('particleDensity'), 128);
         particleSurface.setParticleDensity(particleDensity, particleDensity);
@@ -97,19 +100,22 @@ echarts.extendChartView({
     },
 
     _updateData: function (seriesModel, api) {
-        console.log('seriesModel->', seriesModel)
-        var coordSys = seriesModel.coordinateSystem;
-        var dims = coordSys.dimensions.map(function (coordDim) {
-            return seriesModel.coordDimToDataDim(coordDim)[0];
-        });
 
+        var coordSys = seriesModel.coordinateSystem;
+        // var dims = coordSys.dimensions.map(function (coordDim) {
+        //     return seriesModel.coordDimToDataDim(coordDim)[0];
+        // });
+        let dims = ["lng", "lat"];
         var data = seriesModel.getData();
+console.log('data->', data)
+
         var xExtent = data.getDataExtent(dims[0]);
         var yExtent = data.getDataExtent(dims[1]);
-
+        console.log('xExtent->', xExtent)
+        console.log('yExtent->', yExtent)
         var gridWidth = seriesModel.get('gridWidth');
         var gridHeight = seriesModel.get('gridHeight');
-
+console.log('gridWidth->', gridWidth)
         if (gridWidth == null || gridWidth === 'auto') {
             // TODO not accurate.
             var aspect = (xExtent[1] - xExtent[0]) / (yExtent[1] - yExtent[0]);
@@ -118,7 +124,8 @@ echarts.extendChartView({
         if (gridHeight == null || gridHeight === 'auto') {
             gridHeight = Math.ceil(data.count() / gridWidth);
         }
-
+console.log('gridWidth->', gridWidth)
+console.log('gridHeight->', gridHeight)
         var vectorFieldTexture = this._particleSurface.vectorFieldTexture;
 
         // Half Float needs Uint16Array
@@ -342,7 +349,7 @@ echarts.extendChartView({
         camera.right = width;
         camera.near = 0;
         camera.far = 100;
-        camera.position.z = 10;
+        // camera.position.z = 100;
     },
 
     remove: function () {

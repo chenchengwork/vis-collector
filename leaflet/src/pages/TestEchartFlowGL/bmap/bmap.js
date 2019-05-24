@@ -23,7 +23,7 @@ var echarts = require("echarts");
 var BMapCoordSys = require("./BMapCoordSys").default;
 
 require("./BMapModel").default;
-
+//
 require("./BMapView").default;
 
 /*
