@@ -5,15 +5,17 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "node ./scripts/dev.js",
-    "build": "node ./scripts/build.js /data/web_bundle/vis_collector /"
+    "build": "node ./scripts/build.js /data/web_bundle/vis_collector /",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch"
   },
   "dependencies": {
-    "@types/react": "^16.7.6",
-    "@types/react-dom": "^16.0.9",
-    "@types/webgl2": "0.0.4",
     "twgl.js": "^4.8.1"
   },
   "devDependencies": {
+    "@types/react": "^16.8.20",
+    "@types/react-dom": "^16.8.4",
+    "@types/webgl2": "0.0.4",
     "awesome-typescript-loader": "^5.2.1",
     "typescript": "^3.2.4"
   },

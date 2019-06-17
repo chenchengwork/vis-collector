@@ -3,14 +3,14 @@ import { getGL, initProgram, raf } from './lib/webgl_util';
 
 export default class WebGL extends React.PureComponent {
     componentDidMount(){
-        const gl: WebGLRenderingContext = getGL("plane_triangle");
+        const gl = getGL("plane_triangle");
 
         this.drawPlaneTriangle(gl);
     }
 
     // 绘制平面三角形
     drawPlaneTriangle = (gl: WebGLRenderingContext): void => {
-        const SHADER_VERTEX: string = `
+        const SHADER_VERTEX = `
             attribute vec4 aVertexPosition;
             attribute vec4 a_Color;
             varying vec4 v_Color;
@@ -20,7 +20,7 @@ export default class WebGL extends React.PureComponent {
             }
         `;
 
-        const SHADER_FRAGMENT: string = `
+        const SHADER_FRAGMENT = `
             #ifdef GL_ES
             precision highp float;
             #endif

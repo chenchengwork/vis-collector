@@ -23,25 +23,31 @@ const resolve = (config) => depend.merge({
             // "node_modules",
             "web_modules",
             "src"
-        ]
+        ],
+        extensions: [ '.tsx', '.ts', '.js', ".jsx" ],
     }
 }, config);
 
+/**
+ * babel支持国际化配置
+ * @param config
+ * @return {*}
+ */
+const intl =  (config) => {
+    config.module.rules = config.module.rules.map(rule => {
+        if (rule.loader === "babel-loader"){
+            // 使用的babel插件是: babel-plugin-react-intl
+            rule.options.cacheDirectory = false; // 保证提取的信息是最新的
+            // rule.options.plugins.push(['react-intl', {"messagesDir": "./i18n-messages"}]);
 
-const typescript = (config) => depend.merge({
-    resolve: {
-        extensions: [".ts", ".tsx", ".js", ".json"]
-    },
-    module: {
-        rules: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+            return rule;
+        }
 
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            // { enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
-        ]
-    },
-}, config);
+        return rule;
+    });
+
+    return config;
+};
 
 /**
  * 组装webpack config
@@ -50,18 +56,19 @@ const typescript = (config) => depend.merge({
 module.exports = (pipeNodes = []) => {
     const config = assemble([
         ...pipeNodes,
+        intl,
         pipe.base,
         // pipe.staticResource,
         // pipe.css,
         // pipe.scss,
         // pipe.babelReact,
-
+        pipe.babelTsReact,
         // pipe.miniCssExtractPlugin,
-        // pipe.provideReactPlugin,
+        pipe.provideReactPlugin,
         pipe.webpackbarPlugin,
 
         resolve,
-        typescript,
+        // typescript,
         output,
         entry,
 

@@ -27,25 +27,6 @@ void main() {
   gl_FragColor = vec4( vec3( color * 0.5, sin( color + time / 2.5 ) * 0.75, color ), 1.0 );
 }
 `;
-function identity<T>(arg: T): T {
-    return arg;
-}
-
-function extend<T, U>(first: T, second: U): T & U {
-    let result = {} as T & U;
-    for (let id in first) {
-        (result as any)[id] = (first as any)[id];
-            }
-    for (let id in second) {
-        if (!result.hasOwnProperty(id)) {
-            (result as any)[id] = (second as any)[id];
-        }
-    }
-    return result
-}
-
-let someValue= "";
-let strLength: number = (someValue as string).length;
 
 export default class DrawByTwgl extends React.PureComponent{
 
@@ -54,9 +35,7 @@ export default class DrawByTwgl extends React.PureComponent{
     }
 
     draw = () => {
-        "use strict";
-        // const gl: WebGLRenderingContext = canvas.getContext("webgl");
-        const gl: WebGLRenderingContext = (document.querySelector("#c") as HTMLCanvasElement).getContext("webgl");
+        const gl = (document.querySelector("#c") as HTMLCanvasElement).getContext("webgl");
         const programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
         const arrays = {
@@ -74,11 +53,11 @@ export default class DrawByTwgl extends React.PureComponent{
 
         function render(time: number) {
             twgl.resizeCanvasToDisplaySize(gl.canvas);
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
 
             const uniforms = {
                 time: time * 0.001,
-                resolution: [gl.canvas.width, gl.canvas.height],
+                resolution: [gl.canvas.clientWidth, gl.canvas.clientHeight],
             };
 
             gl.useProgram(programInfo.program);
@@ -95,7 +74,7 @@ export default class DrawByTwgl extends React.PureComponent{
     render(){
         return (
             <canvas id="c" width="500" height="500"></canvas>
-    );
+        );
     }
 }
 
