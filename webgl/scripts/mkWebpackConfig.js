@@ -58,7 +58,7 @@ module.exports = (pipeNodes = []) => {
         ...pipeNodes,
         intl,
         pipe.base,
-        // pipe.staticResource,
+        pipe.staticResource,
         // pipe.css,
         // pipe.scss,
         // pipe.babelReact,
