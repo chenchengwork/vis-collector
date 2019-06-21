@@ -60,3 +60,34 @@ export const initProgram = (gl: WebGLRenderingContext, vxShader: string, fgShade
 
     return prg;
 }
+
+/**
+ * 创建数据buffer
+ */
+export const createBuffer = (gl: WebGLRenderingContext, value: Float32Array, usage?: number) => {
+    usage = usage || gl.STATIC_DRAW;
+    const buffer = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, value, usage);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);   // 清空缓存
+
+    return buffer;
+};
+
+/**
+ * 创建数据索引 buffer
+ * @param gl
+ * @param value
+ * @param usage
+ */
+export const createElementsBuffer = (gl: WebGLRenderingContext, value: Uint16Array, usage?: number) => {
+    usage = usage || gl.STATIC_DRAW;
+    const buffer = gl.createBuffer();
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, value, usage);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);   // 清空缓存
+
+    return buffer;
+};

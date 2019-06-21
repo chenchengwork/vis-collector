@@ -1,53 +1,47 @@
-import { initProgram } from '../../lib/webgl_util'
+import { initProgram, createBuffer } from '../../lib/webgl_util'
 
-function setRectangle(gl: WebGLRenderingContext, x: number, y: number, width: number, height: number) {
+// 获取图片的顶点数据
+const getImageVBO = (x: number, y: number, width: number, height: number) => {
     const x1 = x;
     const x2 = x + width;
     const y1 = y;
     const y2 = y + height;
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    return new Float32Array([
         x1, y1,
         x2, y1,
         x1, y2,
         x1, y2,
         x2, y1,
         x2, y2,
-    ]), gl.STATIC_DRAW);
-}
+    ])
+};
 
 const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, image: HTMLImageElement) => {
     // 创建纹理映射的几何图形
     const positionLocation = gl.getAttribLocation(program, "a_position");
-    // Create a buffer to put three 2d clip space points in
-    const positionBuffer = gl.createBuffer();
-
-    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+    const positionBuffer = createBuffer(gl, getImageVBO(0, 0, image.width, image.height));
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    // Set a rectangle the same size as the image.
-    setRectangle(gl, 0, 0, image.width, image.height);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-
     // 设置纹理坐标,纹理坐标的范围永远是0~1
     const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-    const texcoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    const texcoordBuffer = createBuffer(gl, new Float32Array([
         0.0,  0.0,
         1.0,  0.0,
         0.0,  1.0,
         0.0,  1.0,
         1.0,  0.0,
         1.0,  1.0,
-    ]), gl.STATIC_DRAW);
+    ]));
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(texcoordLocation);
 
     // set the resolution 设置分辨率
     const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    // gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
-    gl.uniform2f(resolutionLocation, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.uniform2fv(resolutionLocation, new Float32Array([gl.drawingBufferWidth, gl.drawingBufferHeight]))
 
     // 创建纹理
     const texture = gl.createTexture();

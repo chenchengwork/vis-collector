@@ -20,7 +20,8 @@ export const SHADER_VERTEX = `
     
        // pass the texCoord to the fragment shader
        // The GPU will interpolate this value between points.
-       v_texCoord = a_texCoord;
+       // v_texCoord = a_texCoord;
+       v_texCoord = (a_texCoord - 0.5 )/ 3.5 + 0.5;
     }
 `;
 
@@ -37,6 +38,8 @@ export const SHADER_FRAGMENT = `
     
     void main() {
        // gl_FragColor = texture2D(u_image, v_texCoord).rgba;
+       // 调换像素颜色
        gl_FragColor = texture2D(u_image, v_texCoord).bgra;
+       // gl_FragColor = texture2D(u_image, (v_texCoord - 0.5 )/ 1.5 + 0.5).bgra;
     }
 `;
