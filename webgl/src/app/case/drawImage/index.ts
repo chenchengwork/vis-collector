@@ -16,19 +16,21 @@ function setRectangle(gl: WebGLRenderingContext, x: number, y: number, width: nu
 }
 
 const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, image: HTMLImageElement) => {
-    // look up where the vertex data needs to go.
-    var positionLocation = gl.getAttribLocation(program, "a_position");
-    var texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
+    // 创建纹理映射的几何图形
+    const positionLocation = gl.getAttribLocation(program, "a_position");
     // Create a buffer to put three 2d clip space points in
-    var positionBuffer = gl.createBuffer();
+    const positionBuffer = gl.createBuffer();
 
     // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     // Set a rectangle the same size as the image.
     setRectangle(gl, 0, 0, image.width, image.height);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(positionLocation);
 
-    // provide texture coordinates for the rectangle.
+
+    // 设置纹理坐标,纹理坐标的范围永远是0~1
+    const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
     const texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -39,8 +41,15 @@ const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, image: HTML
         1.0,  0.0,
         1.0,  1.0,
     ]), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(texcoordLocation);
 
-    // Create a texture.
+    // set the resolution 设置分辨率
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    // gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+    gl.uniform2f(resolutionLocation, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+    // 创建纹理
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -50,24 +59,14 @@ const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, image: HTML
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    // Upload the image into the texture.
+    // 上传图片到纹理中
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-    // lookup uniforms
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    const u_image = gl.getUniformLocation(program, "u_image");
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);  // 对纹理图像进行Y轴翻转
+    gl.activeTexture(gl.TEXTURE0);  // 开启0号纹理单元, 激活纹理单元
+    gl.uniform1i(u_image, 0);    // 将0号纹理单元传递给着色器, 绑定纹理单元
 
-    // Turn on the position attribute
-    gl.enableVertexAttribArray(positionLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); // Bind the position buffer.
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    // Turn on the teccord attribute
-    gl.enableVertexAttribArray(texcoordLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);      // Bind the position buffer.
-    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-    // set the resolution 设置分辨率
-    gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 };

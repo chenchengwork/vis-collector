@@ -46,7 +46,7 @@ export default class WebGL extends React.PureComponent {
             const doDrawImage = require("./case/drawImage").default;
             const image = getImage();
             image && doDrawImage(gl, image);
-        }
+        };
 
 
         function runWebGLApp() {
