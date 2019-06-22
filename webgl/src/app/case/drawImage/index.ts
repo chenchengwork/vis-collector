@@ -65,9 +65,16 @@ const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, image: HTML
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 };
 
-export default (gl: WebGLRenderingContext, image: HTMLImageElement) => {
-    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader")
-    const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
+export default (gl: WebGLRenderingContext) => {
+    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
 
-    drawImage(gl, prg, image)
+    return (image: HTMLImageElement) => {
+        const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
+        drawImage(gl, prg, image)
+    }
+}
+
+export const getProgram = (gl: WebGLRenderingContext) => {
+    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
+    return initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
 }

@@ -91,3 +91,24 @@ export const createElementsBuffer = (gl: WebGLRenderingContext, value: Uint16Arr
 
     return buffer;
 };
+
+
+/**
+ * 重置画布大小
+ * @param gl
+ */
+export const resize = (gl: WebGLRenderingContext) => {
+    // window.devicePixelRatio表示一个像素等于多少个真实的像素数
+    const realToCSSPixels = window.devicePixelRatio;
+
+    // 获取浏览器显示的画布的CSS像素值, 然后计算出设备像素设置drawingbuffer, 获取设备的真实像素数
+    const displayWidth  = Math.floor(gl.canvas.clientWidth  * realToCSSPixels);
+    const displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
+
+    // 检查画布尺寸是否相同, 如果画布像素数和真实设备像素数不相同,则设置为相同的像素数
+    if (gl.canvas.width  !== displayWidth || gl.canvas.height !== displayHeight) {
+        // 设置为相同的尺寸
+        gl.canvas.width  = displayWidth;
+        gl.canvas.height = displayHeight;
+    }
+};

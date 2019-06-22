@@ -20,8 +20,8 @@ export const SHADER_VERTEX = `
     
        // pass the texCoord to the fragment shader
        // The GPU will interpolate this value between points.
-       // v_texCoord = a_texCoord;
-       v_texCoord = (a_texCoord - 0.5 )/ 3.5 + 0.5;
+       v_texCoord = a_texCoord;
+       // v_texCoord = (a_texCoord - 0.5 )/ 3.5 + 0.5;
     }
 `;
 
