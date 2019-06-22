@@ -3,6 +3,7 @@ export const SHADER_VERTEX = `
     attribute vec2 a_texCoord;
     
     uniform vec2 u_resolution;
+    uniform float uScale;
     
     varying vec2 v_texCoord;
     
@@ -20,26 +21,33 @@ export const SHADER_VERTEX = `
     
        // pass the texCoord to the fragment shader
        // The GPU will interpolate this value between points.
-       v_texCoord = a_texCoord;
-       // v_texCoord = (a_texCoord - 0.5 )/ 3.5 + 0.5;
+       // v_texCoord = a_texCoord;
+       v_texCoord = (a_texCoord - 0.5 )/ uScale + 0.5;
     }
 `;
 
 export const SHADER_FRAGMENT = `
+    #extension GL_EXT_shader_texture_lod: enable
     #ifdef GL_ES
     precision highp float;
     #endif
-
+    
     // our texture
     uniform sampler2D u_image;
+    uniform int uPostProcess;
     
     // the texCoords passed in from the vertex shader.
     varying vec2 v_texCoord;
     
     void main() {
-       // gl_FragColor = texture2D(u_image, v_texCoord).rgba;
+       gl_FragColor = texture2D(u_image, v_texCoord).rgba;
        // 调换像素颜色
-       gl_FragColor = texture2D(u_image, v_texCoord).bgra;
-       // gl_FragColor = texture2D(u_image, (v_texCoord - 0.5 )/ 1.5 + 0.5).bgra;
+       // gl_FragColor = texture2D(u_image, v_texCoord).bgra;
+       
+       if(uPostProcess == 1){
+            gl_FragColor = vec4(pow(gl_FragColor.rgb, vec3(1.0/2.2)), 1.0);
+       }else if(uPostProcess == 2){
+            gl_FragColor = vec4(pow(gl_FragColor.rgb, vec3(2.2)), 1.0);
+       }
     }
 `;

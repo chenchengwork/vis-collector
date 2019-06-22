@@ -7,59 +7,12 @@ export default class WebGL extends React.PureComponent {
         const gl = getGL("plane_triangle");
         this.draw(gl);
 
-        // const backingStore = gl.backingStorePixelRatio || gl.webkitBackingStorePixelRatio || gl.mozBackingStorePixelRatio || gl.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
-        // const pixelRatio = (window.devicePixelRatio || 1) / backingStore;
 
-        // const data = {
-        //     flipY: true,
-        //     scale: 1,
-        //     size: '512',
-        //     wrap: 'CLAMP',
-        //     SRGB: false,
-        //     postProcess: 'no-operation',
-        //     MAG_FILTER: 'NEAREST',
-        //     MIN_FILTER: 'NEAREST',
-        //     generateMipMap: false,
-        //     customMipmap: false,
-        //     extLod: false,
-        //     extLodLevel: 0
-        // };
-        //
-        // const gui = new dat.GUI({
-        //     autoPlace: true,
-        //     width: 350
-        // });
-        //
-        // const recreateTexture = (e: any) => {
-        //     console.log('data->', data)
-        //     console.log('e->', e);
-        // }
-        //
-        // gui.add(data, 'flipY').onChange(recreateTexture);
-        // gui.add(data, 'scale', 0, 2);
-        // gui.add(data, 'size', [512, 300]).onChange(recreateTexture);
-        // gui.add(data, 'wrap', ['CLAMP', 'REPEAT']);
-        // gui.add(data, 'SRGB').onChange(recreateTexture);
-        // gui.add(data, 'postProcess', ['no-operation', 'c^(1.0/2.2)', 'c^2.2']);
-        // gui.add(data, 'MAG_FILTER', ['LINEAR', 'NEAREST']).onChange(recreateTexture);
-        // gui.add(data, 'MIN_FILTER', [
-        //     'LINEAR', 'NEAREST',
-        //     'NEAREST_MIPMAP_NEAREST', 'LINEAR_MIPMAP_NEAREST',
-        //     'NEAREST_MIPMAP_LINEAR', 'LINEAR_MIPMAP_LINEAR'
-        // ]).onChange(recreateTexture);
-        // gui.add(data, 'generateMipMap').onChange(recreateTexture);
-        // gui.add(data, 'extLod');
-        // gui.add(data, 'extLodLevel', 0, 5);
-        // gui.add(data, 'customMipmap').onChange(recreateTexture);
 
     }
 
     // 绘制平面三角形
     draw = (gl: WebGLRenderingContext): void => {
-        const program1 = require("./case/drawTriangle").getProgram(gl)
-        const program2 = require("./case/drawImage").getProgram(gl)
-
-
         const drawTriangle = () => {
             const drawTriangle = require("./case/drawTriangle").default;
 
@@ -77,27 +30,32 @@ export default class WebGL extends React.PureComponent {
         };
 
         const getImage = (() => {
-            let image: HTMLImageElement = null;
+            let images: HTMLImageElement[] = [];
 
             return () => {
-                if(image == null) {
-                    const realImage = new Image();
-                    realImage.src = require("./img/leaves.jpg");
-                    realImage.onload = () => {
-                        image = realImage
+                if(images.length <= 0) {
+                    const image512 = new Image();
+                    image512.src = require("./img/img_512.png");
+                    image512.onload = () => {
+                        images[0] = image512;
+
+                        const image256 = new Image();
+                        image256.src = require("./img/img_256.png");
+                        image256.onload = () => {
+                            images[1] = image256;
+                        }
                     };
                 }
 
-                return image;
+                return images;
             }
         })();
 
         const doDrawImage = require("./case/drawImage").default(gl);
 
         const drawTextureImage = () => {
-
-            const image = getImage();
-            image && doDrawImage(image);
+            const images = getImage();
+            images.length == 2 && doDrawImage(images);
         };
 
         function runWebGLApp() {
@@ -115,6 +73,8 @@ export default class WebGL extends React.PureComponent {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             drawTriangle();     // 绘制三角形
+
+            // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
             drawTextureImage(); // 绘制纹理图片
 
             raf(runWebGLApp);

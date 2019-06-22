@@ -40,8 +40,3 @@ export default (gl: WebGLRenderingContext, data: number[]) => {
 
     drawTriangle(gl, program, data)
 }
-
-export const getProgram = (gl: WebGLRenderingContext) => {
-    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
-    return initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
-}
