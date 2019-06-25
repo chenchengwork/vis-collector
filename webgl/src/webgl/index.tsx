@@ -1,20 +1,17 @@
 import * as React from "react";
-import { getGL, initProgram, raf, resize } from './lib/webgl_util';
-import * as dat from 'dat.gui';
+import { GL, getGL, raf, resize, loadImage } from './lib/webgl_util';
 
 export default class WebGL extends React.PureComponent {
     componentDidMount(){
         const gl = getGL("plane_triangle");
         this.draw(gl);
-
-
-
     }
 
     // 绘制平面三角形
-    draw = (gl: WebGLRenderingContext): void => {
+    draw = (gl: GL): void => {
+        // console.log("gl", gl._V)
         const drawTriangle = () => {
-            const drawTriangle = require("./case/drawTriangle").default;
+            const drawTriangle = require("./webgl1/drawTriangle").default;
 
             drawTriangle(gl, [
                 0.0, 0.1,  1.0, 0.0, 0.0,
@@ -34,28 +31,28 @@ export default class WebGL extends React.PureComponent {
 
             return () => {
                 if(images.length <= 0) {
-                    const image512 = new Image();
-                    image512.src = require("./img/img_512.png");
-                    image512.onload = () => {
-                        images[0] = image512;
-
-                        const image256 = new Image();
-                        image256.src = require("./img/img_256.png");
-                        image256.onload = () => {
-                            images[1] = image256;
-                        }
-                    };
+                    loadImage(require("./img/img_512.png")).then((image1) => {
+                        loadImage(require("./img/img_256.png")).then((image2) => {
+                            images = [image1, image2];
+                        })
+                    })
                 }
 
                 return images;
             }
         })();
 
-        const doDrawImage = require("./case/drawImage").default(gl);
+        const doDrawImage = require("./webgl1/drawImage").default(gl);
 
         const drawTextureImage = () => {
             const images = getImage();
             images.length == 2 && doDrawImage(images);
+        };
+
+        //
+        const doDrawElementsInstanced = () => {
+            const drawElementsInstanced = require("./webgl2/drawElementsInstanced").default;
+            drawElementsInstanced(gl)
         };
 
         function runWebGLApp() {
@@ -72,10 +69,17 @@ export default class WebGL extends React.PureComponent {
             // 真正的绘制是使用了clear方法后, 开始绘制的
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            drawTriangle();     // 绘制三角形
+            // 绘制webgl2的标准
+            if(gl.isWebgl2) {
+                doDrawElementsInstanced();
+            }
+            // 绘制webgl1的标准
+            else {
+                drawTriangle();     // 绘制三角形
 
-            // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
-            drawTextureImage(); // 绘制纹理图片
+                // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
+                drawTextureImage(); // 绘制纹理图片
+            }
 
             raf(runWebGLApp);
         }

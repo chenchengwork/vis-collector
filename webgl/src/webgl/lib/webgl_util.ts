@@ -1,6 +1,16 @@
-export const getGL = (domID: string):WebGLRenderingContext => {
+export interface GL extends WebGLRenderingContext{
+    isWebgl2?: boolean;
+}
+
+export const getGL = (domID: string): GL => {
     const canvas: HTMLCanvasElement = document.querySelector("#" + domID);
-    const gl = canvas.getContext("webgl");
+    const flag = "webgl";   // webgl1
+    // const flag = "webgl2";     // webgl2
+    const gl = canvas.getContext(flag);     // 获取webgl上下文
+
+    // @ts-ignore
+    flag === "webgl2" ? gl.isWebgl2 = true : gl.isWebgl2 = false;
+
     return gl;
 };
 
@@ -59,7 +69,7 @@ export const initProgram = (gl: WebGLRenderingContext, vxShader: string, fgShade
     gl.useProgram(prg);
 
     return prg;
-}
+};
 
 /**
  * 创建数据buffer
@@ -112,3 +122,51 @@ export const resize = (gl: WebGLRenderingContext) => {
         gl.canvas.height = displayHeight;
     }
 };
+
+/**
+ * 加载图片
+ * @param url
+ * @param opts
+ */
+export const loadImage = (url: string, opts?: {crossOrigin: string}): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+        try {
+            const image = new Image();
+
+            image.onload = () => resolve(image);
+
+            image.onerror = () => reject(new Error("Could not load image ".concat(url, ".")));
+
+            image.crossOrigin = opts && opts.crossOrigin || 'anonymous';
+            image.src = url;
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+/**
+ * 记忆函数
+ * @param func
+ * @param context
+ */
+// 参考实现： https://github.com/addyosmani/memoize.js
+export const memoize = (func: Function, context?: any): any => {
+    const stringifyJson = JSON.stringify,
+        cache: {[index: string]: any} = {};
+
+    const cachedfun = function() {
+        const hash = stringifyJson(arguments);
+        return (hash in cache) ? cache[hash] : cache[hash] = func.apply(this, arguments);
+    };
+
+    cachedfun.__cache = (function() {
+        cache.remove || (cache.remove = function() {
+            var hash = stringifyJson(arguments);
+            return (delete cache[hash]);
+        });
+        return cache;
+    }).call(context);
+
+    return cachedfun;
+}
