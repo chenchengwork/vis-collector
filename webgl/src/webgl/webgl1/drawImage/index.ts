@@ -1,6 +1,5 @@
 import { initProgram, createBuffer } from '../../lib/webgl_util'
 import * as dat from "dat.gui";
-import imageUV_256 from '../../img/img_256.png'
 
 // 获取图片的顶点数据
 const getImageVBO = (x: number, y: number, width: number, height: number) => {
@@ -110,15 +109,10 @@ const createTexture = (gl: WebGLRenderingContext, program: WebGLProgram,images: 
     gl.activeTexture(gl.TEXTURE0);  // 开启0号纹理单元, 激活纹理单元
     gl.uniform1i(u_image, 0);    // 将0号纹理单元传递给着色器, 绑定纹理单元
 
-
-
     gl.bindTexture(gl.TEXTURE_2D, null);
-
 
     return texture;
 }
-
-
 
 export default (gl: WebGLRenderingContext) => {
     const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
@@ -137,9 +131,15 @@ export default (gl: WebGLRenderingContext) => {
         // extLod: false,
         // extLodLevel: 0
     };
-    createDatUI(gl, data);
+
+    let isCreatedDatUI = false;
 
     return (images: HTMLImageElement[]) => {
+        if(!isCreatedDatUI){
+            createDatUI(gl, data);
+            isCreatedDatUI = true;
+        }
+
         const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
         drawImage(gl, prg, images, data)
     }
