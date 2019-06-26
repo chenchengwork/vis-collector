@@ -1,65 +1,38 @@
-import { initProgram, createBuffer, createProgram } from '../../lib/webgl_util'
+import { initProgram, createBuffer, createProgram, memoize, bindVertexBuffer } from '../../lib/webgl_util'
 import * as dat from "dat.gui";
 
-// 获取图片的顶点数据
-const getImageVBO = (x: number, y: number, width: number, height: number) => {
-    const x1 = x;
-    const x2 = x + width;
-    const y1 = y;
-    const y2 = y + height;
-    return new Float32Array([
-        x1, y1,
-        x2, y1,
-        x1, y2,
-        x1, y2,
-        x2, y1,
-        x2, y2,
-    ])
-};
+interface Context {
+    program: WebGLProgram;
+    aPositionLoc: number;
+    aTexCoordLoc: number;
+    uResolutionLoc: WebGLUniformLocation;
+    uScaleLoc: WebGLUniformLocation;
+    uPostProcessLoc: WebGLUniformLocation;
+    aPosition: {
+        data: Float32Array;
+        n: number
+    },
+    aTexCoord: Float32Array;
+    texture: WebGLTexture;
+}
 
-const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, images: HTMLImageElement[], data: any) => {
+let context: Context;
+
+const drawImage = (gl: WebGLRenderingContext, images: HTMLImageElement[], data: any) => {
+    const { program, aPositionLoc, aTexCoordLoc, uResolutionLoc, uScaleLoc, uPostProcessLoc, aPosition, aTexCoord, texture} = context;
+    gl.useProgram(program);
+
     // 创建纹理映射的几何图形
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    const positionBuffer = createBuffer(gl, getImageVBO(0, 0, images[0].width, images[0].height));
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(positionLocation);
-
+    bindVertexBuffer(gl, aPosition.data, aPositionLoc, 2, gl.FLOAT);
     // 设置纹理坐标,纹理坐标的范围永远是0~1
-    const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-    const texcoordBuffer = createBuffer(gl, new Float32Array([
-        0.0,  0.0,
-        1.0,  0.0,
-        0.0,  1.0,
-        0.0,  1.0,
-        1.0,  0.0,
-        1.0,  1.0,
-    ]));
+    bindVertexBuffer(gl, aTexCoord, aTexCoordLoc, 2, gl.FLOAT)
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(texcoordLocation);
-
-    // set the resolution 设置分辨率
-    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    gl.uniform2fv(resolutionLocation, new Float32Array([gl.drawingBufferWidth, gl.drawingBufferHeight]))
-
+    // 设置分辨率
+    gl.uniform2fv(uResolutionLoc, new Float32Array([gl.drawingBufferWidth, gl.drawingBufferHeight]))
     // 设置缩放
-    const uScaleLocation = gl.getUniformLocation(program, "uScale");
-    gl.uniform1f(uScaleLocation, data.scale);
+    gl.uniform1f(uScaleLoc, data.scale);
 
 
-    // 创建纹理
-    const extensions = {
-        // SRGB扩展说明: https://developer.mozilla.org/en-US/docs/Web/API/EXT_sRGB
-        SRGB: gl.getExtension("EXT_SRGB"),
-        TEX_LOD: gl.getExtension("EXT_shader_texture_lod")
-    };
-    const format = data.SRGB && extensions.SRGB ? extensions.SRGB.SRGB_EXT : gl.RGBA;
-
-
-
-    const texture = createTexture(gl, program, images, format);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     // Set the parameters so we can render any size image.
@@ -80,13 +53,12 @@ const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, images: HTM
 
 
     // SRGB的模拟实现
-    const ppLoc = gl.getUniformLocation(program, "uPostProcess");
     if (data.postProcess === 'no-operation') {
-        gl.uniform1i(ppLoc, 0);
+        gl.uniform1i(uPostProcessLoc, 0);
     } else if (data.postProcess === 'c^(1.0/2.2)') {
-        gl.uniform1i(ppLoc, 1);
+        gl.uniform1i(uPostProcessLoc, 1);
     } else if (data.postProcess === 'c^2.2') {
-        gl.uniform1i(ppLoc, 2)
+        gl.uniform1i(uPostProcessLoc, 2)
     }
 
     // 开启 Mipmap
@@ -94,8 +66,7 @@ const drawImage = (gl: WebGLRenderingContext, program: WebGLProgram, images: HTM
         gl.generateMipmap(gl.TEXTURE_2D);
     }
 
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.drawArrays(gl.TRIANGLES, 0, aPosition.n);
 };
 
 const createTexture = (gl: WebGLRenderingContext, program: WebGLProgram,images: HTMLImageElement[], format: number) => {
@@ -104,7 +75,6 @@ const createTexture = (gl: WebGLRenderingContext, program: WebGLProgram,images: 
 
     // 上传图片到纹理中
     gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, images[0]);
-    // gl.texImage2D(gl.TEXTURE_2D, 1, format, format, gl.UNSIGNED_BYTE, images[1]);
     const u_image = gl.getUniformLocation(program, "u_image");
     gl.activeTexture(gl.TEXTURE0);  // 开启0号纹理单元, 激活纹理单元
     gl.uniform1i(u_image, 0);    // 将0号纹理单元传递给着色器, 绑定纹理单元
@@ -112,35 +82,50 @@ const createTexture = (gl: WebGLRenderingContext, program: WebGLProgram,images: 
     gl.bindTexture(gl.TEXTURE_2D, null);
 
     return texture;
+};
+
+export default (gl: WebGLRenderingContext, images: HTMLImageElement[]) => {
+    if (!context) context = getContext(gl, images);
+    drawImage(gl, images, data)
 }
 
-export default (gl: WebGLRenderingContext) => {
-    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
+const data = {
+    scale: 1,
+    size: '512',
+    wrap: 'CLAMP',
+    SRGB: false,
+    postProcess: 'no-operation',
+    MAG_FILTER: 'NEAREST',
+    MIN_FILTER: 'NEAREST',
+    generateMipMap: false,
+};
 
-    const data = {
-        scale: 1,
-        size: '512',
-        wrap: 'CLAMP',
-        SRGB: false,
-        postProcess: 'no-operation',
-        MAG_FILTER: 'NEAREST',
-        MIN_FILTER: 'NEAREST',
-        generateMipMap: false,
+
+const getContext = memoize((gl: WebGLRenderingContext, images: HTMLImageElement[]): Context => {
+    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
+    const program = createProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
+    const aPositionLoc = gl.getAttribLocation(program, "a_position");
+    const aTexCoordLoc = gl.getAttribLocation(program, "a_texCoord");
+    const uResolutionLoc = gl.getUniformLocation(program, "u_resolution");
+    const uScaleLoc = gl.getUniformLocation(program, "uScale");
+    const uPostProcessLoc = gl.getUniformLocation(program, "uPostProcess");
+
+    const aPosition = getImageVBO(0, 0, 512, 512);
+    const aTexCoord = getTexCoordVBO();
+    // 创建纹理
+    const extensions = {
+        // SRGB扩展说明: https://developer.mozilla.org/en-US/docs/Web/API/EXT_sRGB
+        SRGB: gl.getExtension("EXT_SRGB"),
+        TEX_LOD: gl.getExtension("EXT_shader_texture_lod")
     };
 
-    let isCreatedDatUI = false;
+    const format = data.SRGB && extensions.SRGB ? extensions.SRGB.SRGB_EXT : gl.RGBA;
+    const texture = createTexture(gl, program, images, format);
 
-    return (images: HTMLImageElement[]) => {
-        if(!isCreatedDatUI){
-            createDatUI(gl, data);
-            isCreatedDatUI = true;
-        }
+    createDatUI(gl, data);
 
-        const prg = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
-        drawImage(gl, prg, images, data)
-    }
-}
-
+    return { program, aPositionLoc, aTexCoordLoc, uResolutionLoc, uScaleLoc, uPostProcessLoc, aPosition, aTexCoord, texture }
+});
 
 const createDatUI = (gl: WebGLRenderingContext, data: any) => {
 
@@ -170,4 +155,34 @@ const createDatUI = (gl: WebGLRenderingContext, data: any) => {
     // gui.add(data, 'extLod');
     // gui.add(data, 'extLodLevel', 0, 5);
     // gui.add(data, 'customMipmap').onChange(recreateTexture);
+}
+
+// 获取图片的顶点数据
+const getImageVBO = (x: number, y: number, width: number, height: number) => {
+    const x1 = x;
+    const x2 = x + width;
+    const y1 = y;
+    const y2 = y + height;
+    const data = new Float32Array([
+        x1, y1,
+        x2, y1,
+        x1, y2,
+        x1, y2,
+        x2, y1,
+        x2, y2,
+    ]);
+
+    return {data, n: data.length / 2}
+};
+
+
+const getTexCoordVBO = () => {
+    return new Float32Array([
+        0.0,  0.0,
+        1.0,  0.0,
+        0.0,  1.0,
+        0.0,  1.0,
+        1.0,  0.0,
+        1.0,  1.0,
+    ]);
 }

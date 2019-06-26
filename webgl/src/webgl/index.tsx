@@ -10,17 +10,8 @@ export default class WebGL extends React.PureComponent {
     // 绘制平面三角形
     draw = (gl: GL): void => {
         // console.log("gl", gl._V)
-        const drawTriangle = () => {
-            const drawTriangle = require("./webgl1/drawTriangle").default;
-            drawTriangle(gl);
+        const drawTriangle = require("./webgl1/drawTriangle").default;
 
-
-            // drawTriangle(gl, [
-            //     0.0, 0.1,  1.0, 0.0, 0.0,
-            //     -0.5, -0.5, 0.0, 1.0, 0.0,
-            //     0.5, -0.5,	0.0, 0.0, 1.0
-            // ]);
-        };
 
         const getImage = (() => {
             let images: HTMLImageElement[] = [];
@@ -38,11 +29,11 @@ export default class WebGL extends React.PureComponent {
             }
         })();
 
-        const doDrawImage = require("./webgl1/drawImage").default(gl);
+        const doDrawImage = require("./webgl1/drawImage").default;
 
         const drawTextureImage = () => {
             const images = getImage();
-            images.length == 2 && doDrawImage(images);
+            images.length == 2 && doDrawImage(gl, images);
         };
 
         const draw3D = require("./webgl1/draw3D").default;
@@ -53,19 +44,25 @@ export default class WebGL extends React.PureComponent {
             drawElementsInstanced(gl)
         };
 
-        function runWebGLApp() {
+        function tick() {
             // 重置画布大小
             resize(gl);
 
             // 设置视口坐标系, gl.viewport告诉WebGL如何将裁剪空间（-1 到 +1）中的点转换到像素空间， 也就是画布内
             gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+            // 剔除遮挡面, 即被遮挡的面不会被绘制
+            gl.enable(gl.CULL_FACE);
+
             // 开启深度检测
             gl.enable(gl.DEPTH_TEST);
+
 
             // 设置清除颜色,这只会改变webgl的内部状态,但不会绘制任何东西
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             // 真正的绘制是使用了clear方法后, 开始绘制的
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+            gl.clear(gl.COLOR_BUFFER_BIT );
 
             // 绘制webgl2的标准
             if(gl.isWebgl2) {
@@ -73,18 +70,18 @@ export default class WebGL extends React.PureComponent {
             }
             // 绘制webgl1的标准
             else {
-                // drawTriangle();     // 绘制三角形
+                drawTriangle(gl);     // 绘制三角形
 
                 // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
-                drawTextureImage(); // 绘制纹理图片
+                // drawTextureImage(); // 绘制纹理图片
 
-                // draw3D(gl)
+                draw3D(gl)
             }
 
-            raf(runWebGLApp);
+            raf(tick);
         }
 
-        runWebGLApp();
+        tick();
     };
 
     render() {
