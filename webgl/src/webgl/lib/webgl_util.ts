@@ -1,6 +1,10 @@
+import * as dat from "dat.gui";
+
 export interface GL extends WebGLRenderingContext{
     isWebgl2?: boolean;
 }
+
+export {dat};
 
 export const getGL = (domID: string): GL => {
     const canvas: HTMLCanvasElement = document.querySelector("#" + domID);
@@ -72,6 +76,29 @@ export const initProgram = (gl: WebGLRenderingContext, vxShader: string, fgShade
 };
 
 /**
+ * 创建着色器程序对象
+ * @param gl
+ * @param vxShader
+ * @param fgShader
+ */
+export const createProgram = (gl: WebGLRenderingContext, vxShader: string, fgShader: string):WebGLProgram => {
+    const prg: WebGLProgram = gl.createProgram();
+    gl.attachShader(prg, loadShader(gl, gl.VERTEX_SHADER, vxShader));
+    gl.attachShader(prg, loadShader(gl, gl.FRAGMENT_SHADER, fgShader));
+    gl.linkProgram(prg);
+    if (!gl.getProgramParameter(prg, gl.LINK_STATUS)) {
+        const error: string = gl.getProgramInfoLog(prg);
+        gl.deleteProgram(prg);
+        gl.deleteShader(fgShader);
+        gl.deleteShader(vxShader);
+        throw new Error("Failed to link program:" + error);
+    }
+
+    return prg;
+};
+
+
+/**
  * 创建数据buffer
  */
 export const createBuffer = (gl: WebGLRenderingContext, value: Float32Array, usage?: number) => {
@@ -124,6 +151,41 @@ export const resize = (gl: WebGLRenderingContext) => {
 };
 
 /**
+ * 绑定顶点buffer
+ */
+export const bindVertexBuffer = ((
+    gl: WebGLRenderingContext,
+    vertices: Float32Array| Uint8Array,
+    aLoc: number,
+    size: number,
+    type: number = gl.FLOAT,
+    normalize: boolean = false,
+    stride: number = 0,
+    offset: number = 0
+) => {
+    // 创建缓冲区对象
+    const aPositionBuffer: WebGLBuffer = gl.createBuffer();
+
+    // 将缓冲区对象绑定到目标
+    gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
+
+    // 将数据添加到缓存区中
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+    // 将缓冲区对象分配给aPosition变量
+    gl.vertexAttribPointer(aLoc, size, type, normalize, stride, offset);
+
+    // 连接aPosition变量与分配给它的缓冲区对象
+    gl.enableVertexAttribArray(aLoc);
+
+    // 解除缓冲区关系
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+});
+
+
+
+/**
  * 加载图片
  * @param url
  * @param opts
@@ -151,7 +213,7 @@ export const loadImage = (url: string, opts?: {crossOrigin: string}): Promise<HT
  * @param context
  */
 // 参考实现： https://github.com/addyosmani/memoize.js
-export const memoize = (func: Function, context?: any): any => {
+export const memoize = (func: Function, context?: any): Function => {
     const stringifyJson = JSON.stringify,
         cache: {[index: string]: any} = {};
 

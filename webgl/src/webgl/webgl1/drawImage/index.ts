@@ -1,4 +1,4 @@
-import { initProgram, createBuffer } from '../../lib/webgl_util'
+import { initProgram, createBuffer, createProgram } from '../../lib/webgl_util'
 import * as dat from "dat.gui";
 
 // 获取图片的顶点数据
@@ -118,7 +118,6 @@ export default (gl: WebGLRenderingContext) => {
     const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
 
     const data = {
-        // flipY: true,
         scale: 1,
         size: '512',
         wrap: 'CLAMP',
@@ -127,9 +126,6 @@ export default (gl: WebGLRenderingContext) => {
         MAG_FILTER: 'NEAREST',
         MIN_FILTER: 'NEAREST',
         generateMipMap: false,
-        // customMipmap: false,
-        // extLod: false,
-        // extLodLevel: 0
     };
 
     let isCreatedDatUI = false;

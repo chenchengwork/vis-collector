@@ -1,78 +1,44 @@
-import { initProgram, memoize, m4, radToDeg, degToRad } from '../../lib/webgl_util';
-import * as dat from "dat.gui";
+import { createProgram, memoize, m4, degToRad, bindVertexBuffer, dat } from '../../lib/webgl_util';
 
-const bindVertexBuffer = ((
-    gl: WebGLRenderingContext,
-    vertices: Float32Array| Uint8Array,
-    aLoc: number,
-    size: number,
-    type: number = gl.FLOAT,
-    normalize: boolean = false,
-    stride: number = 0,
-    offset: number = 0
-) => {
-    // 创建缓冲区对象
-    const aPositionBuffer: WebGLBuffer = gl.createBuffer();
-    // 将缓冲区对象绑定到目标
-    gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-    // 将缓冲区对象分配给aPosition变量
-    gl.vertexAttribPointer(aLoc, size, type, normalize, stride, offset);
-    // 连接aPosition变量与分配给它的缓冲区对象
-    gl.enableVertexAttribArray(aLoc);
-});
-
-const drawTriangle = (gl: WebGLRenderingContext, program: WebGLProgram, data?: number[]): number => {
-    const vertices: Float32Array = getVertices();
-    const colors: Uint8Array = getColors();
-
-    // 顶点数量
-    const n = vertices.length / 3;
-
-    // 绑定aPosition的数据
-    bindVertexBuffer(gl, vertices, gl.getAttribLocation(program, 'aPosition'), 3);
-
-    // 绑定颜色数据
-    bindVertexBuffer(gl, colors, gl.getAttribLocation(program, 'aColor'), 3, gl.UNSIGNED_BYTE, true);
-
-    // 设置矩阵
-    const uMatrixLoc = gl.getUniformLocation(program, "uMatrix");
-    gl.uniformMatrix4fv(uMatrixLoc, false, getUMatrix(gl))
-
-    // 解除缓冲区关系
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.drawArrays(gl.TRIANGLES, 0, n);
-    return n;
-};
-
-const data = {
-    translationX: 45,
-    translationY: 150,
-    translationZ: 0,
-    rotationX: degToRad(40),
-    rotationY: degToRad(25),
-    rotationZ: degToRad(325),
-    scaleX: 1,
-    scaleY: 1,
-    scaleZ: 1,
-};
-
-let isCreatedDatUI = false;
-
-export default (gl: WebGLRenderingContext) => {
-    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
-    const program = initProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
-
-    if(!isCreatedDatUI){
-        createDatUI(gl, data);
-        isCreatedDatUI = true;
-    }
-
-    drawTriangle(gl, program)
+interface Context {
+    program: WebGLProgram;
+    aPositionLoc: number;
+    aColorLoc: number;
+    uMatrixLoc: WebGLUniformLocation;
+    uMatrix: number[];
+    aPosition: {
+        data: Float32Array,
+        n: number
+    };
+    aColor: Uint8Array;
 }
 
-const createDatUI = (gl: WebGLRenderingContext, data: any) => {
+let context: Context;
+
+const drawTriangle = (gl: WebGLRenderingContext) => {
+    const { program, aPositionLoc, aColorLoc, uMatrixLoc, uMatrix, aPosition, aColor } = context;
+    gl.useProgram(program);
+
+    // 绑定aPosition的数据
+    bindVertexBuffer(gl, aPosition.data, aPositionLoc, 3);
+
+    // 绑定颜色数据
+    bindVertexBuffer(gl, aColor, aColorLoc, 3, gl.UNSIGNED_BYTE, true);
+
+    // 设置矩阵
+    gl.uniformMatrix4fv(uMatrixLoc, false, uMatrix);
+
+    gl.drawArrays(gl.TRIANGLES, 0, aPosition.n);
+};
+
+
+export default (gl: WebGLRenderingContext) => {
+    if(!context) context = getContext(gl);
+
+    drawTriangle(gl)
+}
+
+const createDatUI = (gl: WebGLRenderingContext, data: any, updateUMatrix: Function) => {
     const gui = new dat.GUI({
         autoPlace: true,
         width: 350
@@ -83,34 +49,61 @@ const createDatUI = (gl: WebGLRenderingContext, data: any) => {
         // console.log('value->', value);
     }
 
-    gui.add(data, 'translationX', 0, 800).onChange(recreateTexture);
-    gui.add(data, 'translationY', 0, 800).onChange(recreateTexture);
-    gui.add(data, 'translationZ', 0, 800).onChange(recreateTexture);
-    gui.add(data, 'rotationX', 0, degToRad(360)).onChange(recreateTexture);
-    gui.add(data, 'rotationY', 0, degToRad(360)).onChange(recreateTexture);
-    gui.add(data, 'rotationZ', 0, degToRad(360)).onChange(recreateTexture);
-    gui.add(data, 'scaleX', -5, 5).onChange(recreateTexture);
-    gui.add(data, 'scaleY', -5, 5).onChange(recreateTexture);
-    gui.add(data, 'scaleY', -5, 5).onChange(recreateTexture);
-}
-
-const getUMatrix = (gl: WebGLRenderingContext) => {
-    const {translationX, translationY, translationZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ} =data;
-    // const color = [Math.random(), Math.random(), Math.random(), 1];
-
-    let matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    matrix = m4.translate(matrix, translationX, translationY, translationZ);
-    matrix = m4.xRotate(matrix, rotationX);
-    matrix = m4.yRotate(matrix, rotationY);
-    matrix = m4.zRotate(matrix, rotationZ);
-    matrix = m4.scale(matrix, scaleX, scaleY, scaleZ);
-
-    return matrix;
+    gui.add(data, 'translationX', 0, 800).onChange(updateUMatrix);
+    gui.add(data, 'translationY', 0, 800).onChange(updateUMatrix);
+    gui.add(data, 'translationZ', 0, 800).onChange(updateUMatrix);
+    gui.add(data, 'rotationX', 0, degToRad(360)).onChange(updateUMatrix);
+    gui.add(data, 'rotationY', 0, degToRad(360)).onChange(updateUMatrix);
+    gui.add(data, 'rotationZ', 0, degToRad(360)).onChange(updateUMatrix);
+    gui.add(data, 'scaleX', -5, 5).onChange(updateUMatrix);
+    gui.add(data, 'scaleY', -5, 5).onChange(updateUMatrix);
+    gui.add(data, 'scaleY', -5, 5).onChange(updateUMatrix);
 };
 
+const getContext = memoize((gl: WebGLRenderingContext): Context => {
+    const { SHADER_VERTEX, SHADER_FRAGMENT } = require("./shader");
+    const program = createProgram(gl, SHADER_VERTEX, SHADER_FRAGMENT);
+    const aPositionLoc = gl.getAttribLocation(program, 'aPosition');
+    const aColorLoc = gl.getAttribLocation(program, 'aColor');
+    const uMatrixLoc = gl.getUniformLocation(program, "uMatrix");
 
-const getVertices = memoize(() => {
-    return new Float32Array([
+    const data = {
+        translationX: 45,
+        translationY: 150,
+        translationZ: 0,
+        rotationX: degToRad(40),
+        rotationY: degToRad(25),
+        rotationZ: degToRad(325),
+        scaleX: 1,
+        scaleY: 1,
+        scaleZ: 1,
+    };
+
+    const getUMatrix = () => {
+        const {translationX, translationY, translationZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ } = data;
+
+        let matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+        matrix = m4.translate(matrix, translationX, translationY, translationZ);
+        matrix = m4.xRotate(matrix, rotationX);
+        matrix = m4.yRotate(matrix, rotationY);
+        matrix = m4.zRotate(matrix, rotationZ);
+        matrix = m4.scale(matrix, scaleX, scaleY, scaleZ);
+
+        return matrix;
+    };
+
+    createDatUI(gl, data, () => context.uMatrix = getUMatrix());
+    let uMatrix = getUMatrix();
+
+    const aPosition = getPositions();
+    const aColor = getColors();
+
+    return { program, aPositionLoc, aColorLoc, uMatrixLoc, uMatrix, aPosition, aColor };
+});
+
+
+const getPositions = () => {
+    const data = new Float32Array([
         // left column front
         0,   0,  0,
         30,   0,  0,
@@ -237,10 +230,14 @@ const getVertices = memoize(() => {
         0, 150,  30,
         0,   0,   0,
         0, 150,  30,
-        0, 150,   0])
-});
+        0, 150,   0]);
+    return {
+        data,
+        n: data.length / 3,     // 顶点数量
+    }
+};
 
-const getColors = memoize(() => {
+const getColors = () => {
     return new Uint8Array([
         // left column front
         200,  70, 120,
@@ -369,7 +366,7 @@ const getColors = memoize(() => {
         160, 160, 220,
         160, 160, 220,
         160, 160, 220])
-})
+}
 
 
 

@@ -1,10 +1,10 @@
 export const SHADER_VERTEX = `
-    attribute vec4 aVertexPosition;
-    attribute vec4 a_Color;
-    varying vec4 v_Color;
+    attribute vec4 aPosition;
+    attribute vec4 aColor;
+    varying vec4 vColor;
     void main(void) {
-        gl_Position = aVertexPosition;
-        v_Color = a_Color;
+        gl_Position = aPosition;
+        vColor = aColor;
     }
 `;
 
@@ -13,9 +13,9 @@ export const SHADER_FRAGMENT = `
     precision highp float;
     #endif
     
-    varying vec4 v_Color;
+    varying vec4 vColor;
     void main(void) {
         // gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
-        gl_FragColor = v_Color;
+        gl_FragColor = vColor;
     }
 `;

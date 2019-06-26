@@ -12,18 +12,14 @@ export default class WebGL extends React.PureComponent {
         // console.log("gl", gl._V)
         const drawTriangle = () => {
             const drawTriangle = require("./webgl1/drawTriangle").default;
+            drawTriangle(gl);
 
-            drawTriangle(gl, [
-                0.0, 0.1,  1.0, 0.0, 0.0,
-                -0.5, -0.5, 0.0, 1.0, 0.0,
-                0.5, -0.5,	0.0, 0.0, 1.0
-            ]);
 
-            drawTriangle(gl, [
-                0.0, 0.3,  1.0, 0.0, 0.0,
-                -0.3, -0.3, 0.0, 1.0, 0.0,
-                0.3, -0.3,	0.0, 0.0, 1.0
-            ]);
+            // drawTriangle(gl, [
+            //     0.0, 0.1,  1.0, 0.0, 0.0,
+            //     -0.5, -0.5, 0.0, 1.0, 0.0,
+            //     0.5, -0.5,	0.0, 0.0, 1.0
+            // ]);
         };
 
         const getImage = (() => {
@@ -77,12 +73,12 @@ export default class WebGL extends React.PureComponent {
             }
             // 绘制webgl1的标准
             else {
-                drawTriangle();     // 绘制三角形
+                // drawTriangle();     // 绘制三角形
 
                 // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
-                // drawTextureImage(); // 绘制纹理图片
+                drawTextureImage(); // 绘制纹理图片
 
-                draw3D(gl)
+                // draw3D(gl)
             }
 
             raf(runWebGLApp);
