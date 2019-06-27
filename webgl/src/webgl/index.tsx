@@ -38,6 +38,9 @@ export default class WebGL extends React.PureComponent {
 
         const draw3D = require("./webgl1/draw3D").default;
 
+        const drawBezierLine = require("./webgl1/drawBezierLine").default
+
+
         //
         const doDrawElementsInstanced = () => {
             const drawElementsInstanced = require("./webgl2/drawElementsInstanced").default;
@@ -76,6 +79,8 @@ export default class WebGL extends React.PureComponent {
                 // drawTextureImage(); // 绘制纹理图片
 
                 draw3D(gl)
+
+                drawBezierLine(gl);
             }
 
             raf(tick);
