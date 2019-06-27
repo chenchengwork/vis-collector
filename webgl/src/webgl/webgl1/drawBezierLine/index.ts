@@ -13,6 +13,7 @@ interface Context {
     aPosition: {
         data: Float32Array;
         indexes: Uint8Array;
+        colors: Uint8Array;
         n: number;
     };
     aColor: Uint8Array;
@@ -20,23 +21,51 @@ interface Context {
 
 let context: Context;
 
+let colorIndex = 1;
+
+// 当前的飞翔效果只是简版的,还需要改成在shader中控制
+setInterval(() => {
+    if(context){
+        const { aPosition } = context;
+        // 80, 70, 200
+        const start = colorIndex * 3 - 1;
+        aPosition.colors[start - 2] = 200;
+        aPosition.colors[start - 1] = 70;
+        aPosition.colors[start] = 120;
+
+        aPosition.colors[start] = 80;
+        aPosition.colors[start + 1] = 70;
+        aPosition.colors[start + 2] = 200;
+
+        colorIndex++;
+        if(colorIndex >= aPosition.colors.length / 3) {
+            colorIndex = 1;
+        }
+
+        context.aPosition = aPosition;
+    }
+}, 80)
+
+
 const drawBezierLine = (gl: WebGLRenderingContext) => {
     const {program, aColorLoc, aPositionLoc, aPosition, aColor} = context;
     gl.useProgram(program);
 
+    // 添加顶点
     bindVertexBuffer(gl, aPosition.data, aPositionLoc, 3, gl.FLOAT, false, 0, 0);
+
+    // 添加颜色
+    bindVertexBuffer(gl, aPosition.colors, aColorLoc, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
 
     const indexesBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexesBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, aPosition.indexes, gl.STATIC_DRAW);
 
 
-    //---- 获取颜色的位置 -----
-    // bindVertexBuffer(gl, aColor, aColorLoc, 3, gl.UNSIGNED_BYTE, true, 0, 0)
     gl.lineWidth(5);    // 设置线宽
+
     // 解除缓冲区关系
-    // gl.drawArrays(gl.LINE_STRIP, 0, aPosition.n);
-    // gl.drawArrays(gl.LINES, 0, aPosition.n);
     gl.drawElements(gl.LINES, aPosition.indexes.length, gl.UNSIGNED_BYTE, 0)
 };
 
@@ -64,7 +93,7 @@ const getPositions = () => {
         { x : -0.25, y : 0.5, z : 0 },    // p1
         { x : 0.25,  y : 0.5, z : 0 },    // p2
         { x : 0.7,   y : 0,   z : 0 },    // p3
-        20,
+        100,
         1.0
     );
 
@@ -73,7 +102,7 @@ const getPositions = () => {
         { x : -0.25, y : 0.25, z : 0 },    // p1
         { x : 0.25,  y : 0.25, z : 0 },    // p2
         { x : 0.5,   y : 0,   z : 0 },    // p3
-        20,
+        100,
         1.0
     );
 
@@ -82,29 +111,37 @@ const getPositions = () => {
         bezierPoint2,
     ];
 
-    // bezierPoint1 = [
-    //     -0.7, 0, 0,
-    //     -0.25, 0.5, 0,
-    //
-    //     0.25, 0.5, 0,
-    //     0.7, 0, 0
-    // ]
+    let newPoints: number[] = [];
+    lineSegment.forEach(item => newPoints = newPoints.concat(item));
+    const newIndexes: number[] = [];
+    const pointRange = 3;           // 标识点的分量个数
+    let base = 0;
+    for(let i = 0; i < lineSegment.length; i++){
+        const linePoints = lineSegment[i];
+        let count = linePoints.length / pointRange;
 
-    const points = [...bezierPoint1, ...bezierPoint2];
-
-
-    let indexes = [];
-    for(let i = 0; i < points.length / 3; i++){
-        indexes.push(i);
-        if(indexes.length != 0 && indexes.length % 2 == 0 && i != 19){
-            indexes.push(i);
+        for(let j = 0; j < count; j++){
+            const index = j + base;
+            newIndexes.push(index);
+            if(newIndexes.length != 0 && newIndexes.length % 2 == 0 && j != count -1){
+                newIndexes.push(index);
+            }
         }
+
+        base += count
     }
-    // indexes = [0, 1, 1, 2, 2, 3]
-    // console.log('indexes->', indexes)
-    // const data = new Float32Array([...bezierPoint1, ...bezierPoint2]);
-    const data = new Float32Array(points);
-    return {data, indexes: new Uint8Array(indexes), n: data.length / 3}
+
+    // 添加颜色
+    // const color = [ 200,  70, 120, 80, 70, 200, 70, 200, 210];
+    const color = [ 200,  70, 120];
+    const colors: number[] = newPoints.map((_, index) => color[index % 3]);
+
+    return {
+        data: new Float32Array(newPoints),
+        indexes: new Uint8Array(newIndexes),
+        colors: new Uint8Array(colors),
+        n: newPoints.length / 3,
+    }
 };
 
 

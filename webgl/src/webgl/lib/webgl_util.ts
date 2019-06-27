@@ -237,7 +237,19 @@ export const memoize = (func: Function, context?: any): Function => {
  * 矩阵工具
  */
 export const m4 = {
+    // 透视投影
+    perspective: function(fieldOfViewInRadians: number, aspect: number, near: number, far: number) {
+        const f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
+        const rangeInv = 1.0 / (near - far);
 
+        return [
+            f / aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (near + far) * rangeInv, -1,
+            0, 0, near * far * rangeInv * 2, 0
+        ];
+    },
+    // 正交投影
     projection: (width:number, height:number, depth:number) => ([
         2 / width, 0, 0, 0,
         0, -2 / height, 0, 0,
