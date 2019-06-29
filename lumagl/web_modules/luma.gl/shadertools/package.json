@@ -23,8 +23,6 @@
     "glsl module"
   ],
   "main": "src/index.js",
-  "module": "dist/esm/index.js",
-  "esnext": "dist/es6/index.js",
   "files": [
     "src",
     "dist",

@@ -17,8 +17,6 @@
     "3d"
   ],
   "main": "src/index.js",
-  "module": "dist/esm/index.js",
-  "esnext": "dist/es6/index.js",
   "files": [
     "src",
     "dist",
@@ -30,7 +28,7 @@
     "build-bundle": "webpack --display=minimal --config ../../scripts/bundle.config.js"
   },
   "dependencies": {
-    "math.gl": "^2.3.0"
+    "@loaders.gl/gltf": "^1.0.3"
   },
   "peerDependencies": {
     "@luma.gl/core": "^7.1.0"

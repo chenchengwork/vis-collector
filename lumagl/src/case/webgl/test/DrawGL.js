@@ -51,7 +51,7 @@ export default class DrawGL extends AnimationLoop {
 
         program
             .draw({
-                logPriority: false,
+                logPriority: true,
                 vertexArray: squareVertexArray,
                 drawMode: gl.TRIANGLES,
                 isIndexed: true,

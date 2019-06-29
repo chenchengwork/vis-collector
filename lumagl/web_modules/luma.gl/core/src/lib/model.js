@@ -156,6 +156,7 @@ export default class Model extends BaseModel {
   // PRIVATE METHODS
 
   _setModelProps(props) {
+
     // params
     // if ('drawMode' in props) {
     //   this.drawMode = getDrawMode(props.drawMode);

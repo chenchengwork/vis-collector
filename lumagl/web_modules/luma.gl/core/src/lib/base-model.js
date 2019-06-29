@@ -148,6 +148,7 @@ export default class BaseModel {
 
   /* eslint-disable max-statements  */
   drawGeometry(opts = {}) {
+
     const {
       moduleSettings = null,
       framebuffer,

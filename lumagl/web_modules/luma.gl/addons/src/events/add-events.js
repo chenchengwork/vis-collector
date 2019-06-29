@@ -148,8 +148,9 @@ export class EventsProxy {
       } else {
         type = 'DOMMouseScroll';
       }
+
       domElem.addEventListener(
-        type,
+          type,
         (e, win) => {
           this['mousewheel'](this.eventInfo('mousewheel', e, win));
         },
