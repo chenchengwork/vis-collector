@@ -73,14 +73,14 @@ export default class WebGL extends React.PureComponent {
             }
             // 绘制webgl1的标准
             else {
-                drawTriangle(gl);     // 绘制三角形
+                // drawTriangle(gl);     // 绘制三角形
 
                 // 参考文章: http://taobaofed.org/blog/2018/12/17/webgl-texture/
                 // drawTextureImage(); // 绘制纹理图片
 
                 draw3D(gl)
 
-                drawBezierLine(gl);
+                // drawBezierLine(gl);
             }
 
             raf(tick);
