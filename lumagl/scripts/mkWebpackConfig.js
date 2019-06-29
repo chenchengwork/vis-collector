@@ -1,10 +1,19 @@
 const { assemble, pipe, depend } = require("webpack-pipe");
+const path = require("path");
 
 // 入口配置
 const entry = (config) => depend.merge({
     entry:{
         app: ["./src"],
-    }
+    },
+    resolve: {
+        // "modules": [
+        //     "web_modules",
+        // ],
+        alias: {
+            "@luma.gl": path.resolve(__dirname, '../web_modules/luma.gl/'),
+        }
+    },
 }, config);
 
 

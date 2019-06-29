@@ -1,0 +1,42 @@
+{
+  "name": "@luma.gl/webgl",
+  "version": "7.1.1",
+  "description": "WebGL2 Classes",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uber/luma.gl"
+  },
+  "keywords": [
+    "webgl",
+    "visualization",
+    "animation",
+    "3d"
+  ],
+  "main": "dist/es5/index.js",
+  "module": "dist/esm/index.js",
+  "esnext": "dist/es6/index.js",
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "browser": {
+    "gl": false,
+    "gl/wrap": false
+  },
+  "scripts": {
+    "pre-build": "npm run build-bundle && npm run build-bundle -- --env.dev",
+    "build-bundle": "webpack --display=minimal --config ../../scripts/bundle.config.js"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.0.0",
+    "@luma.gl/constants": "7.1.1",
+    "@luma.gl/webgl-state-tracker": "7.1.1",
+    "@luma.gl/webgl2-polyfill": "7.1.1",
+    "probe.gl": "^3.0.2"
+  }
+}

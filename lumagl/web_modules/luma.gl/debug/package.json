@@ -1,0 +1,39 @@
+{
+  "name": "@luma.gl/debug",
+  "version": "7.1.1",
+  "description": "Debug utilities for luma.gl",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uber/luma.gl"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "webgl",
+    "glsl",
+    "debug",
+    "3d"
+  ],
+  "main": "src/index.js",
+  "module": "dist/esm/index.js",
+  "esnext": "dist/es6/index.js",
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "pre-build": "npm run build-bundle && npm run build-bundle -- --env.dev",
+    "build-bundle": "webpack --display=minimal --config ../../scripts/bundle.config.js"
+  },
+  "dependencies": {
+    "glsl-transpiler": "^1.8.5",
+    "webgl-debug": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@luma.gl/core": "^7.1.0"
+  }
+}

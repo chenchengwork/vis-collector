@@ -1,0 +1,34 @@
+{
+  "name": "@luma.gl/scripts",
+  "description": "Scripting with luma.gl",
+  "license": "MIT",
+  "version": "7.1.1",
+  "private": "true",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "webgl",
+    "visualization",
+    "3D"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uber/luma.gl"
+  },
+  "main": "dist/lumagl.min.js",
+  "scripts": {
+    "start": "webpack-dev-server --env.dev --progress --open",
+    "build-dev": "webpack --env.dev --config webpack.config.js",
+    "build-prod": "webpack --config webpack.config.js",
+    "build": "npm run build-prod"
+  },
+  "dependencies": {
+    "@luma.gl/constants": "7.1.1",
+    "@luma.gl/core": "7.1.1",
+    "@luma.gl/debug": "7.1.1",
+    "@luma.gl/glfx": "7.1.1",
+    "@luma.gl/shadertools": "7.1.1",
+    "math.gl": "^2.3.0"
+  }
+}
