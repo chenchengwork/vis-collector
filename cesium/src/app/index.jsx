@@ -15,6 +15,7 @@ export default class Map extends Component {
         // this.drawAirLine();
         // this.draw3DTileFeature();
         this.draw3DTileForBim();
+        // this.drawDem();
     }
 
     // 绘制航线
@@ -155,8 +156,6 @@ export default class Map extends Component {
             new Cesium.Cesium3DTileset({
                 // url: Cesium.IonResource.fromAssetId(8564),
                 url: "http://localhost:4000/asserts/school_3d_tile/tileset.json",
-                // url: "http://localhost:4000/asserts/Batched未标题_3/tileset.json",
-                // url: Cesium.IonResource.fromAssetId(17781),
             })
         );
 
@@ -392,6 +391,29 @@ export default class Map extends Component {
             }
         });
     }
+
+    // 加载地形数据
+    drawDem = () => {
+        const Cesium = CesiumUtil.Cesium;
+        const cesiumUtil = new CesiumUtil('cesiumContainer', {
+            imageryProvider: new CesiumUtil.Cesium.UrlTemplateImageryProvider({
+                url : getTileServiceProvider("Google.Satellite.Map"),
+                maximumLevel : 28
+            }),
+            terrainProvider: new Cesium.CesiumTerrainProvider({
+                url: "http://10.0.3.221:8000/tilesets/terrain"
+            }),
+            baseLayerPicker: false,
+        });
+        const viewer = cesiumUtil.viewer;
+        const scene = viewer.scene;
+
+        // 相机飞入目标, 当前是北京坐标116.395645038,39.9299857781
+        viewer.camera.flyTo({
+            destination : Cesium.Cartesian3.fromDegrees(116.395645038,39.9299857781,15000.0)
+        });
+    };
+
 
     render() {
         const {top,left} = this.state;
