@@ -24,7 +24,7 @@
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
     "styled-jsx": "^3.2.1",
-    "three": "^0.99.0",
+    "three": "^0.109.0",
     "vtk.js": "^8.3.2"
   },
   "devDependencies": {
