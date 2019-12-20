@@ -1,6 +1,9 @@
 // 加载obj模型
 import ThreeUtil from "../util/ThreeUtil";
 import * as THREE from "three";
+import "../util/loader/GLTFLoader"
+
+import OBJMTLLoader from '../util/loader/OBJMTLLoader';
 
 export const loadObjModel = (scene) => {
     // obj文件大小为1.3M
@@ -10,6 +13,7 @@ export const loadObjModel = (scene) => {
         mtlFileName:"build_4.mtl",
         objFileName:"build_4.obj",
     };
+
 
     // obj文件大小为84M
     // 本地加载模型时间: 3s
@@ -23,9 +27,26 @@ export const loadObjModel = (scene) => {
         objFileName:"bugatti.obj",
     };
 
-    ThreeUtil.loadMtlObj(small).then((object) => {
-        scene.add(object);
-    }).catch(e => console.error(e));
+
+    // obj文件大小为1.3M
+    const taiping = {
+        mtlPath: "/asserts/taiping/",
+        objPath:"/asserts/taiping/",
+        mtlFileName:"lubansuo.mtl",
+        objFileName:"lubansuo.obj",
+    };
+
+    // ThreeUtil.loadMtlObj(small).then((object) => {
+    // ThreeUtil.loadMtlObj(taiping).then((object) => {
+    //     console.log("object->", object)
+    //     object.position.set(0,0,0)
+    //     scene.add(object);
+    // }).catch(e => console.error(e));
+
+
+    var loaderShip = new OBJMTLLoader();
+    // loaderShip.addEventListener( 'load', callbackShipLoaded);
+    loaderShip.load( "/asserts/taiping/lubansuo.obj", "/asserts/taiping/lubansuo.mtl");
 }
 
 // 加载vtk模型
@@ -76,3 +97,20 @@ export const loadFbxModel = (scene) => {
         scene.add(object)
     }).catch(e => console.error(e))
 };
+
+
+/**
+ * 加载gltf模型
+ * @param scene
+ */
+export const loadGltf = (scene) => {
+    const loader = new THREE.GLTFLoader();
+
+    loader.load("/asserts/gltf/radar/34M_17.gltf", ((gltf) => {
+        // 删除旧模型
+        // if(objects.gltf) objects.gltf.remove();
+        // objects.gltf = gltf.scene;
+
+        scene.add(gltf.scene);
+    }));
+}

@@ -5,9 +5,12 @@ import ThreeUtil from './util/ThreeUtil';
 
 import customShape from './view/customShape';
 import loadFont from './view/loadFont';
-import { loadObjModel, loadFbxModel, loadVtkModel } from "./view/loadModel"
+import { loadObjModel, loadFbxModel, loadVtkModel, loadGltf } from "./view/loadModel"
+import mkLuBanSuo from "./view/lubansuo";
 
 export default class LoadModel extends PureComponent {
+	luBanSuo = null;
+
 	componentDidMount(){
 		this.render3D();
 	}
@@ -37,20 +40,24 @@ export default class LoadModel extends PureComponent {
             // 加载3D模型
             .use(async function(){
                 // 加载字体
-                await loadFont(this.scene);
+                // await loadFont(this.scene);
 
                 // 添加自定义形状
-                customShape(this.scene);
+                // customShape(this.scene);
 
+				// 鲁班锁
+				this.luBanSuo = mkLuBanSuo(this.scene);
 
                 // 加载obj模型
-                loadObjModel(this.scene);
+                // loadObjModel(this.scene);
+
+                // loadGltf(this.scene);
 
                 // 加载vtk模型
                 // loadVtkModel(this.scene);
 
                 // 加载fbx模型
-                loadFbxModel(this.scene);
+                // loadFbxModel(this.scene);
             })
 
 			// 将渲染器添加到dom中
@@ -72,6 +79,11 @@ export default class LoadModel extends PureComponent {
 					if(scene.customAnimate){
                         scene.customAnimate();
                     }
+
+					if(this.luBanSuo){
+						this.luBanSuo.rotation.x += 0.005;
+						this.luBanSuo.rotation.y += 0.005;
+					}
 
 					camera.lookAt( scene.position );
 					renderer.render(scene, camera);
@@ -102,12 +114,12 @@ function addOrbitControls(){
     const container = this.container;
 
     const G_controls = new OrbitControls(camera,container);
-    G_controls.enableDamping=true;
-    G_controls.enableKeys=false;
-    G_controls.enablePan=true;
+    G_controls.enableDamping = true;
+    G_controls.enableKeys = false;
+    G_controls.enablePan = true;
     G_controls.dampingFactor = 0.1;
     G_controls.rotateSpeed=0.1;
-    G_controls.autoRotate=false;
+    G_controls.autoRotate = false;
 }
 
 
